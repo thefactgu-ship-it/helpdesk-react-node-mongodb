@@ -205,9 +205,7 @@ npm run dev
 
 [User Management Screenshot]<img width="1888" height="932" alt="image" src="https://github.com/user-attachments/assets/ec799f92-4421-4ee4-9a3d-fe4c709243c2" />
 
-```
 
-## Learning Goals
 
 This project demonstrates:
 
