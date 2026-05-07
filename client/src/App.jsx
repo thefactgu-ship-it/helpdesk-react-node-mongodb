@@ -56,6 +56,7 @@ function App() {
   const [deletingTicketId, setDeletingTicketId] = useState(null);
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [deleteUserId, setDeleteUserId] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [form, setForm] = useState({
     title: "",
@@ -360,13 +361,18 @@ function App() {
     }
   };
 
-  const deleteUser = async (id) => {
+  const deleteUser = (id) => {
+    setDeleteUserId(id);
+  };
+
+  const confirmDeleteUser = async () => {
     try {
-      setDeletingUserId(id);
-      await axios.delete(`${AUTH_URL}/users/${id}`, {
+      setDeletingUserId(deleteUserId);
+      await axios.delete(`${AUTH_URL}/users/${deleteUserId}`, {
         headers: authHeaders,
       });
       toast.success("User deleted");
+      setDeleteUserId(null);
       await fetchUsers();
       return true;
     } catch (error) {
@@ -396,6 +402,9 @@ function App() {
   }, [activePage, isAdmin]);
 
   const currentPageMeta = pageTitles[activePage] || pageTitles.dashboard;
+  const pendingDeleteUser = users.find(
+    (user) => user._id === deleteUserId || user.id === deleteUserId,
+  );
 
   const filteredTickets = tickets.filter((ticket) => {
     const matchesSearch =
@@ -439,6 +448,15 @@ function App() {
         message="Are you sure you want to delete this ticket? This action cannot be undone."
         onCancel={() => setDeleteId(null)}
         onConfirm={confirmDeleteTicket}
+      />
+      <ConfirmModal
+        open={!!deleteUserId}
+        title="Delete User"
+        message={`Are you sure you want to delete ${
+          pendingDeleteUser?.name || "this user"
+        }? This account will no longer be able to access the system.`}
+        onCancel={() => setDeleteUserId(null)}
+        onConfirm={confirmDeleteUser}
       />
       <TicketDetailModal
         open={!!selectedTicket}

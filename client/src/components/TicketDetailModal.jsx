@@ -31,47 +31,41 @@ function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachmen
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 py-8 backdrop-blur-sm">
-      <div className="w-full max-w-3xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl dark:bg-slate-900">
-        <div className="mb-6 flex items-start justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-3 py-4 backdrop-blur-sm">
+      <div className="max-h-[92vh] w-full max-w-[52rem] overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl dark:bg-slate-900 md:p-5">
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
               Ticket Details
             </h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              {ticket.ticketNumber} • {ticket.category} • {ticket.department}
+            <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+              {ticket.ticketNumber} / {ticket.category} / {ticket.department}
             </p>
           </div>
 
           <button
             onClick={onClose}
-            className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="shrink-0 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
           >
             Close
           </button>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-2">
-          <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
-            <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Title
-              </h3>
-              <p className="mt-2 text-lg font-semibold text-slate-900 dark:text-white">
-                {ticket.title}
-              </p>
-            </div>
+        <div className="grid gap-3 lg:grid-cols-2">
+          <CompactPanel>
+            <SectionLabel>Title</SectionLabel>
+            <p className="mt-1 text-base font-semibold text-slate-900 dark:text-white">
+              {ticket.title}
+            </p>
 
-            <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Description
-              </h3>
-              <p className="mt-2 text-slate-600 dark:text-slate-300">
+            <div className="mt-3">
+              <SectionLabel>Description</SectionLabel>
+              <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
                 {ticket.description || "No description provided."}
               </p>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <InfoItem label="Priority" value={ticket.priority} />
               <InfoItem label="Status" value={ticket.status} />
               <InfoItem label="Created By" value={ticket.createdBy?.name || "Unknown"} />
@@ -82,26 +76,23 @@ function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachmen
                 value={ticket.dueDate ? new Date(ticket.dueDate).toLocaleString() : "Not set"}
               />
             </div>
-          </div>
+          </CompactPanel>
 
-          <div className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Updated By
-              </h3>
-              <p className="text-slate-700 dark:text-slate-200">
-                {ticket.updatedBy?.name || ticket.createdBy?.name || "Unknown"}
-              </p>
-            </div>
+          <CompactPanel>
+            <SectionLabel>Updated By</SectionLabel>
+            <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">
+              {ticket.updatedBy?.name || ticket.createdBy?.name || "Unknown"}
+            </p>
 
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                Attachments
-              </h3>
+            <div className="mt-4">
+              <SectionLabel>Attachments</SectionLabel>
               {ticket.attachments?.length ? (
-                <ul className="space-y-2">
+                <ul className="mt-2 max-h-40 space-y-2 overflow-y-auto">
                   {ticket.attachments.map((attachment) => (
-                    <li key={attachment._id} className="rounded-2xl bg-white p-3 shadow-sm dark:bg-slate-800">
+                    <li
+                      key={attachment._id}
+                      className="rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800"
+                    >
                       <a
                         className="text-sm font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200"
                         href={attachment.url}
@@ -117,85 +108,92 @@ function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachmen
                   ))}
                 </ul>
               ) : (
-                <p className="text-slate-500 dark:text-slate-400">No attachments yet.</p>
+                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                  No attachments yet.
+                </p>
               )}
             </div>
-          </div>
+          </CompactPanel>
         </div>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              Comments
-            </h3>
-            <div className="space-y-3">
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          <CompactPanel>
+            <SectionLabel>Comments</SectionLabel>
+            <div className="mt-2 max-h-28 space-y-2 overflow-y-auto">
               {ticket.comments?.length ? (
-                ticket.comments.map((comment) => (
+                ticket.comments.map((item) => (
                   <div
-                    key={comment._id}
-                    className="rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-800"
+                    key={item._id}
+                    className="rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800"
                   >
                     <p className="text-sm text-slate-700 dark:text-slate-200">
-                      {comment.text}
+                      {item.text}
                     </p>
-                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                      {comment.author?.name || "Unknown"} • {new Date(comment.createdAt).toLocaleString()}
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {item.author?.name || "Unknown"} / {new Date(item.createdAt).toLocaleString()}
                     </p>
                   </div>
                 ))
               ) : (
-                <p className="text-slate-500 dark:text-slate-400">No comments yet.</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                  No comments yet.
+                </p>
               )}
             </div>
 
-            <form onSubmit={handleSubmitComment} className="mt-4 space-y-3">
+            <form onSubmit={handleSubmitComment} className="mt-3 space-y-2">
               <textarea
-                rows="3"
+                rows="2"
                 value={comment}
                 disabled={!onComment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Add a comment"
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               />
               <button
                 type="submit"
-                className="rounded-2xl bg-purple-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-purple-700"
+                className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700"
               >
                 Post Comment
               </button>
             </form>
-          </div>
+          </CompactPanel>
 
-          <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
-            <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
-              Add Attachment
-            </h3>
-            <form onSubmit={handleUpload} className="space-y-3">
+          <CompactPanel>
+            <SectionLabel>Add Attachment</SectionLabel>
+            <form onSubmit={handleUpload} className="mt-2 space-y-2">
               <input
                 type="file"
                 onChange={(e) => setFile(e.target.files?.[0] || null)}
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               />
               <button
                 type="submit"
                 disabled={!file}
-                className="rounded-2xl bg-purple-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-400"
+                className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-400"
               >
                 Upload File
               </button>
             </form>
-          </div>
+          </CompactPanel>
         </div>
 
-        <div className="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-700 dark:bg-slate-950">
-          <h3 className="mb-3 font-semibold text-slate-700 dark:text-slate-200">Activity log</h3>
-          <div className="space-y-3">
+        <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-950">
+          <h3 className="mb-2 font-semibold text-slate-700 dark:text-slate-200">
+            Activity log
+          </h3>
+          <div className="max-h-40 space-y-2 overflow-y-auto">
             {ticket.activityLog?.length ? (
               ticket.activityLog.map((entry) => (
-                <div key={entry._id} className="rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-800">
-                  <p className="text-sm text-slate-700 dark:text-slate-200">{entry.details}</p>
-                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                    {entry.action} by {entry.user?.name || "Unknown"} • {new Date(entry.createdAt).toLocaleString()}
+                <div
+                  key={entry._id}
+                  className="rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800"
+                >
+                  <p className="text-sm text-slate-700 dark:text-slate-200">
+                    {entry.details}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    {entry.action} by {entry.user?.name || "Unknown"} / {new Date(entry.createdAt).toLocaleString()}
                   </p>
                 </div>
               ))
@@ -209,11 +207,31 @@ function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachmen
   );
 }
 
+function CompactPanel({ children }) {
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-950">
+      {children}
+    </section>
+  );
+}
+
+function SectionLabel({ children }) {
+  return (
+    <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      {children}
+    </h3>
+  );
+}
+
 function InfoItem({ label, value }) {
   return (
-    <div className="rounded-2xl bg-white p-3 shadow-sm dark:bg-slate-800">
-      <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
-      <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">{value}</p>
+    <div className="rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800">
+      <p className="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        {label}
+      </p>
+      <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+        {value}
+      </p>
     </div>
   );
 }
