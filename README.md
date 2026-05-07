@@ -1,113 +1,110 @@
 # HelpDesk React Node MongoDB
 
-A modern full-stack HelpDesk Dashboard project built with React, Node.js, Express, MongoDB, and JWT Authentication.
+A full-stack IT Helpdesk system built with React, Vite, Tailwind CSS, Node.js, Express, MongoDB, and JWT authentication.
 
-> This is a portfolio/demo project created for learning, experimentation, and showcasing full-stack web development skills.
-
----
-
-# Preview
+The project includes a helpdesk analytics dashboard, ticket management workflow, role-based user management, file attachments, comments, activity logs, and light/dark mode support.
 
 ## Features
 
-* Modern Dashboard UI
-* Dark / Light Mode
-* Ticket CRUD System
-* Search & Filter Tickets
-* Pagination
-* Skeleton Loading
-* Toast Notifications
-* Confirm Modal
-* JWT Authentication
-* Protected API Routes
-* MongoDB Database Integration
-* Responsive Design
-* Recharts Data Visualization
+- Dashboard analytics for ticket status, trends, severity, issue categories, open days, and derived satisfaction score
+- Ticket creation, search, filter, pagination, status updates, and delete confirmation
+- Ticket detail modal with comments, attachments, and activity log
+- JWT login/register flow with protected API routes
+- Admin-only user management
+- Default admin account seeding
+- Role-based sidebar visibility
+- Light mode and dark mode
+- Responsive UI with Tailwind CSS
+- Toast notifications and confirmation modals
+- MongoDB persistence with Mongoose models
 
----
+## Tech Stack
 
-# Tech Stack
+### Frontend
 
-## Frontend
+- React
+- Vite
+- Tailwind CSS
+- Axios
+- React Hot Toast
+- Recharts
 
-* React
-* Vite
-* Tailwind CSS
-* Axios
-* React Hot Toast
-* Recharts
+### Backend
 
-## Backend
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- JWT
+- bcryptjs
+- multer
 
-* Node.js
-* Express.js
-* JWT Authentication
-* bcryptjs
-* Mongoose
-
-## Database
-
-* MongoDB
-
----
-
-# Project Structure
+## Project Structure
 
 ```txt
-helpdesk-react-node/
-├── client/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   └── package.json
-│
-├── server/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── index.js
-│   └── .env
-│
-└── README.md
+helpdesk-react-node-mongodb/
+|-- client/
+|   |-- public/
+|   |-- src/
+|   |   |-- components/
+|   |   |-- App.jsx
+|   |   |-- main.jsx
+|   |   `-- index.css
+|   |-- package.json
+|   `-- vite.config.js
+|-- server/
+|   |-- middleware/
+|   |-- models/
+|   |-- routes/
+|   |-- index.js
+|   `-- package.json
+`-- README.md
 ```
 
----
+## Getting Started
 
-# Installation
-
-## Clone Repository
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/thefactgu-ship-it/helpdesk-react-node-mongodb.git
+cd helpdesk-react-node-mongodb
 ```
 
----
-
-# Backend Setup
+### 2. Backend Setup
 
 ```bash
 cd server
 npm install
 ```
 
-Create `.env`
+Create `server/.env`:
 
 ```env
 PORT=5000
 MONGO_URI=mongodb://127.0.0.1:27017/helpdesk_db
 JWT_SECRET=your_secret_key
+
+# Optional default admin overrides
+ADMIN_EMAIL=admin@test.com
+ADMIN_PASSWORD=123456
+ADMIN_NAME=System Admin
 ```
 
-Run server
+Run the backend:
 
 ```bash
 npm run dev
 ```
 
----
+The API will run at:
 
-# Frontend Setup
+```txt
+http://localhost:5000
+```
+
+### 3. Frontend Setup
+
+Open a new terminal:
 
 ```bash
 cd client
@@ -115,74 +112,117 @@ npm install
 npm run dev
 ```
 
----
-
-# Authentication
-
-JWT Authentication is implemented.
-
-Protected routes require:
+The web app will run at:
 
 ```txt
-Authorization: Bearer YOUR_TOKEN
+http://localhost:5173
 ```
 
----
+## Default Admin Account
 
-# Demo Account
+When the backend starts, it automatically ensures a default admin user exists.
 
 ```txt
 Email: admin@test.com
 Password: 123456
+Role: Admin
 ```
 
----
+You can override this using `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME` in `server/.env`.
 
-# API Endpoints
+## Roles And Access
 
-## Auth
+- `Admin`: can access User Management and manage system users
+- `Manager`, `Agent`, `User`: can use normal helpdesk features, but cannot see admin management menus
+
+Public registration creates users with the `User` role only. Role changes must be done by an admin.
+
+## API Overview
+
+### Auth
 
 ```txt
-POST /api/auth/register
-POST /api/auth/login
+POST   /api/auth/register
+POST   /api/auth/login
+GET    /api/auth/me
+GET    /api/auth/users
+POST   /api/auth/users          Admin only
+PATCH  /api/auth/users/:id      Admin only
+DELETE /api/auth/users/:id      Admin only
 ```
 
-## Tickets
+### Tickets
 
 ```txt
 GET    /api/tickets
+GET    /api/tickets/insights
+GET    /api/tickets/:id
 POST   /api/tickets
+PATCH  /api/tickets/:id
 PATCH  /api/tickets/:id/status
+PATCH  /api/tickets/:id/assign
+POST   /api/tickets/:id/comment
+POST   /api/tickets/:id/attachments
 DELETE /api/tickets/:id
 ```
 
----
+Protected routes require this header:
 
-# Learning Goals
+```txt
+Authorization: Bearer YOUR_JWT_TOKEN
+```
 
-This project was built to practice and demonstrate:
+## Useful Commands
 
-* Full Stack Development
-* REST API Design
-* JWT Authentication Flow
-* React Component Architecture
-* MongoDB Integration
-* State Management
-* Async API Handling
-* UI/UX Improvements
-* Production-style Project Structure
+### Client
 
----
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run preview
+```
 
-# Disclaimer
+### Server
 
-This project is created for educational and portfolio purposes only.
+```bash
+npm run dev
+```
 
----
+## Environment Notes
 
-<img width="1903" height="944" alt="image" src="https://github.com/user-attachments/assets/26bcf840-f13c-42e4-b665-5855847243ae" />
+- Make sure MongoDB is running before starting the backend.
+- Uploaded files are stored in `server/uploads/`.
+- The frontend expects the API at `http://localhost:5000`.
+- The project is designed for local development and portfolio/demo use.
 
+## Screenshots
 
-# Author
+Add screenshots here after pushing to GitHub:
 
-Created by Manasak Srisuk
+```md
+![Dashboard Screenshot](./docs/dashboard.png)
+![Ticket Management Screenshot](./docs/tickets.png)
+![User Management Screenshot](./docs/users.png)
+```
+
+## Learning Goals
+
+This project demonstrates:
+
+- Full-stack CRUD application structure
+- REST API design
+- JWT authentication
+- Role-based access control
+- React component architecture
+- Dashboard data visualization
+- MongoDB schema design
+- Responsive UI design
+
+## Author
+
+Created by Manasak Srisuk.
+
+## License
+
+This project is for educational and portfolio purposes.
