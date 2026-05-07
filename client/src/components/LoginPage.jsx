@@ -17,6 +17,7 @@ function LoginPage({ onLogin, onRegister }) {
     name: "",
     email: "",
     password: "",
+    team: "Support",
   });
 
   const isLogin = mode === "login";
@@ -41,6 +42,7 @@ function LoginPage({ onLogin, onRegister }) {
             name: "",
             email: "",
             password: "",
+            team: "Support",
           });
         }
       }
@@ -131,6 +133,27 @@ function LoginPage({ onLogin, onRegister }) {
             />
           </label>
 
+          {!isLogin && (
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-slate-700">
+                Team
+              </span>
+              <select
+                value={registerForm.team}
+                disabled={loading}
+                onChange={(e) =>
+                  setRegisterForm({ ...registerForm, team: e.target.value })
+                }
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <option value="Support">Support</option>
+                <option value="Operations">Operations</option>
+                <option value="Sales">Sales</option>
+                <option value="HR">HR</option>
+              </select>
+            </label>
+          )}
+
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-slate-700">
               Password
@@ -151,7 +174,7 @@ function LoginPage({ onLogin, onRegister }) {
               className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
             />
           </label>
-
+          
           <button
             type="submit"
             disabled={loading}

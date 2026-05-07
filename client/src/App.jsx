@@ -1,16 +1,36 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import StatCard from "./components/StatCard";
 import TicketTable from "./components/TicketTable";
 import AddTicketForm from "./components/AddTicketForm";
 import Sidebar from "./components/Sidebar";
 import toast, { Toaster } from "react-hot-toast";
 import ConfirmModal from "./components/ConfirmModal";
-import TicketCharts from "./components/TicketCharts";
 import LoginPage from "./components/LoginPage";
+import TicketDetailModal from "./components/TicketDetailModal";
+import DashboardAnalytics from "./components/DashboardAnalytics";
+import UserManagement from "./components/UserManagement";
 
 const API_URL = "http://localhost:5000/api/tickets";
 const AUTH_URL = "http://localhost:5000/api/auth";
+
+const pageTitles = {
+  dashboard: {
+    title: "Dashboard",
+    subtitle: "Important issues and problem patterns for helpdesk analysis",
+  },
+  tickets: {
+    title: "Helpdesk Tickets",
+    subtitle: "Search, review, update, and manage all tickets",
+  },
+  "add-ticket": {
+    title: "Add Ticket",
+    subtitle: "Create a new helpdesk request",
+  },
+  "user-management": {
+    title: "User Management",
+    subtitle: "Create accounts and manage system access",
+  },
+};
 
 function getErrorMessage(error, fallback) {
   return error?.response?.data?.message || error?.message || fallback;
@@ -18,22 +38,44 @@ function getErrorMessage(error, fallback) {
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
+  const [currentUser, setCurrentUser] = useState(
+    JSON.parse(localStorage.getItem("user")) || null,
+  );
+  const [users, setUsers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const ticketsPerPage = 5;
   const [tickets, setTickets] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
+  const [activePage, setActivePage] = useState("dashboard");
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [savingUser, setSavingUser] = useState(false);
   const [updatingTicketId, setUpdatingTicketId] = useState(null);
   const [deletingTicketId, setDeletingTicketId] = useState(null);
+  const [deletingUserId, setDeletingUserId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [selectedTicket, setSelectedTicket] = useState(null);
   const [form, setForm] = useState({
     title: "",
     description: "",
+    category: "General",
+    department: "IT",
     priority: "medium",
+    assignedTo: "",
+    dueDate: "",
   });
+
+  const authHeaders = useMemo(
+    () =>
+      token
+        ? {
+            Authorization: `Bearer ${token}`,
+          }
+        : {},
+    [token],
+  );
 
   const fetchTickets = useCallback(async () => {
     if (!token) {
@@ -44,13 +86,9 @@ function App() {
 
     try {
       setLoading(true);
-
       const res = await axios.get(API_URL, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: authHeaders,
       });
-
       setTickets(res.data);
     } catch (error) {
       console.error("Failed to fetch tickets", error);
@@ -58,16 +96,43 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [authHeaders, token]);
+
+  const fetchUsers = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      const res = await axios.get(`${AUTH_URL}/users`, {
+        headers: authHeaders,
+      });
+      setUsers(res.data);
+    } catch (error) {
+      console.error("Failed to fetch users", error);
+    }
+  }, [authHeaders, token]);
+
+  const fetchCurrentUser = useCallback(async () => {
+    if (!token || currentUser) return;
+
+    try {
+      const res = await axios.get(`${AUTH_URL}/me`, {
+        headers: authHeaders,
+      });
+      setCurrentUser(res.data);
+      localStorage.setItem("user", JSON.stringify(res.data));
+    } catch (error) {
+      console.error("Failed to fetch current user", error);
+    }
+  }, [authHeaders, currentUser, token]);
 
   const handleLogin = async (loginForm) => {
     try {
       const res = await axios.post(`${AUTH_URL}/login`, loginForm);
-
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
       setToken(res.data.token);
+      setCurrentUser(res.data.user);
       setTickets([]);
-
       toast.success("Login successful");
       return true;
     } catch (error) {
@@ -91,11 +156,15 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     setToken(null);
+    setCurrentUser(null);
     setTickets([]);
+    setUsers([]);
     setSearch("");
     setFilterStatus("all");
     setCurrentPage(1);
+    setActivePage("dashboard");
     toast.success("Logged out");
   };
 
@@ -109,27 +178,29 @@ function App() {
 
     try {
       setSubmitting(true);
-
       await axios.post(
         API_URL,
         {
           ...form,
           title: form.title.trim(),
           description: form.description.trim(),
+          assignedTo: form.assignedTo || null,
+          dueDate: form.dueDate || undefined,
         },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: authHeaders,
         },
       );
       toast.success("Ticket added successfully");
       setForm({
         title: "",
         description: "",
+        category: "General",
+        department: "IT",
         priority: "medium",
+        assignedTo: "",
+        dueDate: "",
       });
-
       await fetchTickets();
     } catch (error) {
       console.error("Failed to create ticket", error);
@@ -142,18 +213,18 @@ function App() {
   const updateStatus = async (id, status) => {
     try {
       setUpdatingTicketId(id);
-
       await axios.patch(
         `${API_URL}/${id}/status`,
         { status },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: authHeaders,
         },
       );
       toast.success("Status updated");
       await fetchTickets();
+      if (selectedTicket && selectedTicket._id === id) {
+        await openTicketDetails(id);
+      }
     } catch (error) {
       console.error("Failed to update status", error);
       toast.error(getErrorMessage(error, "Failed to update status"));
@@ -162,14 +233,65 @@ function App() {
     }
   };
 
+  const openTicketDetails = async (id) => {
+    try {
+      const res = await axios.get(`${API_URL}/${id}`, {
+        headers: authHeaders,
+      });
+      setSelectedTicket(res.data);
+    } catch (error) {
+      console.error("Failed to load ticket details", error);
+      toast.error(getErrorMessage(error, "Failed to load ticket details"));
+    }
+  };
+
+  const closeTicketDetails = () => {
+    setSelectedTicket(null);
+  };
+
+  const addTicketComment = async (ticketId, text) => {
+    try {
+      await axios.post(
+        `${API_URL}/${ticketId}/comment`,
+        { text },
+        {
+          headers: authHeaders,
+        },
+      );
+      toast.success("Comment added");
+      await fetchTickets();
+      await openTicketDetails(ticketId);
+    } catch (error) {
+      console.error("Failed to add comment", error);
+      toast.error(getErrorMessage(error, "Failed to add comment"));
+    }
+  };
+
+  const uploadTicketAttachment = async (ticketId, file) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      await axios.post(`${API_URL}/${ticketId}/attachments`, formData, {
+        headers: {
+          ...authHeaders,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      toast.success("Attachment uploaded");
+      await fetchTickets();
+      await openTicketDetails(ticketId);
+    } catch (error) {
+      console.error("Failed to upload attachment", error);
+      toast.error(getErrorMessage(error, "Failed to upload attachment"));
+    }
+  };
+
   const confirmDeleteTicket = async () => {
     try {
       setDeletingTicketId(deleteId);
-
       await axios.delete(`${API_URL}/${deleteId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: authHeaders,
       });
       toast.success("Ticket deleted");
       setDeleteId(null);
@@ -186,22 +308,101 @@ function App() {
     setDeleteId(id);
   };
 
+  const createUser = async (userForm) => {
+    if (!userForm.name || !userForm.email || !userForm.password) {
+      toast.error("Name, email, and password are required");
+      return false;
+    }
+
+    try {
+      setSavingUser(true);
+      await axios.post(`${AUTH_URL}/users`, userForm, {
+        headers: authHeaders,
+      });
+      toast.success("User created");
+      await fetchUsers();
+      return true;
+    } catch (error) {
+      console.error("Failed to create user", error);
+      toast.error(getErrorMessage(error, "Failed to create user"));
+      return false;
+    } finally {
+      setSavingUser(false);
+    }
+  };
+
+  const updateUser = async (id, userForm) => {
+    if (!userForm.name || !userForm.email) {
+      toast.error("Name and email are required");
+      return false;
+    }
+
+    try {
+      setSavingUser(true);
+      const res = await axios.patch(`${AUTH_URL}/users/${id}`, userForm, {
+        headers: authHeaders,
+      });
+
+      if (currentUser && (currentUser.id === id || currentUser._id === id)) {
+        setCurrentUser(res.data);
+        localStorage.setItem("user", JSON.stringify(res.data));
+      }
+
+      toast.success("User updated");
+      await fetchUsers();
+      return true;
+    } catch (error) {
+      console.error("Failed to update user", error);
+      toast.error(getErrorMessage(error, "Failed to update user"));
+      return false;
+    } finally {
+      setSavingUser(false);
+    }
+  };
+
+  const deleteUser = async (id) => {
+    try {
+      setDeletingUserId(id);
+      await axios.delete(`${AUTH_URL}/users/${id}`, {
+        headers: authHeaders,
+      });
+      toast.success("User deleted");
+      await fetchUsers();
+      return true;
+    } catch (error) {
+      console.error("Failed to delete user", error);
+      toast.error(getErrorMessage(error, "Failed to delete user"));
+      return false;
+    } finally {
+      setDeletingUserId(null);
+    }
+  };
+
   useEffect(() => {
     if (!token) return;
-
-    // Sync tickets whenever authentication becomes available.
     // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchCurrentUser();
+    fetchUsers();
     fetchTickets();
-  }, [fetchTickets, token]);
+  }, [fetchCurrentUser, fetchUsers, fetchTickets, token]);
 
-  const total = tickets.length;
-  const open = tickets.filter((t) => t.status === "open").length;
-  const progress = tickets.filter((t) => t.status === "in_progress").length;
-  const closed = tickets.filter((t) => t.status === "closed").length;
+  const isAdmin = currentUser?.role === "Admin";
+
+  useEffect(() => {
+    if (activePage === "user-management" && !isAdmin) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActivePage("dashboard");
+    }
+  }, [activePage, isAdmin]);
+
+  const currentPageMeta = pageTitles[activePage] || pageTitles.dashboard;
+
   const filteredTickets = tickets.filter((ticket) => {
     const matchesSearch =
       ticket.title.toLowerCase().includes(search.toLowerCase()) ||
-      ticket.description.toLowerCase().includes(search.toLowerCase());
+      ticket.description.toLowerCase().includes(search.toLowerCase()) ||
+      ticket.category.toLowerCase().includes(search.toLowerCase()) ||
+      ticket.department.toLowerCase().includes(search.toLowerCase());
 
     const matchesStatus =
       filterStatus === "all" || ticket.status === filterStatus;
@@ -210,13 +411,12 @@ function App() {
   });
 
   const totalPages = Math.ceil(filteredTickets.length / ticketsPerPage);
-
   const paginatedTickets = filteredTickets.slice(
     (currentPage - 1) * ticketsPerPage,
     currentPage * ticketsPerPage,
   );
+
   useEffect(() => {
-    // Reset pagination when table filters change.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [search, filterStatus]);
@@ -240,82 +440,84 @@ function App() {
         onCancel={() => setDeleteId(null)}
         onConfirm={confirmDeleteTicket}
       />
-      <div className="min-h-screen bg-gradient-to-br from-fuchsia-400 via-purple-500 to-violet-700 p-6 text-slate-900 dark:text-white">
-        <div className="mx-auto flex max-w-7xl overflow-hidden rounded-3xl bg-white/90 shadow-2xl backdrop-blur dark:bg-slate-900/90">
-          <Sidebar />
-          <main className="flex-1 bg-slate-50/80 p-6 dark:bg-slate-900">
-            <header className="mb-6 flex items-center justify-between">
+      <TicketDetailModal
+        open={!!selectedTicket}
+        ticket={selectedTicket}
+        onClose={closeTicketDetails}
+        onComment={addTicketComment}
+        onUploadAttachment={uploadTicketAttachment}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-violet-100 via-white to-purple-100 p-4 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 dark:text-white md:p-6">
+        <div className="mx-auto flex max-w-7xl flex-col overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 shadow-2xl backdrop-blur dark:border-slate-800 dark:bg-slate-900/90 md:flex-row">
+          <Sidebar
+            activePage={activePage}
+            currentUser={currentUser}
+            onNavigate={setActivePage}
+            onLogout={handleLogout}
+          />
+          <main className="min-h-[calc(100vh-3rem)] flex-1 bg-slate-50/90 p-5 dark:bg-slate-900 md:p-6">
+            <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
-                <h2 className="text-2xl font-bold">Dashboard</h2>
+                <h2 className="text-2xl font-bold">{currentPageMeta.title}</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  React + Node.js + MongoDB ticket overview
+                  {currentPageMeta.subtitle}
                 </p>
               </div>
 
               <div className="flex gap-3">
                 <button
                   onClick={() => setDarkMode(!darkMode)}
-                  className="rounded-full bg-purple-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-purple-300 transition hover:bg-purple-700 dark:bg-white dark:text-purple-700 dark:shadow-none"
+                  className="rounded-full border border-purple-200 bg-white px-5 py-2 text-sm font-semibold text-purple-700 shadow-sm transition hover:border-purple-400 hover:bg-purple-50 dark:border-slate-700 dark:bg-slate-950 dark:text-purple-200 dark:hover:border-purple-400 dark:hover:bg-slate-800"
                 >
                   {darkMode ? "Light Mode" : "Dark Mode"}
-                </button>
-
-                <button
-                  onClick={handleLogout}
-                  className="rounded-full bg-red-500 px-5 py-2 text-sm font-semibold text-white shadow-lg transition hover:bg-red-600"
-                >
-                  Logout
                 </button>
               </div>
             </header>
 
-            <section className="mb-6 grid grid-cols-1 gap-5 md:grid-cols-4">
-              <StatCard
-                title="Total Tickets"
-                value={total}
-                gradient="from-orange-400 to-pink-500"
-              />
-              <StatCard
-                title="Open"
-                value={open}
-                gradient="from-blue-400 to-cyan-500"
-              />
-              <StatCard
-                title="In Progress"
-                value={progress}
-                gradient="from-purple-500 to-indigo-500"
-              />
-              <StatCard
-                title="Closed"
-                value={closed}
-                gradient="from-emerald-400 to-teal-500"
-              />
-            </section>
+            {activePage === "dashboard" && (
+              <DashboardAnalytics darkMode={darkMode} tickets={tickets} />
+            )}
 
-            <TicketCharts open={open} progress={progress} closed={closed} />
+            {activePage === "tickets" && (
+              <TicketTable
+                tickets={paginatedTickets}
+                loading={loading}
+                search={search}
+                setSearch={setSearch}
+                filterStatus={filterStatus}
+                setFilterStatus={setFilterStatus}
+                updatingTicketId={updatingTicketId}
+                deletingTicketId={deletingTicketId}
+                updateStatus={updateStatus}
+                deleteTicket={deleteTicket}
+                currentPage={currentPage}
+                setCurrentPage={setCurrentPage}
+                totalPages={totalPages}
+                onViewTicket={openTicketDetails}
+              />
+            )}
 
-            <AddTicketForm
-              form={form}
-              setForm={setForm}
-              handleSubmit={handleSubmit}
-              submitting={submitting}
-            />
+            {activePage === "add-ticket" && (
+              <AddTicketForm
+                form={form}
+                setForm={setForm}
+                handleSubmit={handleSubmit}
+                submitting={submitting}
+                users={users}
+              />
+            )}
 
-            <TicketTable
-              tickets={paginatedTickets}
-              loading={loading}
-              search={search}
-              setSearch={setSearch}
-              filterStatus={filterStatus}
-              setFilterStatus={setFilterStatus}
-              updatingTicketId={updatingTicketId}
-              deletingTicketId={deletingTicketId}
-              updateStatus={updateStatus}
-              deleteTicket={deleteTicket}
-              currentPage={currentPage}
-              setCurrentPage={setCurrentPage}
-              totalPages={totalPages}
-            />
+            {activePage === "user-management" && isAdmin && (
+              <UserManagement
+                currentUser={currentUser}
+                deletingUserId={deletingUserId}
+                onCreateUser={createUser}
+                onDeleteUser={deleteUser}
+                onUpdateUser={updateUser}
+                savingUser={savingUser}
+                users={users}
+              />
+            )}
           </main>
         </div>
       </div>

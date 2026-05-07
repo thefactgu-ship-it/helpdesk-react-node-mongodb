@@ -15,6 +15,7 @@ function TicketTable({
   currentPage,
   setCurrentPage,
   totalPages,
+  onViewTicket,
 }) {
   return (
     <section className="mt-6 rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-800">
@@ -39,6 +40,7 @@ function TicketTable({
           <option value="all">All Status</option>
           <option value="open">Open</option>
           <option value="in_progress">In Progress</option>
+          <option value="resolved">Resolved</option>
           <option value="closed">Closed</option>
         </select>
       </div>
@@ -47,11 +49,12 @@ function TicketTable({
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b text-slate-500 dark:border-slate-700 dark:text-slate-400">
-              <th className="py-3">Title</th>
-              <th>Description</th>
+              <th className="py-3">Ticket #</th>
+              <th>Title</th>
               <th>Priority</th>
               <th>Status</th>
-              <th>Created</th>
+              <th>Assigned</th>
+              <th>Due</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -74,9 +77,14 @@ function TicketTable({
                     key={ticket._id}
                     className="border-b last:border-0 dark:border-slate-700"
                   >
-                    <td className="py-4 font-semibold">{ticket.title}</td>
-                    <td className="text-slate-500 dark:text-slate-400">
-                      {ticket.description}
+                    <td className="py-4 font-semibold text-purple-700">
+                      {ticket.ticketNumber}
+                    </td>
+                    <td className="py-4">
+                      <div className="font-semibold">{ticket.title}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                        {ticket.category} • {ticket.department}
+                      </div>
                     </td>
                     <td>
                       <Badge text={ticket.priority} />
@@ -92,17 +100,29 @@ function TicketTable({
                       >
                         <option value="open">Open</option>
                         <option value="in_progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
                         <option value="closed">Closed</option>
                       </select>
                     </td>
                     <td className="text-slate-500 dark:text-slate-400">
-                      {new Date(ticket.createdAt).toLocaleDateString()}
+                      {ticket.assignedTo ? ticket.assignedTo.name : "Unassigned"}
                     </td>
-                    <td>
+                    <td className="text-slate-500 dark:text-slate-400">
+                      {ticket.dueDate
+                        ? new Date(ticket.dueDate).toLocaleDateString()
+                        : "—"}
+                    </td>
+                    <td className="space-x-2">
+                      <button
+                        onClick={() => onViewTicket(ticket._id)}
+                        className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                      >
+                        View
+                      </button>
                       <button
                         onClick={() => deleteTicket(ticket._id)}
                         disabled={isBusy}
-                        className="rounded-lg bg-red-500 px-4 py-2 text-xs font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-red-300"
+                        className="rounded-lg bg-red-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-red-300"
                       >
                         {isDeleting ? "Deleting..." : "Delete"}
                       </button>
@@ -114,7 +134,7 @@ function TicketTable({
 
             {!loading && tickets.length === 0 && (
               <tr>
-                <td colSpan="6" className="py-8 text-center text-slate-500">
+                <td colSpan="7" className="py-8 text-center text-slate-500">
                   No tickets found
                 </td>
               </tr>
