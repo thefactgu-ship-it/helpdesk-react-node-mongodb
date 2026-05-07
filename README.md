@@ -180,6 +180,9 @@ This project is created for educational and portfolio purposes only.
 
 ---
 
+<img width="1903" height="944" alt="image" src="https://github.com/user-attachments/assets/26bcf840-f13c-42e4-b665-5855847243ae" />
+
+
 # Author
 
 Created by Manasak Srisuk
