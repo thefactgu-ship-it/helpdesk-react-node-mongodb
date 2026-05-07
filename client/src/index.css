@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+.bg-conic-gradient {
+  background: conic-gradient(#2563eb 0 35%, #7c3aed 35% 70%, #10b981 70% 100%);
+}
