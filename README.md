@@ -198,12 +198,13 @@ npm run dev
 
 ## Screenshots
 
-Add screenshots here after pushing to GitHub:
 
-```md
-![Dashboard Screenshot](./docs/dashboard.png)
-![Ticket Management Screenshot](./docs/tickets.png)
-![User Management Screenshot](./docs/users.png)
+[Dashboard Screenshot]<img width="1899" height="938" alt="image" src="https://github.com/user-attachments/assets/9a39118b-f0fe-471e-b862-ca373f371595" />
+
+[Ticket Management Screenshot]<img width="1897" height="936" alt="image" src="https://github.com/user-attachments/assets/d812a41d-354a-4ad6-b2c3-f2d83bc65277" />
+
+[User Management Screenshot]<img width="1888" height="932" alt="image" src="https://github.com/user-attachments/assets/ec799f92-4421-4ee4-9a3d-fe4c709243c2" />
+
 ```
 
 ## Learning Goals
