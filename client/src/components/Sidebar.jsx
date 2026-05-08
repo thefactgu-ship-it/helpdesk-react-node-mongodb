@@ -10,18 +10,18 @@ const menuGroups = [
   {
     label: "Reports",
     items: [
-      { id: "monthly-report", text: "Monthly Report", icon: "MR", enabled: false },
-      { id: "quarterly-report", text: "Quarterly / Yearly", icon: "Q", enabled: false },
+      { id: "monthly-report", text: "Monthly Report", icon: "MR", enabled: true },
+      { id: "quarterly-report", text: "Quarterly / Yearly", icon: "Q", enabled: true },
     ],
   },
   {
     label: "System",
     adminOnly: true,
     items: [
-      { id: "assets", text: "Asset Management", icon: "AM", enabled: false },
+      { id: "assets", text: "Asset Management", icon: "AM", enabled: true },
       { id: "user-management", text: "User Management", icon: "UM", enabled: true },
-      { id: "request-users", text: "Request Users", icon: "RU", enabled: false },
-      { id: "problem-types", text: "Problem Types", icon: "#", enabled: false },
+      { id: "request-users", text: "Request Users", icon: "RU", enabled: true },
+      { id: "problem-types", text: "Problem Types", icon: "#", enabled: true },
     ],
   },
 ];

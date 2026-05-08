@@ -2,6 +2,8 @@ import Badge from "./Badge";
 import SkeletonRow from "./SkeletonRow";
 
 function TicketTable({
+  assigningTicketId,
+  assignTicket,
   tickets,
   loading,
   search,
@@ -16,7 +18,16 @@ function TicketTable({
   setCurrentPage,
   totalPages,
   onViewTicket,
+  currentUser,
+  users = [],
 }) {
+  const canManageTickets = ["Admin", "Manager"].includes(currentUser?.role);
+  const assignableUsers = users.filter((user) =>
+    ["admin", "manager", "agent", "staff"].includes(
+      String(user.role || "").toLowerCase(),
+    ),
+  );
+
   return (
     <section className="mt-6 rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-800">
       <h3 className="mb-4 font-bold">Recent Tickets</h3>
@@ -69,8 +80,9 @@ function TicketTable({
             ) : (
               tickets.map((ticket) => {
                 const isUpdating = updatingTicketId === ticket._id;
+                const isAssigning = assigningTicketId === ticket._id;
                 const isDeleting = deletingTicketId === ticket._id;
-                const isBusy = isUpdating || isDeleting;
+                const isBusy = isUpdating || isAssigning || isDeleting;
 
                 return (
                   <tr
@@ -83,7 +95,8 @@ function TicketTable({
                     <td className="py-4">
                       <div className="font-semibold">{ticket.title}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400">
-                        {ticket.category} • {ticket.department}
+                        {ticket.category} / {ticket.department}
+                        {ticket.requester ? ` / ${ticket.requester}` : ""}
                       </div>
                     </td>
                     <td>
@@ -105,12 +118,30 @@ function TicketTable({
                       </select>
                     </td>
                     <td className="text-slate-500 dark:text-slate-400">
-                      {ticket.assignedTo ? ticket.assignedTo.name : "Unassigned"}
+                      {canManageTickets ? (
+                        <select
+                          value={ticket.assignedTo?._id || ""}
+                          disabled={isBusy || !assignableUsers.length}
+                          onChange={(e) => assignTicket(ticket._id, e.target.value)}
+                          className="max-w-40 rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm font-medium text-purple-700 outline-none focus:border-purple-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                        >
+                          <option value="">
+                            {isAssigning ? "Assigning..." : "Unassigned"}
+                          </option>
+                          {assignableUsers.map((user) => (
+                            <option key={user._id || user.id} value={user._id || user.id}>
+                              {user.name}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        ticket.assignedTo?.name || "Unassigned"
+                      )}
                     </td>
                     <td className="text-slate-500 dark:text-slate-400">
                       {ticket.dueDate
                         ? new Date(ticket.dueDate).toLocaleDateString()
-                        : "—"}
+                        : "-"}
                     </td>
                     <td className="space-x-2">
                       <button
@@ -119,13 +150,15 @@ function TicketTable({
                       >
                         View
                       </button>
-                      <button
-                        onClick={() => deleteTicket(ticket._id)}
-                        disabled={isBusy}
-                        className="rounded-lg bg-red-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-red-300"
-                      >
-                        {isDeleting ? "Deleting..." : "Delete"}
-                      </button>
+                      {canManageTickets && (
+                        <button
+                          onClick={() => deleteTicket(ticket._id)}
+                          disabled={isBusy}
+                          className="rounded-lg bg-red-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-red-300"
+                        >
+                          {isDeleting ? "Deleting..." : "Delete"}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 );

@@ -1,17 +1,31 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import axios from "axios";
-import TicketTable from "./components/TicketTable";
-import AddTicketForm from "./components/AddTicketForm";
 import Sidebar from "./components/Sidebar";
 import toast, { Toaster } from "react-hot-toast";
 import ConfirmModal from "./components/ConfirmModal";
 import LoginPage from "./components/LoginPage";
 import TicketDetailModal from "./components/TicketDetailModal";
-import DashboardAnalytics from "./components/DashboardAnalytics";
-import UserManagement from "./components/UserManagement";
+import { API_BASE_URL } from "./services/api";
 
-const API_URL = "http://localhost:5000/api/tickets";
-const AUTH_URL = "http://localhost:5000/api/auth";
+const AddTicketPage = lazy(() => import("./pages/AddTicketPage"));
+const AssetManagementPage = lazy(() => import("./pages/AssetManagementPage"));
+const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const MonthlyReportPage = lazy(() => import("./pages/MonthlyReportPage"));
+const ProblemTypesPage = lazy(() => import("./pages/ProblemTypesPage"));
+const QuarterlyYearlyPage = lazy(() => import("./pages/QuarterlyYearlyPage"));
+const RequestUsersPage = lazy(() => import("./pages/RequestUsersPage"));
+const TicketsPage = lazy(() => import("./pages/TicketsPage"));
+const UserManagementPage = lazy(() => import("./pages/UserManagementPage"));
+
+const API_URL = `${API_BASE_URL}/tickets`;
+const AUTH_URL = `${API_BASE_URL}/auth`;
 
 const pageTitles = {
   dashboard: {
@@ -26,14 +40,35 @@ const pageTitles = {
     title: "Add Ticket",
     subtitle: "Create a new helpdesk request",
   },
+  "monthly-report": {
+    title: "Monthly Report",
+    subtitle: "Review helpdesk performance by month",
+  },
+  "quarterly-report": {
+    title: "Quarterly / Yearly",
+    subtitle: "Compare ticket trends across longer periods",
+  },
+  assets: {
+    title: "Asset Management",
+    subtitle: "Prepare and track IT assets for each department",
+  },
   "user-management": {
     title: "User Management",
     subtitle: "Create accounts and manage system access",
   },
+  "request-users": {
+    title: "Request Users",
+    subtitle: "Review requesters separately from helpdesk staff",
+  },
+  "problem-types": {
+    title: "Problem Types",
+    subtitle: "Maintain common helpdesk categories",
+  },
 };
 
 function getErrorMessage(error, fallback) {
-  return error?.response?.data?.message || error?.message || fallback;
+  const validationMessage = error?.response?.data?.errors?.[0]?.message;
+  return validationMessage || error?.response?.data?.message || error?.message || fallback;
 }
 
 function App() {
@@ -45,6 +80,7 @@ function App() {
   const [currentPage, setCurrentPage] = useState(1);
   const ticketsPerPage = 5;
   const [tickets, setTickets] = useState([]);
+  const [summaryTickets, setSummaryTickets] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
   const [activePage, setActivePage] = useState("dashboard");
   const [search, setSearch] = useState("");
@@ -53,6 +89,7 @@ function App() {
   const [submitting, setSubmitting] = useState(false);
   const [savingUser, setSavingUser] = useState(false);
   const [updatingTicketId, setUpdatingTicketId] = useState(null);
+  const [assigningTicketId, setAssigningTicketId] = useState(null);
   const [deletingTicketId, setDeletingTicketId] = useState(null);
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
@@ -61,6 +98,7 @@ function App() {
   const [form, setForm] = useState({
     title: "",
     description: "",
+    requester: "",
     category: "General",
     department: "IT",
     priority: "medium",
@@ -99,6 +137,23 @@ function App() {
     }
   }, [authHeaders, token]);
 
+  const fetchSummaryTickets = useCallback(async () => {
+    if (!token) {
+      setSummaryTickets([]);
+      return;
+    }
+
+    try {
+      const res = await axios.get(`${API_URL}/summary`, {
+        headers: authHeaders,
+      });
+      setSummaryTickets(res.data);
+    } catch (error) {
+      console.error("Failed to fetch ticket summary", error);
+      toast.error(getErrorMessage(error, "Failed to fetch ticket summary"));
+    }
+  }, [authHeaders, token]);
+
   const fetchUsers = useCallback(async () => {
     if (!token) return;
 
@@ -134,6 +189,7 @@ function App() {
       setToken(res.data.token);
       setCurrentUser(res.data.user);
       setTickets([]);
+      setSummaryTickets([]);
       toast.success("Login successful");
       return true;
     } catch (error) {
@@ -161,6 +217,7 @@ function App() {
     setToken(null);
     setCurrentUser(null);
     setTickets([]);
+    setSummaryTickets([]);
     setUsers([]);
     setSearch("");
     setFilterStatus("all");
@@ -176,6 +233,18 @@ function App() {
       toast.error("Ticket title is required");
       return;
     }
+    if (form.title.trim().length < 5) {
+      toast.error("Title must be at least 5 characters");
+      return;
+    }
+    if (!form.requester.trim()) {
+      toast.error("Requester is required");
+      return;
+    }
+    if (form.requester.trim().length < 2) {
+      toast.error("Requester must be at least 2 characters");
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -185,7 +254,8 @@ function App() {
           ...form,
           title: form.title.trim(),
           description: form.description.trim(),
-          assignedTo: form.assignedTo || null,
+          requester: form.requester.trim(),
+          assignedTo: canManageTickets ? form.assignedTo || undefined : undefined,
           dueDate: form.dueDate || undefined,
         },
         {
@@ -196,6 +266,7 @@ function App() {
       setForm({
         title: "",
         description: "",
+        requester: "",
         category: "General",
         department: "IT",
         priority: "medium",
@@ -203,6 +274,7 @@ function App() {
         dueDate: "",
       });
       await fetchTickets();
+      await fetchSummaryTickets();
     } catch (error) {
       console.error("Failed to create ticket", error);
       toast.error(getErrorMessage(error, "Failed to create ticket"));
@@ -223,6 +295,7 @@ function App() {
       );
       toast.success("Status updated");
       await fetchTickets();
+      await fetchSummaryTickets();
       if (selectedTicket && selectedTicket._id === id) {
         await openTicketDetails(id);
       }
@@ -231,6 +304,33 @@ function App() {
       toast.error(getErrorMessage(error, "Failed to update status"));
     } finally {
       setUpdatingTicketId(null);
+    }
+  };
+
+  const assignTicket = async (id, assignedTo) => {
+    if (!assignedTo) return;
+    if (!canManageTickets) return;
+
+    try {
+      setAssigningTicketId(id);
+      await axios.patch(
+        `${API_URL}/${id}/assign`,
+        { assignedTo },
+        {
+          headers: authHeaders,
+        },
+      );
+      toast.success("Ticket assigned");
+      await fetchTickets();
+      await fetchSummaryTickets();
+      if (selectedTicket && selectedTicket._id === id) {
+        await openTicketDetails(id);
+      }
+    } catch (error) {
+      console.error("Failed to assign ticket", error);
+      toast.error(getErrorMessage(error, "Failed to assign ticket"));
+    } finally {
+      setAssigningTicketId(null);
     }
   };
 
@@ -261,6 +361,7 @@ function App() {
       );
       toast.success("Comment added");
       await fetchTickets();
+      await fetchSummaryTickets();
       await openTicketDetails(ticketId);
     } catch (error) {
       console.error("Failed to add comment", error);
@@ -281,6 +382,7 @@ function App() {
       });
       toast.success("Attachment uploaded");
       await fetchTickets();
+      await fetchSummaryTickets();
       await openTicketDetails(ticketId);
     } catch (error) {
       console.error("Failed to upload attachment", error);
@@ -297,6 +399,7 @@ function App() {
       toast.success("Ticket deleted");
       setDeleteId(null);
       await fetchTickets();
+      await fetchSummaryTickets();
     } catch (error) {
       console.error("Failed to delete ticket", error);
       toast.error(getErrorMessage(error, "Failed to delete ticket"));
@@ -390,9 +493,11 @@ function App() {
     fetchCurrentUser();
     fetchUsers();
     fetchTickets();
-  }, [fetchCurrentUser, fetchUsers, fetchTickets, token]);
+    fetchSummaryTickets();
+  }, [fetchCurrentUser, fetchUsers, fetchTickets, fetchSummaryTickets, token]);
 
   const isAdmin = currentUser?.role === "Admin";
+  const canManageTickets = ["Admin", "Manager"].includes(currentUser?.role);
 
   useEffect(() => {
     if (activePage === "user-management" && !isAdmin) {
@@ -492,52 +597,93 @@ function App() {
               </div>
             </header>
 
-            {activePage === "dashboard" && (
-              <DashboardAnalytics darkMode={darkMode} tickets={tickets} />
-            )}
+            <Suspense fallback={<PageLoading />}>
+              {activePage === "dashboard" && (
+                <DashboardPage
+                  darkMode={darkMode}
+                  loading={loading}
+                  tickets={summaryTickets}
+                />
+              )}
 
-            {activePage === "tickets" && (
-              <TicketTable
-                tickets={paginatedTickets}
-                loading={loading}
-                search={search}
-                setSearch={setSearch}
-                filterStatus={filterStatus}
-                setFilterStatus={setFilterStatus}
-                updatingTicketId={updatingTicketId}
-                deletingTicketId={deletingTicketId}
-                updateStatus={updateStatus}
-                deleteTicket={deleteTicket}
-                currentPage={currentPage}
-                setCurrentPage={setCurrentPage}
-                totalPages={totalPages}
-                onViewTicket={openTicketDetails}
-              />
-            )}
+              {activePage === "tickets" && (
+                <TicketsPage
+                  assigningTicketId={assigningTicketId}
+                  assignTicket={assignTicket}
+                  tickets={paginatedTickets}
+                  loading={loading}
+                  search={search}
+                  setSearch={setSearch}
+                  filterStatus={filterStatus}
+                  setFilterStatus={setFilterStatus}
+                  updatingTicketId={updatingTicketId}
+                  deletingTicketId={deletingTicketId}
+                  updateStatus={updateStatus}
+                  deleteTicket={deleteTicket}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
+                  totalPages={totalPages}
+                  onViewTicket={openTicketDetails}
+                  currentUser={currentUser}
+                  users={users}
+                />
+              )}
 
-            {activePage === "add-ticket" && (
-              <AddTicketForm
-                form={form}
-                setForm={setForm}
-                handleSubmit={handleSubmit}
-                submitting={submitting}
-                users={users}
-              />
-            )}
+              {activePage === "add-ticket" && (
+                <AddTicketPage
+                  canAssignTickets={canManageTickets}
+                  form={form}
+                  setForm={setForm}
+                  handleSubmit={handleSubmit}
+                  submitting={submitting}
+                  users={users}
+                />
+              )}
 
-            {activePage === "user-management" && isAdmin && (
-              <UserManagement
-                currentUser={currentUser}
-                deletingUserId={deletingUserId}
-                onCreateUser={createUser}
-                onDeleteUser={deleteUser}
-                onUpdateUser={updateUser}
-                savingUser={savingUser}
-                users={users}
-              />
-            )}
+              {activePage === "monthly-report" && (
+                <MonthlyReportPage tickets={summaryTickets} />
+              )}
+
+              {activePage === "quarterly-report" && (
+                <QuarterlyYearlyPage tickets={summaryTickets} />
+              )}
+
+              {activePage === "assets" && (
+                <AssetManagementPage currentUser={currentUser} token={token} />
+              )}
+
+              {activePage === "user-management" && isAdmin && (
+                <UserManagementPage
+                  currentUser={currentUser}
+                  deletingUserId={deletingUserId}
+                  onCreateUser={createUser}
+                  onDeleteUser={deleteUser}
+                  onUpdateUser={updateUser}
+                  savingUser={savingUser}
+                  users={users}
+                />
+              )}
+
+              {activePage === "request-users" && (
+                <RequestUsersPage users={users} />
+              )}
+
+              {activePage === "problem-types" && (
+                <ProblemTypesPage currentUser={currentUser} token={token} />
+              )}
+            </Suspense>
           </main>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PageLoading() {
+  return (
+    <div className="flex min-h-[24rem] items-center justify-center">
+      <div className="rounded-2xl border border-purple-100 bg-white px-6 py-4 text-sm font-semibold text-purple-700 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-purple-200">
+        Loading page...
       </div>
     </div>
   );

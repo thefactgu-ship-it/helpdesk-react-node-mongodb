@@ -1,4 +1,11 @@
-function AddTicketForm({ form, setForm, handleSubmit, submitting, users }) {
+function AddTicketForm({
+  canAssignTickets = false,
+  form,
+  setForm,
+  handleSubmit,
+  submitting,
+  users,
+}) {
   const fieldClass =
     "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-violet-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-violet-400 dark:focus:bg-slate-900";
   const selectClass = `${fieldClass} appearance-none`;
@@ -23,32 +30,59 @@ function AddTicketForm({ form, setForm, handleSubmit, submitting, users }) {
                 type="text"
                 placeholder="Ticket title"
                 value={form.title}
+                minLength={5}
+                maxLength={200}
                 disabled={submitting}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 className={fieldClass}
               />
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Minimum 5 characters.
+              </p>
             </Field>
 
-            <Field label="Assigned To" labelClass={labelClass}>
-              <div className="relative">
-                <select
-                  value={form.assignedTo}
-                  disabled={submitting}
-                  onChange={(e) =>
-                    setForm({ ...form, assignedTo: e.target.value })
-                  }
-                  className={selectClass}
-                >
-                  <option value="">Unassigned</option>
-                  {users.map((user) => (
-                    <option key={user._id} value={user._id}>
-                      {user.name} ({user.role})
-                    </option>
-                  ))}
-                </select>
-                <SelectChevron />
-              </div>
+            <Field label="Requester" labelClass={labelClass}>
+              <input
+                type="text"
+                placeholder="Requester name"
+                value={form.requester}
+                minLength={2}
+                maxLength={100}
+                disabled={submitting}
+                onChange={(e) =>
+                  setForm({ ...form, requester: e.target.value })
+                }
+                className={fieldClass}
+              />
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Minimum 2 characters.
+              </p>
             </Field>
+
+            {canAssignTickets && (
+              <Field label="Assigned To" labelClass={labelClass}>
+                <div className="relative">
+                  <select
+                    value={form.assignedTo}
+                    disabled={submitting}
+                    onChange={(e) =>
+                      setForm({ ...form, assignedTo: e.target.value })
+                    }
+                    className={selectClass}
+                  >
+                    <option value="">Unassigned</option>
+                    {users
+                      .filter((user) => user.role !== "User")
+                      .map((user) => (
+                        <option key={user._id} value={user._id}>
+                          {user.name} ({user.role})
+                        </option>
+                      ))}
+                  </select>
+                  <SelectChevron />
+                </div>
+              </Field>
+            )}
 
             <Field label="Issue Category" labelClass={labelClass}>
               <div className="relative">
