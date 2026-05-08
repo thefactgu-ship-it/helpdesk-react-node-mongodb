@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import ConfirmModal from "../components/ConfirmModal";
 import {
   createProblemType,
+  deleteProblemType,
   getProblemTypes,
 } from "../services/problemTypeService";
 
@@ -20,6 +22,8 @@ function ProblemTypesPage({ currentUser, token }) {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const [deleteTypeId, setDeleteTypeId] = useState(null);
   const isAdmin = currentUser?.role === "Admin";
 
   const fetchProblemTypes = useCallback(async () => {
@@ -70,12 +74,47 @@ function ProblemTypesPage({ currentUser, token }) {
     }
   };
 
+  const requestDelete = (id) => {
+    if (!isAdmin) return;
+    setDeleteTypeId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!isAdmin || !deleteTypeId) return;
+
+    try {
+      setDeletingId(deleteTypeId);
+      await deleteProblemType(token, deleteTypeId);
+      toast.success("Problem type deleted");
+      setDeleteTypeId(null);
+      await fetchProblemTypes();
+    } catch (error) {
+      console.error("Failed to delete problem type", error);
+      toast.error(getErrorMessage(error, "Failed to delete problem type"));
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const visibleTypes = problemTypes.length
     ? problemTypes
     : defaultProblemTypes.map((type) => ({ name: type, description: "Default category" }));
+  const pendingDeleteType = problemTypes.find(
+    (type) => (type._id || type.id) === deleteTypeId,
+  );
 
   return (
     <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40">
+      <ConfirmModal
+        open={!!deleteTypeId}
+        title="Delete Problem Type"
+        message={`Are you sure you want to delete ${
+          pendingDeleteType?.name || "this problem type"
+        }? This action cannot be undone.`}
+        onCancel={() => setDeleteTypeId(null)}
+        onConfirm={confirmDelete}
+      />
+
       <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-violet-600 dark:text-violet-300">
         System
       </p>
@@ -118,19 +157,39 @@ function ProblemTypesPage({ currentUser, token }) {
       </form>
 
       <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-        {visibleTypes.map((type) => (
-          <div
-            key={type._id || type.name}
-            className="rounded-2xl border border-violet-100 bg-violet-50/60 p-4 dark:border-violet-500/20 dark:bg-violet-500/10"
-          >
-            <div className="text-sm font-black text-violet-700 dark:text-violet-200">
-              {type.name}
+        {visibleTypes.map((type) => {
+          const typeId = type._id || type.id;
+          const canDelete = isAdmin && typeId;
+
+          return (
+            <div
+              key={typeId || type.name}
+              className="rounded-2xl border border-violet-100 bg-violet-50/60 p-4 dark:border-violet-500/20 dark:bg-violet-500/10"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="break-words text-sm font-black text-violet-700 dark:text-violet-200">
+                    {type.name}
+                  </div>
+                  <p className="mt-1 break-words text-xs text-slate-500 dark:text-slate-400">
+                    {type.description || "No description"}
+                  </p>
+                </div>
+
+                {canDelete && (
+                  <button
+                    type="button"
+                    disabled={deletingId === typeId}
+                    onClick={() => requestDelete(typeId)}
+                    className="shrink-0 rounded-xl bg-rose-500 px-3 py-2 text-xs font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
+                  >
+                    {deletingId === typeId ? "Deleting..." : "Delete"}
+                  </button>
+                )}
+              </div>
             </div>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              {type.description || "No description"}
-            </p>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {loading && (

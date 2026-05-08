@@ -205,6 +205,7 @@ DELETE /api/assets/:id      Admin only
 ```txt
 GET    /api/problem-types
 POST   /api/problem-types   Admin only
+DELETE /api/problem-types/:id
 ```
 
 ## Useful Commands

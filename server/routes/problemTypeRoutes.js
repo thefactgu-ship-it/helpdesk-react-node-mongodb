@@ -1,6 +1,7 @@
 const express = require("express");
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
+const mongoIdValidator = require("../middleware/mongoIdValidator");
 const asyncHandler = require("../utils/asyncHandler");
 const problemTypeController = require("../controllers/problemTypeController");
 const {
@@ -19,6 +20,14 @@ router.post(
   createProblemTypeValidationRules(),
   handleValidationErrors,
   asyncHandler(problemTypeController.createProblemType)
+);
+
+router.delete(
+  "/:id",
+  authMiddleware,
+  adminMiddleware,
+  mongoIdValidator,
+  asyncHandler(problemTypeController.deleteProblemType)
 );
 
 module.exports = router;

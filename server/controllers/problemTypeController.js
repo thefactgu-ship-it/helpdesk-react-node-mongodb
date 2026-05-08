@@ -30,7 +30,22 @@ async function createProblemType(req, res) {
   }
 }
 
+async function deleteProblemType(req, res) {
+  try {
+    const problemType = await ProblemType.findByIdAndDelete(req.params.id);
+
+    if (!problemType) {
+      return res.status(404).json({ message: "Problem type not found" });
+    }
+
+    res.json({ message: "Problem type deleted" });
+  } catch (error) {
+    sendError(res, 400, "Failed to delete problem type", error);
+  }
+}
+
 module.exports = {
   createProblemType,
+  deleteProblemType,
   getProblemTypes,
 };

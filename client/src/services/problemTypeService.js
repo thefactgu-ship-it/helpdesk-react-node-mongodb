@@ -9,3 +9,8 @@ export async function createProblemType(token, payload) {
   const res = await api.post("/problem-types", payload, authConfig(token));
   return res.data;
 }
+
+export async function deleteProblemType(token, id) {
+  const res = await api.delete(`/problem-types/${id}`, authConfig(token));
+  return res.data;
+}
