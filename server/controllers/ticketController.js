@@ -113,7 +113,7 @@ async function getAllTickets(req, res) {
  */
 async function getInsights(req, res) {
   try {
-    const tickets = await Ticket.find(buildVisibleTicketsQuery(req.user));
+    const tickets = await Ticket.find();
     const total = tickets.length;
 
     // Calculate average resolution time
@@ -604,7 +604,7 @@ async function uploadAttachment(req, res) {
  */
 async function getSummaryTickets(req, res) {
   try {
-    const tickets = await Ticket.find(buildVisibleTicketsQuery(req.user))
+    const tickets = await Ticket.find()
       .sort({ createdAt: -1 })
       .populate(TICKET_POPULATE_CONFIG);
     res.json(tickets);
