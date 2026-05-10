@@ -2,20 +2,21 @@
 
 A full-stack IT Helpdesk Dashboard for Thavorn Hotels Group, built with React, Vite, Tailwind CSS, Node.js, Express, MongoDB, Mongoose, and JWT authentication.
 
-The app provides a clean white-and-purple dashboard experience with light/dark mode, ticket workflows, analytics, reports, asset lifecycle tracking, user management, requester lists, problem types, comments, protected image attachments, toast notifications, pagination, and confirmation modals.
+The app supports helpdesk ticket workflows, dashboard analytics, reports, asset tracking, user management, requester review, problem type management, protected ticket comments and attachments, self-service profile updates, and production-focused security hardening.
 
 ## Features
 
-- Dashboard KPIs, charts, status summary, severity, category, and open-day analysis from real ticket data
-- Helpdesk ticket list with search, filter, pagination, detail modal, status update, assignment, delete confirmation, comments, activity log, and protected attachments
-- Add Ticket form with required-field validation and role-aware assignment
-- Monthly, quarterly, and yearly reports with ticket trends, open/resolved/overdue comparison, category summary, priority summary, and average resolution time
+- Dashboard KPIs, charts, status summary, severity, category, and open-day analysis from all ticket data
+- Permission-limited Helpdesk Tickets table with search, filter, pagination, detail modal, assignment, status updates, comments, activity log, and protected image attachments
+- Add Ticket form with role-aware assignment and issue categories loaded from backend Problem Types
+- Monthly, quarterly, and yearly reports using all ticket data for authenticated users
 - Asset Management with lifecycle fields, age calculation, recommendation status, detail modal, and admin-only create/edit/delete
 - User Management with admin-only create/edit/delete and password-safe user listing
-- Request Users page for requester/user review and search
-- Problem Types page with default categories and admin-only add
-- JWT authentication, role-based access, CORS restrictions, Helmet security headers, and login/register rate limiting
-- Lazy-loaded pages to keep production chunks smaller
+- Self-service Profile page for all users with profile update and current-password-protected password change
+- Sidebar user-card menu for Update Profile, Change Password, and Logout
+- Problem Types page with admin-only create/delete and Add Ticket integration
+- JWT authentication, role-based access, CORS restrictions, Helmet headers, NoSQL key sanitization, rate limiting, and protected uploads
+- Lazy-loaded pages for smaller production chunks
 
 ## Tech Stack
 
@@ -40,11 +41,12 @@ Backend:
 - helmet
 - express-rate-limit
 - express-validator
+- express-mongo-sanitize
 
 ## Project Structure
 
 ```txt
-helpdesk-react-node/
+helpdesk-react-node-mongodb/
 |-- client/
 |   |-- src/
 |   |   |-- components/
@@ -76,7 +78,7 @@ helpdesk-react-node/
 
 ```bash
 git clone https://github.com/thefactgu-ship-it/helpdesk-react-node-mongodb.git
-cd helpdesk-react-node
+cd helpdesk-react-node-mongodb
 ```
 
 ### 2. Backend Setup
@@ -112,6 +114,12 @@ API health check:
 http://localhost:5000
 ```
 
+Expected response:
+
+```json
+{"message":"HelpDesk API Running","status":"ok"}
+```
+
 ### 3. Frontend Setup
 
 Open a new terminal:
@@ -128,27 +136,75 @@ Frontend URL:
 http://localhost:5173
 ```
 
+For local frontend API calls, `client/src/services/api.js` falls back to:
+
+```txt
+http://localhost:5000/api
+```
+
+## Render Deployment
+
+Backend service:
+
+- Root directory: `server`
+- Build command: `npm install` or `npm ci`
+- Start command: `npm start`
+- Required environment variables:
+  - `NODE_ENV=production`
+  - `PORT`
+  - `MONGO_URI`
+  - `JWT_SECRET`
+  - `CORS_ORIGIN=https://your-frontend.onrender.com`
+  - `ADMIN_PASSWORD` with at least 12 characters
+- Optional admin seed variables:
+  - `ADMIN_EMAIL`
+  - `ADMIN_NAME`
+
+Frontend static site:
+
+- Root directory: `client`
+- Build command: `npm install && npm run build` or `npm ci && npm run build`
+- Publish directory: `dist`
+- Required environment variable:
+  - `VITE_API_URL=https://your-backend.onrender.com/api`
+
 ## Roles And Access
 
-- `Admin`: full user management, asset create/edit/delete, problem type create, ticket assign/delete, and all ticket access
-- `Manager`: can view all tickets, assign tickets, and delete tickets
-- `Agent`: can work on tickets assigned to them
-- `User`: can request tickets and can only see tickets assigned to them in the ticket table
+- `Admin`: full user management, asset create/edit/delete, problem type create/delete, ticket assign/delete, and all ticket access
+- `Manager`: can view all tickets, assign tickets, delete tickets, and access the staff/user list needed for assignment
+- `Agent`: can view tickets they created or tickets assigned to them; can work on assigned tickets
+- `User`: can create tickets, view tickets they created or are assigned to, view assignee/detail/comments, and add comments
 
-Dashboard and report summary data are available to authenticated users because they are system-level summaries.
+Ticket table data is permission-limited:
 
-Tickets can only be assigned by `Admin` or `Manager`, and assignment targets must be staff-like roles such as `Admin`, `Manager`, or `Agent`. Ordinary `User` accounts are requester-only.
+- Admin/Manager see all tickets.
+- Agent/User see tickets where they are `createdBy` or `assignedTo`.
+
+Dashboard and report summary data use all ticket data for authenticated users because they are system-level summaries.
+
+Tickets can only be assigned by Admin or Manager. Assignment targets must be staff-like roles such as Admin, Manager, or Agent.
+
+## Profile And Password
+
+- Click the logged-in user card in the Sidebar to open the account menu.
+- `Update Profile` lets every role update their own `name`, `email`, and `team`.
+- `Change Password` requires the current password and a new password.
+- After a successful password change, the frontend logs the user out.
+- Existing JWTs issued before the password change are rejected by the backend using `passwordChangedAt`.
+- Roles can only be changed through Admin User Management.
 
 ## Security Notes
 
 - All API feature routes are JWT protected.
-- Login and register routes are rate-limited.
+- Login, register, and password change routes are rate-limited.
 - Helmet is enabled for common HTTP security headers.
 - CORS is restricted by `CORS_ORIGIN`.
+- Request body, params, and query keys are sanitized against MongoDB operator-style input.
 - Passwords are hashed with bcrypt before storage.
 - User API responses exclude password fields.
 - `JWT_SECRET` must be strong; production should use at least 32 random characters.
 - `ADMIN_PASSWORD` must be set to at least 12 characters in production.
+- Production 500 errors avoid returning internal error details.
 - Ticket attachments are limited to JPG, PNG, GIF, or WEBP images and a maximum size of 5 MB.
 - Uploaded files are not served through public static hosting; they are viewed through protected ticket attachment routes.
 - `server/uploads/*` is ignored by Git to avoid committing user-uploaded files.
@@ -168,7 +224,9 @@ Authorization: Bearer YOUR_JWT_TOKEN
 POST   /api/auth/register
 POST   /api/auth/login
 GET    /api/auth/me
-GET    /api/auth/users
+PATCH  /api/auth/me
+PATCH  /api/auth/me/password
+GET    /api/auth/users          Admin/Manager only
 POST   /api/auth/users          Admin only
 PATCH  /api/auth/users/:id      Admin only
 DELETE /api/auth/users/:id      Admin only
@@ -178,15 +236,15 @@ DELETE /api/auth/users/:id      Admin only
 
 ```txt
 GET    /api/tickets                         Permission-limited ticket table data
-GET    /api/tickets/summary                 Authenticated dashboard/report summary data
-GET    /api/tickets/insights                Authenticated analytics data
-GET    /api/tickets/:id                     Admin/Manager or assigned user
-POST   /api/tickets
-PATCH  /api/tickets/:id                     Admin/Manager or assigned user
-PATCH  /api/tickets/:id/status              Admin/Manager or assigned user
+GET    /api/tickets/summary                 Authenticated all-ticket dashboard/report data
+GET    /api/tickets/insights                Authenticated all-ticket analytics data
+GET    /api/tickets/:id                     Admin/Manager, creator, or assignee
+POST   /api/tickets                         Requires an active Problem Type category
+PATCH  /api/tickets/:id                     Admin/Manager or assigned Agent
+PATCH  /api/tickets/:id/status              Admin/Manager or assigned Agent
 PATCH  /api/tickets/:id/assign              Admin/Manager only
-POST   /api/tickets/:id/comment             Admin/Manager or assigned user
-POST   /api/tickets/:id/attachments         Admin/Manager or assigned user, image only, max 5 MB
+POST   /api/tickets/:id/comment             Admin/Manager, creator, or assignee
+POST   /api/tickets/:id/attachments         Admin/Manager or assigned Agent, image only, max 5 MB
 GET    /api/tickets/:id/attachments/:attachmentId/view
 DELETE /api/tickets/:id                     Admin/Manager only
 ```
@@ -204,8 +262,8 @@ DELETE /api/assets/:id      Admin only
 
 ```txt
 GET    /api/problem-types
-POST   /api/problem-types   Admin only
-DELETE /api/problem-types/:id
+POST   /api/problem-types       Admin only
+DELETE /api/problem-types/:id   Admin only
 ```
 
 ## Useful Commands
@@ -223,12 +281,25 @@ Server:
 
 ```bash
 npm run dev
+npm start
 ```
 
-Backend syntax check example:
+Backend syntax check examples:
 
 ```bash
-node -c index.js
+node --check index.js
+node --check controllers/authController.js
+node --check controllers/ticketController.js
+```
+
+Dependency security checks:
+
+```bash
+cd client
+npm audit --audit-level=low
+
+cd ../server
+npm audit --audit-level=low
 ```
 
 ## Validation Status
@@ -237,7 +308,8 @@ Latest local checks:
 
 - `client`: `npm run lint`
 - `client`: `npm run build`
-- `server`: selected `node -c` syntax checks for main controllers, routes, middleware, and startup file
+- `server`: selected `node --check` syntax checks for startup, controllers, routes, middleware, models, and validators
+- `client/server`: `npm audit --audit-level=low`
 
 ## Screenshots
 
