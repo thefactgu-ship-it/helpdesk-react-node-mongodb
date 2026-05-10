@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+import { API_BASE_URL } from "../services/api";
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+const API_ORIGIN = API_BASE_URL.replace(/\/api$/, "");
 
 function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachment }) {
   const [comment, setComment] = useState("");
   const [file, setFile] = useState(null);
+  const [fileError, setFileError] = useState("");
 
   useEffect(() => {
     if (!open) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setComment("");
       setFile(null);
+      setFileError("");
     }
   }, [open]);
 
@@ -28,9 +36,64 @@ function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachmen
     if (!file) return;
     await onUploadAttachment(ticket._id, file);
     setFile(null);
+    setFileError("");
+    e.target.reset();
   };
 
-  return (
+  const handleViewAttachment = async (attachment) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(getAttachmentUrl(ticket._id, attachment), {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    if (!res.ok) return;
+
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    window.open(blobUrl, "_blank", "noopener,noreferrer");
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+  };
+
+  const handleDownloadAttachment = async (attachment) => {
+    const token = localStorage.getItem("token");
+    const res = await fetch(getAttachmentUrl(ticket._id, attachment), {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+
+    if (!res.ok) return;
+
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = attachment.originalName || attachment.filename || "attachment";
+    link.click();
+    URL.revokeObjectURL(blobUrl);
+  };
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files?.[0] || null;
+    setFile(null);
+    setFileError("");
+
+    if (!selectedFile) return;
+
+    if (!ALLOWED_IMAGE_TYPES.includes(selectedFile.type)) {
+      setFileError("Only JPG, PNG, GIF, or WEBP images are allowed.");
+      e.target.value = "";
+      return;
+    }
+
+    if (selectedFile.size > MAX_IMAGE_SIZE) {
+      setFileError("Image must be 5 MB or smaller.");
+      e.target.value = "";
+      return;
+    }
+
+    setFile(selectedFile);
+  };
+
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-3 py-4 backdrop-blur-sm">
       <div className="max-h-[92vh] w-full max-w-[52rem] overflow-y-auto rounded-2xl bg-white p-4 shadow-2xl dark:bg-slate-900 md:p-5">
         <div className="mb-4 flex items-start justify-between gap-4">
@@ -68,6 +131,7 @@ function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachmen
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <InfoItem label="Priority" value={ticket.priority} />
               <InfoItem label="Status" value={ticket.status} />
+              <InfoItem label="Requester" value={ticket.requester || "Unknown"} />
               <InfoItem label="Created By" value={ticket.createdBy?.name || "Unknown"} />
               <InfoItem label="Assigned To" value={ticket.assignedTo?.name || "Unassigned"} />
               <InfoItem label="SLA (hrs)" value={ticket.slaHours} />
@@ -93,17 +157,23 @@ function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachmen
                       key={attachment._id}
                       className="rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800"
                     >
-                      <a
-                        className="text-sm font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200"
-                        href={attachment.url}
-                        target="_blank"
-                        rel="noreferrer"
+                      <button
+                        type="button"
+                        className="text-left text-sm font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200"
+                        onClick={() => handleViewAttachment(attachment)}
                       >
                         {attachment.originalName}
-                      </a>
+                      </button>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
                         Uploaded by {attachment.uploadedBy?.name || "Unknown"}
                       </p>
+                      <button
+                        type="button"
+                        className="mt-2 text-xs font-semibold text-slate-500 hover:text-purple-700 dark:text-slate-400 dark:hover:text-purple-200"
+                        onClick={() => handleDownloadAttachment(attachment)}
+                      >
+                        Download
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -164,12 +234,21 @@ function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachmen
             <form onSubmit={handleUpload} className="mt-2 space-y-2">
               <input
                 type="file"
-                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                onChange={handleFileChange}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               />
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                JPG, PNG, GIF, or WEBP only. Max 5 MB.
+              </p>
+              {fileError && (
+                <p className="text-xs font-semibold text-rose-600 dark:text-rose-300">
+                  {fileError}
+                </p>
+              )}
               <button
                 type="submit"
-                disabled={!file}
+                disabled={!file || !!fileError}
                 className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-400"
               >
                 Upload File
@@ -203,7 +282,8 @@ function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachmen
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -234,6 +314,10 @@ function InfoItem({ label, value }) {
       </p>
     </div>
   );
+}
+
+function getAttachmentUrl(ticketId, attachment) {
+  return `${API_ORIGIN}/api/tickets/${ticketId}/attachments/${attachment._id}/view`;
 }
 
 export default TicketDetailModal;

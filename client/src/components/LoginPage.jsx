@@ -10,8 +10,8 @@ function LoginPage({ onLogin, onRegister }) {
   const [mode, setMode] = useState("login");
   const [loading, setLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({
-    email: "admin@test.com",
-    password: "123456",
+    email: "",
+    password: "",
   });
   const [registerForm, setRegisterForm] = useState({
     name: "",

@@ -17,6 +17,12 @@ const ticketSchema = new mongoose.Schema(
       default: "",
     },
 
+    requester: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
     category: {
       type: String,
       default: "General",

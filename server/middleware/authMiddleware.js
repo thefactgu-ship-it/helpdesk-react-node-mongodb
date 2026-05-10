@@ -1,31 +1,57 @@
 const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-const authMiddleware = (req, res, next) => {
+/**
+ * Middleware to verify JWT token from Authorization header
+ * Expected format: Bearer <token>
+ */
+const authMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (
-      !authHeader ||
-      !authHeader.startsWith("Bearer ")
-    ) {
+    // Check if authorization header exists and has Bearer scheme
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         message: "No token provided",
       });
     }
 
+    // Extract token from Bearer scheme
     const token = authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET
-    );
+    // Verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("email role team");
 
-    req.user = decoded;
+    if (!user) {
+      return res.status(401).json({
+        message: "User not found",
+      });
+    }
+
+    req.user = {
+      ...decoded,
+      role: user.role,
+      team: user.team,
+    };
 
     next();
   } catch (error) {
+    // Handle specific JWT errors
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        message: "Token expired",
+      });
+    }
+
+    if (error.name === "JsonWebTokenError") {
+      return res.status(401).json({
+        message: "Invalid token",
+      });
+    }
+
     return res.status(401).json({
-      message: "Invalid token",
+      message: "Authentication failed",
     });
   }
 };

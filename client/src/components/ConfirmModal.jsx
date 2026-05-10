@@ -1,7 +1,9 @@
+import { createPortal } from "react-dom";
+
 function ConfirmModal({ open, title, message, onCancel, onConfirm }) {
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-800">
         <h3 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -28,7 +30,8 @@ function ConfirmModal({ open, title, message, onCancel, onConfirm }) {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
