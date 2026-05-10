@@ -27,6 +27,10 @@ function TicketTable({
       String(user.role || "").toLowerCase(),
     ),
   );
+  const currentUserId = getEntityId(currentUser);
+  const canUpdateTicketStatus = (ticket) =>
+    canManageTickets ||
+    (currentUser?.role === "Agent" && getEntityId(ticket.assignedTo) === currentUserId);
 
   return (
     <section className="mt-6 rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-800">
@@ -64,7 +68,7 @@ function TicketTable({
               <th>Title</th>
               <th>Priority</th>
               <th>Status</th>
-              <th>Assigned</th>
+              <th>Assigned To</th>
               <th>Due</th>
               <th>Action</th>
             </tr>
@@ -103,19 +107,23 @@ function TicketTable({
                       <Badge text={ticket.priority} />
                     </td>
                     <td>
-                      <select
-                        value={ticket.status}
-                        disabled={isBusy}
-                        onChange={(e) =>
-                          updateStatus(ticket._id, e.target.value)
-                        }
-                        className="rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm font-medium text-purple-700 outline-none focus:border-purple-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                      >
-                        <option value="open">Open</option>
-                        <option value="in_progress">In Progress</option>
-                        <option value="resolved">Resolved</option>
-                        <option value="closed">Closed</option>
-                      </select>
+                      {canUpdateTicketStatus(ticket) ? (
+                        <select
+                          value={ticket.status}
+                          disabled={isBusy}
+                          onChange={(e) =>
+                            updateStatus(ticket._id, e.target.value)
+                          }
+                          className="rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm font-medium text-purple-700 outline-none focus:border-purple-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                        >
+                          <option value="open">Open</option>
+                          <option value="in_progress">In Progress</option>
+                          <option value="resolved">Resolved</option>
+                          <option value="closed">Closed</option>
+                        </select>
+                      ) : (
+                        <Badge text={ticket.status} />
+                      )}
                     </td>
                     <td className="text-slate-500 dark:text-slate-400">
                       {canManageTickets ? (
@@ -200,6 +208,10 @@ function TicketTable({
       </div>
     </section>
   );
+}
+
+function getEntityId(entity) {
+  return String(entity?._id || entity?.id || entity || "");
 }
 
 export default TicketTable;

@@ -71,6 +71,10 @@ function getErrorMessage(error, fallback) {
   return validationMessage || error?.response?.data?.message || error?.message || fallback;
 }
 
+function getEntityId(entity) {
+  return String(entity?._id || entity?.id || "");
+}
+
 function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));
   const [currentUser, setCurrentUser] = useState(
@@ -99,7 +103,7 @@ function App() {
     title: "",
     description: "",
     requester: "",
-    category: "General",
+    category: "",
     department: "IT",
     priority: "medium",
     assignedTo: "",
@@ -245,6 +249,10 @@ function App() {
       toast.error("Requester must be at least 2 characters");
       return;
     }
+    if (!form.category.trim()) {
+      toast.error("Issue category is required");
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -255,6 +263,7 @@ function App() {
           title: form.title.trim(),
           description: form.description.trim(),
           requester: form.requester.trim(),
+          category: form.category.trim(),
           assignedTo: canManageTickets ? form.assignedTo || undefined : undefined,
           dueDate: form.dueDate || undefined,
         },
@@ -267,7 +276,7 @@ function App() {
         title: "",
         description: "",
         requester: "",
-        category: "General",
+        category: "",
         department: "IT",
         priority: "medium",
         assignedTo: "",
@@ -284,6 +293,11 @@ function App() {
   };
 
   const updateStatus = async (id, status) => {
+    if (!canManageTickets && currentUser?.role !== "Agent") {
+      toast.error("Only assigned agents, managers, or admins can update ticket status");
+      return;
+    }
+
     try {
       setUpdatingTicketId(id);
       await axios.patch(
@@ -370,6 +384,11 @@ function App() {
   };
 
   const uploadTicketAttachment = async (ticketId, file) => {
+    if (!canUploadSelectedTicketAttachment) {
+      toast.error("Only assigned agents, managers, or admins can upload attachments");
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -498,6 +517,10 @@ function App() {
 
   const isAdmin = currentUser?.role === "Admin";
   const canManageTickets = ["Admin", "Manager"].includes(currentUser?.role);
+  const canUploadSelectedTicketAttachment =
+    canManageTickets ||
+    (currentUser?.role === "Agent" &&
+      getEntityId(selectedTicket?.assignedTo) === getEntityId(currentUser));
 
   useEffect(() => {
     if (activePage === "user-management" && !isAdmin) {
@@ -569,6 +592,7 @@ function App() {
         onClose={closeTicketDetails}
         onComment={addTicketComment}
         onUploadAttachment={uploadTicketAttachment}
+        canUploadAttachment={canUploadSelectedTicketAttachment}
       />
       <div className="min-h-screen bg-gradient-to-br from-violet-100 via-white to-purple-100 p-4 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 dark:text-white md:p-6">
         <div className="mx-auto flex max-w-7xl flex-col overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 shadow-2xl backdrop-blur dark:border-slate-800 dark:bg-slate-900/90 md:flex-row">

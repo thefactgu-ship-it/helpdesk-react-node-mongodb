@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const Ticket = require("../models/Ticket");
 const User = require("../models/User");
+const ProblemType = require("../models/ProblemType");
 const {
   generateTicketNumber,
   getSlaHoursByPriority,
@@ -23,9 +24,53 @@ function canManageTickets(user) {
   return ["Admin", "Manager"].includes(user?.role);
 }
 
+function getUserId(user) {
+  return String(user?._id || user?.id || "");
+}
+
+function isAssignedToUser(user, ticket) {
+  return String(ticket.assignedTo?._id || ticket.assignedTo || "") === getUserId(user);
+}
+
+function isCreatedByUser(user, ticket) {
+  return String(ticket.createdBy?._id || ticket.createdBy || "") === getUserId(user);
+}
+
 function canAccessTicket(user, ticket) {
   if (canManageTickets(user)) return true;
-  return String(ticket.assignedTo?._id || ticket.assignedTo) === user.id;
+  return isAssignedToUser(user, ticket) || isCreatedByUser(user, ticket);
+}
+
+function canWorkOnTicket(user, ticket) {
+  if (canManageTickets(user)) return true;
+  return user?.role === "Agent" && isAssignedToUser(user, ticket);
+}
+
+function buildVisibleTicketsQuery(user) {
+  if (canManageTickets(user)) return {};
+
+  return {
+    $or: [{ createdBy: getUserId(user) }, { assignedTo: getUserId(user) }],
+  };
+}
+
+async function ensureProblemTypeName(name) {
+  const normalizedName = String(name || "").trim();
+
+  if (!normalizedName) {
+    return { ok: false, status: 400, message: "Issue category is required" };
+  }
+
+  const problemType = await ProblemType.findOne({
+    name: normalizedName,
+    active: { $ne: false },
+  }).select("_id name");
+
+  if (!problemType) {
+    return { ok: false, status: 400, message: "Issue category must be an active problem type" };
+  }
+
+  return { ok: true, name: problemType.name };
 }
 
 async function ensureAssignableUser(userId) {
@@ -52,7 +97,7 @@ async function ensureAssignableUser(userId) {
  */
 async function getAllTickets(req, res) {
   try {
-    const query = canManageTickets(req.user) ? {} : { assignedTo: req.user.id };
+    const query = buildVisibleTicketsQuery(req.user);
     const tickets = await Ticket.find(query)
       .sort({ createdAt: -1 })
       .populate(TICKET_POPULATE_CONFIG);
@@ -68,7 +113,7 @@ async function getAllTickets(req, res) {
  */
 async function getInsights(req, res) {
   try {
-    const tickets = await Ticket.find();
+    const tickets = await Ticket.find(buildVisibleTicketsQuery(req.user));
     const total = tickets.length;
 
     // Calculate average resolution time
@@ -158,7 +203,7 @@ async function createTicket(req, res) {
       title,
       description = "",
       requester,
-      category = "General",
+      category,
       department = "IT",
       priority = "medium",
       dueDate,
@@ -171,6 +216,11 @@ async function createTicket(req, res) {
     }
     if (!requester || !requester.trim()) {
       return res.status(400).json({ message: "Requester is required" });
+    }
+
+    const problemType = await ensureProblemTypeName(category);
+    if (!problemType.ok) {
+      return res.status(problemType.status).json({ message: problemType.message });
     }
 
     let assignedUser = null;
@@ -200,7 +250,7 @@ async function createTicket(req, res) {
       title,
       description,
       requester: requester.trim(),
-      category,
+      category: problemType.name,
       department,
       priority,
       status,
@@ -237,6 +287,9 @@ async function updateTicket(req, res) {
     if (!canAccessTicket(req.user, existingTicket)) {
       return res.status(403).json({ message: "Ticket access denied" });
     }
+    if (!canWorkOnTicket(req.user, existingTicket)) {
+      return res.status(403).json({ message: "Only assigned agents, managers, or admins can update tickets" });
+    }
 
     const updateFields = {};
     const logDetails = [];
@@ -267,7 +320,12 @@ async function updateTicket(req, res) {
       logDetails.push("Requester updated");
     }
     if (category) {
-      updateFields.category = category;
+      const problemType = await ensureProblemTypeName(category);
+      if (!problemType.ok) {
+        return res.status(problemType.status).json({ message: problemType.message });
+      }
+
+      updateFields.category = problemType.name;
       logDetails.push("Category updated");
     }
     if (department) {
@@ -346,6 +404,9 @@ async function updateTicketStatus(req, res) {
     }
     if (!canAccessTicket(req.user, existingTicket)) {
       return res.status(403).json({ message: "Ticket access denied" });
+    }
+    if (!canWorkOnTicket(req.user, existingTicket)) {
+      return res.status(403).json({ message: "Only assigned agents, managers, or admins can update ticket status" });
     }
 
     // Validate status
@@ -494,6 +555,9 @@ async function uploadAttachment(req, res) {
     if (!canAccessTicket(req.user, existingTicket)) {
       return res.status(403).json({ message: "Ticket access denied" });
     }
+    if (!canWorkOnTicket(req.user, existingTicket)) {
+      return res.status(403).json({ message: "Only assigned agents, managers, or admins can upload attachments" });
+    }
 
     if (!req.file) {
       return res.status(400).json({ message: "No file uploaded" });
@@ -540,7 +604,7 @@ async function uploadAttachment(req, res) {
  */
 async function getSummaryTickets(req, res) {
   try {
-    const tickets = await Ticket.find()
+    const tickets = await Ticket.find(buildVisibleTicketsQuery(req.user))
       .sort({ createdAt: -1 })
       .populate(TICKET_POPULATE_CONFIG);
     res.json(tickets);

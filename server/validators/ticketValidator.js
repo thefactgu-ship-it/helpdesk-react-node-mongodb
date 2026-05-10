@@ -23,8 +23,9 @@ const createTicketValidationRules = () => [
     .isLength({ min: 2, max: 100 })
     .withMessage("Requester must be between 2 and 100 characters"),
   body("category")
-    .optional()
     .trim()
+    .notEmpty()
+    .withMessage("Issue category is required")
     .isLength({ min: 1, max: 50 })
     .withMessage("Category must be between 1 and 50 characters"),
   body("department")

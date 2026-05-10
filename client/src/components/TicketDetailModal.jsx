@@ -6,7 +6,14 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const API_ORIGIN = API_BASE_URL.replace(/\/api$/, "");
 
-function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachment }) {
+function TicketDetailModal({
+  open,
+  ticket,
+  onClose,
+  onComment,
+  onUploadAttachment,
+  canUploadAttachment = false,
+}) {
   const [comment, setComment] = useState("");
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState("");
@@ -33,6 +40,7 @@ function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachmen
 
   const handleUpload = async (e) => {
     e.preventDefault();
+    if (!canUploadAttachment) return;
     if (!file) return;
     await onUploadAttachment(ticket._id, file);
     setFile(null);
@@ -186,7 +194,7 @@ function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachmen
           </CompactPanel>
         </div>
 
-        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <div className={`mt-3 grid gap-3 ${canUploadAttachment ? "lg:grid-cols-2" : ""}`}>
           <CompactPanel>
             <SectionLabel>Comments</SectionLabel>
             <div className="mt-2 max-h-28 space-y-2 overflow-y-auto">
@@ -229,32 +237,34 @@ function TicketDetailModal({ open, ticket, onClose, onComment, onUploadAttachmen
             </form>
           </CompactPanel>
 
-          <CompactPanel>
-            <SectionLabel>Add Attachment</SectionLabel>
-            <form onSubmit={handleUpload} className="mt-2 space-y-2">
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/gif,image/webp"
-                onChange={handleFileChange}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                JPG, PNG, GIF, or WEBP only. Max 5 MB.
-              </p>
-              {fileError && (
-                <p className="text-xs font-semibold text-rose-600 dark:text-rose-300">
-                  {fileError}
+          {canUploadAttachment && (
+            <CompactPanel>
+              <SectionLabel>Add Attachment</SectionLabel>
+              <form onSubmit={handleUpload} className="mt-2 space-y-2">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  onChange={handleFileChange}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                />
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  JPG, PNG, GIF, or WEBP only. Max 5 MB.
                 </p>
-              )}
-              <button
-                type="submit"
-                disabled={!file || !!fileError}
-                className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-400"
-              >
-                Upload File
-              </button>
-            </form>
-          </CompactPanel>
+                {fileError && (
+                  <p className="text-xs font-semibold text-rose-600 dark:text-rose-300">
+                    {fileError}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={!file || !!fileError}
+                  className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-400"
+                >
+                  Upload File
+                </button>
+              </form>
+            </CompactPanel>
+          )}
         </div>
 
         <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-950">

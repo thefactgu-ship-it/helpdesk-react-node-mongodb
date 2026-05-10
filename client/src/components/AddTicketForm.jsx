@@ -5,11 +5,16 @@ function AddTicketForm({
   handleSubmit,
   submitting,
   users,
+  problemTypes = [],
+  loadingProblemTypes = false,
 }) {
   const fieldClass =
     "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-violet-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-violet-400 dark:focus:bg-slate-900";
   const selectClass = `${fieldClass} appearance-none`;
   const labelClass = "text-sm font-semibold text-slate-700 dark:text-slate-300";
+
+  const categoryOptions = problemTypes.filter((type) => type.active !== false);
+  const hasProblemTypes = categoryOptions.length > 0;
 
   return (
     <section className="mx-auto max-w-3xl overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40 md:p-10">
@@ -88,20 +93,30 @@ function AddTicketForm({
               <div className="relative">
                 <select
                   value={form.category}
-                  disabled={submitting}
+                  disabled={submitting || loadingProblemTypes || !hasProblemTypes}
                   onChange={(e) =>
                     setForm({ ...form, category: e.target.value })
                   }
                   className={selectClass}
                 >
-                  <option value="General">General</option>
-                  <option value="Software">Software</option>
-                  <option value="Hardware">Hardware</option>
-                  <option value="Network">Network</option>
-                  <option value="Security">Security</option>
+                  {!hasProblemTypes && (
+                    <option value="">
+                      {loadingProblemTypes ? "Loading problem types..." : "No problem types available"}
+                    </option>
+                  )}
+                  {categoryOptions.map((type) => (
+                    <option key={type._id || type.name} value={type.name}>
+                      {type.name}
+                    </option>
+                  ))}
                 </select>
                 <SelectChevron />
               </div>
+              {!loadingProblemTypes && !hasProblemTypes && (
+                <p className="text-xs font-semibold text-rose-600 dark:text-rose-300">
+                  Ask an admin to add a problem type before creating tickets.
+                </p>
+              )}
             </Field>
 
             <Field label="Urgency Level" labelClass={labelClass}>
@@ -169,7 +184,7 @@ function AddTicketForm({
           <div className="flex justify-center pt-2">
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || !hasProblemTypes}
               className="rounded-full bg-violet-600 px-7 py-3 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:-translate-y-0.5 hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:shadow-violet-950/40 dark:hover:bg-violet-400"
             >
               {submitting ? "Submitting..." : "Submit Ticket"}
