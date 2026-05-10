@@ -21,12 +21,21 @@ const authMiddleware = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select("email role team");
+    const user = await User.findById(decoded.id).select("email role team passwordChangedAt");
 
     if (!user) {
       return res.status(401).json({
         message: "User not found",
       });
+    }
+
+    if (user.passwordChangedAt && decoded.iat) {
+      const tokenIssuedAt = decoded.iat * 1000;
+      if (tokenIssuedAt < user.passwordChangedAt.getTime()) {
+        return res.status(401).json({
+          message: "Password changed. Please log in again",
+        });
+      }
     }
 
     req.user = {

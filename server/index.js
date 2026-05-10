@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const mongoSanitize = require("express-mongo-sanitize");
 const bcrypt = require("bcryptjs");
 
 // Import routes
@@ -27,10 +28,11 @@ const app = express();
 
 // Security middleware
 app.use(helmet()); // Set security headers
-// Note: NoSQL injection is prevented through:
-// 1. Input validation with express-validator
-// 2. Mongoose schema enforcement
-// 3. Avoid using MongoDB operators directly from request data
+app.use(
+  mongoSanitize({
+    replaceWith: "_",
+  })
+);
 
 // CORS configuration - restrict to allowed origins
 const corsOptions = {
@@ -52,6 +54,13 @@ const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: process.env.NODE_ENV === "production" ? 5 : 20,
   message: "Too many authentication attempts, please try again later",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+const passwordChangeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === "production" ? 5 : 20,
+  message: "Too many password change attempts, please try again later",
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -106,6 +115,7 @@ app.get("/", (req, res) => {
 // API routes with rate limiting
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
+app.use("/api/auth/me/password", passwordChangeLimiter);
 app.use("/api/auth", authRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/assets", assetRoutes);

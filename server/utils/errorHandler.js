@@ -6,7 +6,10 @@
  * @param {Error} error - Original error object (optional)
  */
 function sendError(res, statusCode, message, error) {
-  const responseMessage = error?.message || message;
+  const responseMessage =
+    process.env.NODE_ENV === "production" && statusCode >= 500
+      ? message
+      : error?.message || message;
   
   res.status(statusCode).json({
     message: responseMessage,

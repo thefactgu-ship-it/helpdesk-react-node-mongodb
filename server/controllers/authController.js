@@ -153,6 +153,7 @@ async function updateCurrentUserPassword(req, res) {
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
+    user.passwordChangedAt = new Date(Date.now() - 1000);
     await user.save();
 
     res.json({ message: "Password updated" });
@@ -167,6 +168,10 @@ async function updateCurrentUserPassword(req, res) {
  */
 async function getAllUsers(req, res) {
   try {
+    if (!["Admin", "Manager"].includes(req.user?.role)) {
+      return res.status(403).json({ message: "User list access denied" });
+    }
+
     const users = await User.find().sort({ name: 1 }).select(PUBLIC_USER_FIELDS);
     res.json(users);
   } catch (error) {
