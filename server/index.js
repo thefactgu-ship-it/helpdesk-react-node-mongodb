@@ -28,11 +28,6 @@ const app = express();
 
 // Security middleware
 app.use(helmet()); // Set security headers
-app.use(
-  mongoSanitize({
-    replaceWith: "_",
-  })
-);
 
 // CORS configuration - restrict to allowed origins
 const corsOptions = {
@@ -46,6 +41,7 @@ app.use(cors(corsOptions));
 // Body parser middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
+app.use(sanitizeRequest);
 
 // Uploaded files are served through protected ticket attachment routes.
 
@@ -64,6 +60,32 @@ const passwordChangeLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+function sanitizeRequest(req, res, next) {
+  const sanitizeOptions = { replaceWith: "_" };
+
+  if (req.body) {
+    mongoSanitize.sanitize(req.body, sanitizeOptions);
+  }
+  if (req.params) {
+    mongoSanitize.sanitize(req.params, sanitizeOptions);
+  }
+  if (req.query) {
+    const sanitizedQuery = mongoSanitize.sanitize(
+      { ...req.query },
+      sanitizeOptions
+    );
+
+    Object.defineProperty(req, "query", {
+      value: sanitizedQuery,
+      configurable: true,
+      enumerable: true,
+      writable: true,
+    });
+  }
+
+  next();
+}
 
 async function ensureAdminUser() {
   const adminEmail = process.env.ADMIN_EMAIL || "admin@test.com";
