@@ -113,6 +113,53 @@ const updateUserValidationRules = () => [
 ];
 
 /**
+ * Validation rules for updating the current user's profile
+ */
+const updateCurrentUserValidationRules = () => [
+  body("name")
+    .trim()
+    .notEmpty()
+    .withMessage("Name is required")
+    .isLength({ min: 2, max: 100 })
+    .withMessage("Name must be between 2 and 100 characters"),
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required")
+    .isEmail()
+    .withMessage("Email must be valid")
+    .normalizeEmail(),
+  body("team")
+    .trim()
+    .notEmpty()
+    .withMessage("Team is required")
+    .isLength({ min: 1, max: 50 })
+    .withMessage("Team must be between 1 and 50 characters"),
+  body("role")
+    .not()
+    .exists()
+    .withMessage("Role cannot be updated from profile"),
+  body("password")
+    .not()
+    .exists()
+    .withMessage("Password must be updated from the password form"),
+];
+
+/**
+ * Validation rules for updating the current user's password
+ */
+const updateCurrentUserPasswordValidationRules = () => [
+  body("currentPassword")
+    .notEmpty()
+    .withMessage("Current password is required"),
+  body("newPassword")
+    .notEmpty()
+    .withMessage("New password is required")
+    .isLength({ min: 6 })
+    .withMessage("New password must be at least 6 characters"),
+];
+
+/**
  * Middleware to handle validation errors
  */
 const handleValidationErrors = (req, res, next) => {
@@ -134,5 +181,7 @@ module.exports = {
   loginValidationRules,
   createUserValidationRules,
   updateUserValidationRules,
+  updateCurrentUserValidationRules,
+  updateCurrentUserPasswordValidationRules,
   handleValidationErrors,
 };

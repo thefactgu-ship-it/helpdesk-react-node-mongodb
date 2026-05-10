@@ -19,6 +19,7 @@ const AssetManagementPage = lazy(() => import("./pages/AssetManagementPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
 const MonthlyReportPage = lazy(() => import("./pages/MonthlyReportPage"));
 const ProblemTypesPage = lazy(() => import("./pages/ProblemTypesPage"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const QuarterlyYearlyPage = lazy(() => import("./pages/QuarterlyYearlyPage"));
 const RequestUsersPage = lazy(() => import("./pages/RequestUsersPage"));
 const TicketsPage = lazy(() => import("./pages/TicketsPage"));
@@ -64,6 +65,10 @@ const pageTitles = {
     title: "Problem Types",
     subtitle: "Maintain common helpdesk categories",
   },
+  profile: {
+    title: "Profile",
+    subtitle: "Update your account details and password",
+  },
 };
 
 function getErrorMessage(error, fallback) {
@@ -92,6 +97,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [savingUser, setSavingUser] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
   const [updatingTicketId, setUpdatingTicketId] = useState(null);
   const [assigningTicketId, setAssigningTicketId] = useState(null);
   const [deletingTicketId, setDeletingTicketId] = useState(null);
@@ -99,6 +106,7 @@ function App() {
   const [deleteId, setDeleteId] = useState(null);
   const [deleteUserId, setDeleteUserId] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [profileInitialSection, setProfileInitialSection] = useState("profile");
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -228,6 +236,11 @@ function App() {
     setCurrentPage(1);
     setActivePage("dashboard");
     toast.success("Logged out");
+  };
+
+  const openProfilePage = (section = "profile") => {
+    setProfileInitialSection(section);
+    setActivePage("profile");
   };
 
   const handleSubmit = async (e) => {
@@ -454,6 +467,68 @@ function App() {
     }
   };
 
+  const updateMyProfile = async (profileForm, validationMessage) => {
+    if (validationMessage) {
+      toast.error(validationMessage);
+      return false;
+    }
+
+    if (!profileForm) return false;
+
+    try {
+      setSavingProfile(true);
+      const res = await axios.patch(`${AUTH_URL}/me`, profileForm, {
+        headers: authHeaders,
+      });
+      setCurrentUser(res.data);
+      localStorage.setItem("user", JSON.stringify(res.data));
+      toast.success("Profile updated");
+      await fetchUsers();
+      return true;
+    } catch (error) {
+      console.error("Failed to update profile", error);
+      toast.error(getErrorMessage(error, "Failed to update profile"));
+      return false;
+    } finally {
+      setSavingProfile(false);
+    }
+  };
+
+  const changeMyPassword = async (passwordForm, validationMessage) => {
+    if (validationMessage) {
+      toast.error(validationMessage);
+      return false;
+    }
+
+    if (!passwordForm) return false;
+
+    try {
+      setChangingPassword(true);
+      await axios.patch(`${AUTH_URL}/me/password`, passwordForm, {
+        headers: authHeaders,
+      });
+      toast.success("Password updated. Please log in again.");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setToken(null);
+      setCurrentUser(null);
+      setTickets([]);
+      setSummaryTickets([]);
+      setUsers([]);
+      setSearch("");
+      setFilterStatus("all");
+      setCurrentPage(1);
+      setActivePage("dashboard");
+      return true;
+    } catch (error) {
+      console.error("Failed to update password", error);
+      toast.error(getErrorMessage(error, "Failed to update password"));
+      return false;
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
   const updateUser = async (id, userForm) => {
     if (!userForm.name || !userForm.email) {
       toast.error("Name and email are required");
@@ -601,6 +676,8 @@ function App() {
             currentUser={currentUser}
             onNavigate={setActivePage}
             onLogout={handleLogout}
+            onOpenPassword={() => openProfilePage("password")}
+            onOpenProfile={() => openProfilePage("profile")}
           />
           <main className="min-h-[calc(100vh-3rem)] flex-1 bg-slate-50/90 p-5 dark:bg-slate-900 md:p-6">
             <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -695,6 +772,17 @@ function App() {
 
               {activePage === "problem-types" && (
                 <ProblemTypesPage currentUser={currentUser} token={token} />
+              )}
+
+              {activePage === "profile" && (
+                <ProfilePage
+                  changingPassword={changingPassword}
+                  currentUser={currentUser}
+                  initialSection={profileInitialSection}
+                  onChangePassword={changeMyPassword}
+                  onUpdateProfile={updateMyProfile}
+                  savingProfile={savingProfile}
+                />
               )}
             </Suspense>
           </main>

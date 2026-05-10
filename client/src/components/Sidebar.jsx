@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+
 const menuGroups = [
   {
     label: "Main",
@@ -38,11 +40,51 @@ function getInitials(name) {
     .toUpperCase();
 }
 
-function Sidebar({ activePage, currentUser, onNavigate, onLogout }) {
+function Sidebar({
+  activePage,
+  currentUser,
+  onNavigate,
+  onLogout,
+  onOpenPassword,
+  onOpenProfile,
+}) {
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
   const userName = currentUser?.name || "Welcome";
   const userRole = currentUser?.role || "User";
   const userTeam = currentUser?.team || "Support";
   const isAdmin = currentUser?.role === "Admin";
+
+  useEffect(() => {
+    if (!userMenuOpen) return;
+
+    const closeOnOutsideClick = (event) => {
+      if (!userMenuRef.current?.contains(event.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", closeOnOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsideClick);
+    };
+  }, [userMenuOpen]);
+
+  const handleProfile = () => {
+    setUserMenuOpen(false);
+    onOpenProfile();
+  };
+
+  const handlePassword = () => {
+    setUserMenuOpen(false);
+    onOpenPassword();
+  };
+
+  const handleLogout = () => {
+    setUserMenuOpen(false);
+    onLogout();
+  };
 
   return (
     <aside className="flex w-full flex-col border-b border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 md:min-h-[calc(100vh-3rem)] md:w-72 md:border-b-0 md:border-r">
@@ -86,13 +128,48 @@ function Sidebar({ activePage, currentUser, onNavigate, onLogout }) {
         ))}
       </nav>
 
-      <div className="border-t border-slate-100 p-4 dark:border-slate-800">
-        <div className="mb-3 flex items-center gap-3 rounded-2xl bg-slate-100 p-3 dark:bg-slate-900">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-600 text-xs font-bold text-white">
+      <div
+        ref={userMenuRef}
+        className="relative border-t border-slate-100 p-4 dark:border-slate-800"
+      >
+        {userMenuOpen && (
+          <div className="absolute bottom-[5.25rem] left-4 right-4 z-20 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl shadow-slate-200/80 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/50">
+            <button
+              type="button"
+              onClick={handleProfile}
+              className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-violet-50 hover:text-violet-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-violet-200"
+            >
+              Update Profile
+            </button>
+            <button
+              type="button"
+              onClick={handlePassword}
+              className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-violet-50 hover:text-violet-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-violet-200"
+            >
+              Change Password
+            </button>
+            <div className="my-2 h-px bg-slate-100 dark:bg-slate-800" />
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-bold text-rose-600 transition hover:bg-rose-50 dark:text-rose-200 dark:hover:bg-rose-500/10"
+            >
+              Logout
+            </button>
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setUserMenuOpen((open) => !open)}
+          className="flex w-full items-center gap-3 rounded-2xl bg-slate-100 p-3 text-left transition hover:bg-violet-50 dark:bg-slate-900 dark:hover:bg-slate-800"
+          aria-expanded={userMenuOpen}
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-600 text-xs font-bold text-white">
             {getInitials(userName)}
           </div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-slate-950 dark:text-white">
               {userName}
             </p>
@@ -101,14 +178,9 @@ function Sidebar({ activePage, currentUser, onNavigate, onLogout }) {
               {userTeam ? ` / ${userTeam}` : ""}
             </p>
           </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={onLogout}
-          className="w-full rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-xs font-bold text-rose-600 transition hover:border-rose-300 hover:bg-rose-100 dark:border-rose-500/40 dark:bg-rose-500/10 dark:text-rose-200 dark:hover:bg-rose-500/20"
-        >
-          Logout
+          <span className="shrink-0 text-xs font-black text-slate-400">
+            {userMenuOpen ? "^" : "v"}
+          </span>
         </button>
       </div>
     </aside>

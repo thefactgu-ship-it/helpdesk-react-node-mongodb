@@ -102,6 +102,66 @@ async function getCurrentUser(req, res) {
 }
 
 /**
+ * Update current authenticated user's profile
+ * PATCH /api/auth/me
+ */
+async function updateCurrentUser(req, res) {
+  try {
+    const { name, email, team } = req.body;
+    const updateFields = {};
+
+    if (name) updateFields.name = name;
+    if (email) updateFields.email = email;
+    if (team) updateFields.team = team;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user.id,
+      updateFields,
+      { new: true, runValidators: true }
+    ).select(PUBLIC_USER_FIELDS);
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json(updatedUser);
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: "Email already exists" });
+    }
+
+    res.status(500).json({ message: "Failed to update profile" });
+  }
+}
+
+/**
+ * Change current authenticated user's password
+ * PATCH /api/auth/me/password
+ */
+async function updateCurrentUserPassword(req, res) {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user.id).select("password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const passwordMatches = await bcrypt.compare(currentPassword, user.password);
+    if (!passwordMatches) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.json({ message: "Password updated" });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to update password" });
+  }
+}
+
+/**
  * Get all users (public fields only)
  * GET /api/auth/users
  */
@@ -246,6 +306,8 @@ module.exports = {
   register,
   login,
   getCurrentUser,
+  updateCurrentUser,
+  updateCurrentUserPassword,
   getAllUsers,
   createUser,
   updateUser,

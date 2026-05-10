@@ -8,6 +8,8 @@ const {
   loginValidationRules,
   createUserValidationRules,
   updateUserValidationRules,
+  updateCurrentUserValidationRules,
+  updateCurrentUserPasswordValidationRules,
   handleValidationErrors,
 } = require("../validators/authValidator");
 
@@ -29,6 +31,20 @@ router.post(
 
 // Protected auth routes
 router.get("/me", authMiddleware, asyncHandler(authController.getCurrentUser));
+router.patch(
+  "/me",
+  authMiddleware,
+  updateCurrentUserValidationRules(),
+  handleValidationErrors,
+  asyncHandler(authController.updateCurrentUser)
+);
+router.patch(
+  "/me/password",
+  authMiddleware,
+  updateCurrentUserPasswordValidationRules(),
+  handleValidationErrors,
+  asyncHandler(authController.updateCurrentUserPassword)
+);
 router.get("/users", authMiddleware, asyncHandler(authController.getAllUsers));
 
 // Admin only routes with validation
