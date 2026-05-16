@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm ci
+
+      - name: Check server syntax
+        working-directory: server
+        run: |
+          node --check index.js
+          node --check controllers/authController.js
+          node --check controllers/ticketController.js
+          node --check controllers/assetController.js
+          node --check controllers/problemTypeController.js
+          node --check controllers/hotelController.js
+          node --check services/attachmentStorage.js
+          node --check utils/tenantScope.js
+
+      - name: Install client dependencies
+        working-directory: client
+        run: npm ci
+
+      - name: Lint client
+        working-directory: client
+        run: npm run lint
+
+      - name: Build client
+        working-directory: client
+        run: npm run build

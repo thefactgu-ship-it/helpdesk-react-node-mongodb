@@ -1,5 +1,6 @@
 import Badge from "./Badge";
 import SkeletonRow from "./SkeletonRow";
+import ThemedSelect from "./ThemedSelect";
 
 function TicketTable({
   assigningTicketId,
@@ -21,7 +22,7 @@ function TicketTable({
   currentUser,
   users = [],
 }) {
-  const canManageTickets = ["Admin", "Manager"].includes(currentUser?.role);
+  const canManageTickets = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"].includes(currentUser?.role);
   const assignableUsers = users.filter((user) =>
     ["admin", "manager", "agent", "staff"].includes(
       String(user.role || "").toLowerCase(),
@@ -46,18 +47,14 @@ function TicketTable({
           className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-purple-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 md:w-80"
         />
 
-        <select
+        <ThemedSelect
+          className="w-full md:w-56"
+          size="sm"
           value={filterStatus}
           disabled={loading}
-          onChange={(e) => setFilterStatus(e.target.value)}
-          className="rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-purple-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900"
-        >
-          <option value="all">All Status</option>
-          <option value="open">Open</option>
-          <option value="in_progress">In Progress</option>
-          <option value="resolved">Resolved</option>
-          <option value="closed">Closed</option>
-        </select>
+          onChange={setFilterStatus}
+          options={statusOptions}
+        />
       </div>
 
       <div className="overflow-x-auto">
@@ -99,7 +96,7 @@ function TicketTable({
                     <td className="py-4">
                       <div className="font-semibold">{ticket.title}</div>
                       <div className="text-xs text-slate-500 dark:text-slate-400">
-                        {ticket.category} / {ticket.department}
+                        {ticket.category} / {ticket.departmentName || ticket.department}
                         {ticket.requester ? ` / ${ticket.requester}` : ""}
                       </div>
                     </td>
@@ -108,40 +105,41 @@ function TicketTable({
                     </td>
                     <td>
                       {canUpdateTicketStatus(ticket) ? (
-                        <select
+                        <ThemedSelect
+                          className="w-36"
+                          compactOptions
+                          menuWidth={160}
+                          size="sm"
                           value={ticket.status}
                           disabled={isBusy}
-                          onChange={(e) =>
-                            updateStatus(ticket._id, e.target.value)
-                          }
-                          className="rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm font-medium text-purple-700 outline-none focus:border-purple-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                        >
-                          <option value="open">Open</option>
-                          <option value="in_progress">In Progress</option>
-                          <option value="resolved">Resolved</option>
-                          <option value="closed">Closed</option>
-                        </select>
+                          onChange={(value) => updateStatus(ticket._id, value)}
+                          options={statusOptions.filter((option) => option.value !== "all")}
+                        />
                       ) : (
                         <Badge text={ticket.status} />
                       )}
                     </td>
                     <td className="text-slate-500 dark:text-slate-400">
                       {canManageTickets ? (
-                        <select
+                        <ThemedSelect
+                          className="w-40"
+                          compactOptions
+                          menuWidth={180}
+                          size="sm"
                           value={ticket.assignedTo?._id || ""}
                           disabled={isBusy || !assignableUsers.length}
-                          onChange={(e) => assignTicket(ticket._id, e.target.value)}
-                          className="max-w-40 rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm font-medium text-purple-700 outline-none focus:border-purple-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
-                        >
-                          <option value="">
-                            {isAssigning ? "Assigning..." : "Unassigned"}
-                          </option>
-                          {assignableUsers.map((user) => (
-                            <option key={user._id || user.id} value={user._id || user.id}>
-                              {user.name}
-                            </option>
-                          ))}
-                        </select>
+                          emptyLabel={isAssigning ? "Assigning..." : "Unassigned"}
+                          onChange={(value) => assignTicket(ticket._id, value)}
+                          options={[
+                            { value: "", label: isAssigning ? "Assigning..." : "Unassigned", prefix: "-" },
+                            ...assignableUsers.map((user) => ({
+                              value: user._id || user.id,
+                              label: user.name,
+                              meta: user.role,
+                              prefix: getInitials(user.name),
+                            })),
+                          ]}
+                        />
                       ) : (
                         ticket.assignedTo?.name || "Unassigned"
                       )}
@@ -212,6 +210,24 @@ function TicketTable({
 
 function getEntityId(entity) {
   return String(entity?._id || entity?.id || entity || "");
+}
+
+const statusOptions = [
+  { value: "all", label: "All Status", prefix: "A" },
+  { value: "open", label: "Open", prefix: "O" },
+  { value: "in_progress", label: "In Progress", prefix: "IP" },
+  { value: "resolved", label: "Resolved", prefix: "R" },
+  { value: "closed", label: "Closed", prefix: "C" },
+];
+
+function getInitials(name) {
+  return String(name || "U")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 }
 
 export default TicketTable;

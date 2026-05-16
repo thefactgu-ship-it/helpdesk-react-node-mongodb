@@ -23,7 +23,7 @@ const ALLOWED_IMAGE_TYPES = new Set([
 const ALLOWED_IMAGE_EXTENSIONS = /\.(jpe?g|png|gif|webp)$/i;
 
 const upload = multer({
-  dest: "uploads/",
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: MAX_ATTACHMENT_SIZE,
     files: 1,

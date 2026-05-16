@@ -33,6 +33,23 @@ function validateEnv() {
     }
   }
 
+  if (process.env.ATTACHMENT_STORAGE_PROVIDER === "s3") {
+    const requiredS3Envs = [
+      "S3_ENDPOINT",
+      "S3_BUCKET",
+      "S3_ACCESS_KEY_ID",
+      "S3_SECRET_ACCESS_KEY",
+    ];
+    const missingS3Envs = requiredS3Envs.filter((env) => !process.env[env]);
+
+    if (missingS3Envs.length > 0) {
+      console.error(
+        `Missing required S3 environment variables: ${missingS3Envs.join(", ")}`
+      );
+      process.exit(1);
+    }
+  }
+
   console.log("All required environment variables are configured");
 }
 

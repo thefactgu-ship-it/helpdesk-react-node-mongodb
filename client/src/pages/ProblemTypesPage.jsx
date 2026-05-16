@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import ConfirmModal from "../components/ConfirmModal";
 import {
@@ -16,7 +16,7 @@ const defaultProblemTypes = [
   "Printer",
 ];
 
-function ProblemTypesPage({ currentUser, token }) {
+function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
   const [problemTypes, setProblemTypes] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -24,14 +24,18 @@ function ProblemTypesPage({ currentUser, token }) {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [deleteTypeId, setDeleteTypeId] = useState(null);
-  const isAdmin = currentUser?.role === "Admin";
+  const isAdmin = ["GroupAdmin", "Admin", "HotelAdmin"].includes(currentUser?.role);
+  const scopedParams = useMemo(
+    () => (hotelId && hotelId !== "all" ? { hotelId } : undefined),
+    [hotelId],
+  );
 
   const fetchProblemTypes = useCallback(async () => {
     if (!token) return;
 
     try {
       setLoading(true);
-      const data = await getProblemTypes(token);
+      const data = await getProblemTypes(token, scopedParams);
       setProblemTypes(data);
     } catch (error) {
       console.error("Failed to load problem types", error);
@@ -39,7 +43,7 @@ function ProblemTypesPage({ currentUser, token }) {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [scopedParams, token]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -61,7 +65,7 @@ function ProblemTypesPage({ currentUser, token }) {
       await createProblemType(token, {
         name: nextName,
         description: description.trim(),
-      });
+      }, scopedParams);
       toast.success("Problem type added");
       setName("");
       setDescription("");
@@ -84,7 +88,7 @@ function ProblemTypesPage({ currentUser, token }) {
 
     try {
       setDeletingId(deleteTypeId);
-      await deleteProblemType(token, deleteTypeId);
+      await deleteProblemType(token, deleteTypeId, scopedParams);
       toast.success("Problem type deleted");
       setDeleteTypeId(null);
       await fetchProblemTypes();

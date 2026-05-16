@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import ThemedSelect from "../components/ThemedSelect";
 
 function RequestUsersPage({ users }) {
   const [search, setSearch] = useState("");
@@ -9,7 +10,7 @@ function RequestUsersPage({ users }) {
     [users],
   );
   const teams = useMemo(
-    () => ["all", ...new Set(requesters.map((user) => user.team || "Support"))],
+    () => ["all", ...new Set(requesters.map((user) => user.departmentId?.name || user.departmentName || user.team || "Support"))],
     [requesters],
   );
   const filteredRequesters = requesters.filter((user) => {
@@ -17,8 +18,11 @@ function RequestUsersPage({ users }) {
     const matchesSearch =
       user.name?.toLowerCase().includes(keyword) ||
       user.email?.toLowerCase().includes(keyword) ||
-      user.team?.toLowerCase().includes(keyword);
-    const matchesTeam = teamFilter === "all" || user.team === teamFilter;
+      user.team?.toLowerCase().includes(keyword) ||
+      user.departmentName?.toLowerCase().includes(keyword) ||
+      user.departmentId?.name?.toLowerCase().includes(keyword);
+    const departmentName = user.departmentId?.name || user.departmentName || user.team || "Support";
+    const matchesTeam = teamFilter === "all" || departmentName === teamFilter;
 
     return matchesSearch && matchesTeam;
   });
@@ -39,7 +43,7 @@ function RequestUsersPage({ users }) {
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <SummaryCard label="Requesters" value={requesters.length} />
-        <SummaryCard label="Teams" value={Math.max(teams.length - 1, 0)} />
+        <SummaryCard label="Departments" value={Math.max(teams.length - 1, 0)} />
         <SummaryCard label="Visible" value={filteredRequesters.length} />
       </section>
 
@@ -52,17 +56,16 @@ function RequestUsersPage({ users }) {
             placeholder="Search requesters..."
             className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400 md:w-80"
           />
-          <select
+          <ThemedSelect
+            className="w-full md:w-56"
             value={teamFilter}
-            onChange={(event) => setTeamFilter(event.target.value)}
-            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400"
-          >
-            {teams.map((team) => (
-              <option key={team} value={team}>
-                {team === "all" ? "All Teams" : team}
-              </option>
-            ))}
-          </select>
+            onChange={setTeamFilter}
+            options={teams.map((team) => ({
+              value: team,
+              label: team === "all" ? "All Teams" : team,
+              prefix: team === "all" ? "ALL" : team.slice(0, 2).toUpperCase(),
+            }))}
+          />
         </div>
 
         <div className="overflow-x-auto">
@@ -71,7 +74,7 @@ function RequestUsersPage({ users }) {
               <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
                 <th className="py-3">Requester</th>
                 <th>Email</th>
-                <th>Team</th>
+                <th>Department</th>
                 <th>Role</th>
                 <th>Created</th>
               </tr>
@@ -94,7 +97,7 @@ function RequestUsersPage({ users }) {
                     {user.email}
                   </td>
                   <td className="text-slate-600 dark:text-slate-300">
-                    {user.team || "Support"}
+                    {user.departmentId?.name || user.departmentName || user.team || "Support"}
                   </td>
                   <td>
                     <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700 dark:bg-violet-500/20 dark:text-violet-200">

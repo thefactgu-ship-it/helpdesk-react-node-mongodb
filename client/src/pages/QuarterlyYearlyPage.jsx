@@ -11,6 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import StatCard from "../components/StatCard";
+import ThemedSelect from "../components/ThemedSelect";
 
 function QuarterlyYearlyPage({ tickets }) {
   const [mode, setMode] = useState("quarterly");
@@ -38,31 +39,31 @@ function QuarterlyYearlyPage({ tickets }) {
             <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
               View
             </span>
-            <select
+            <ThemedSelect
+              className="sm:w-44"
               value={mode}
-              onChange={(event) => setMode(event.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400 sm:w-44"
-            >
-              <option value="quarterly">Quarterly</option>
-              <option value="yearly">Yearly</option>
-            </select>
+              onChange={setMode}
+              options={[
+                { value: "quarterly", label: "Quarterly", prefix: "Q" },
+                { value: "yearly", label: "Yearly", prefix: "Y" },
+              ]}
+            />
           </label>
 
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
               Year
             </span>
-            <select
+            <ThemedSelect
+              className="sm:w-36"
               value={year}
-              onChange={(event) => setYear(event.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400 sm:w-36"
-            >
-              {years.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
+              onChange={setYear}
+              options={years.map((item) => ({
+                value: String(item),
+                label: String(item),
+                prefix: String(item).slice(2),
+              }))}
+            />
           </label>
         </div>
       </section>

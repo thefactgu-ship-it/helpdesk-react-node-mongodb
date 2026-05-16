@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-
-const teams = ["System", "Support", "IT", "Operations", "Finance", "HR", "Sales"];
+import ThemedSelect from "../components/ThemedSelect";
 
 function ProfilePage({
   changingPassword,
   currentUser,
+  departments = [],
   initialSection = "profile",
   onChangePassword,
   onUpdateProfile,
@@ -15,6 +15,7 @@ function ProfilePage({
     name: currentUser?.name || "",
     email: currentUser?.email || "",
     team: currentUser?.team || "Support",
+    departmentId: currentUser?.departmentId?._id || currentUser?.departmentId || "",
   }));
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -38,6 +39,7 @@ function ProfilePage({
       name: profileForm.name.trim(),
       email: profileForm.email.trim(),
       team: profileForm.team.trim(),
+      departmentId: profileForm.departmentId || undefined,
     };
 
     if (payload.name.length < 2) {
@@ -134,20 +136,44 @@ function ProfilePage({
             </Field>
 
             <Field label="Team">
-              <select
+              <input
+                type="text"
                 value={profileForm.team}
                 disabled={savingProfile}
                 onChange={(event) =>
                   setProfileForm({ ...profileForm, team: event.target.value })
                 }
                 className={inputClass}
-              >
-                {teams.map((team) => (
-                  <option key={team} value={team}>
-                    {team}
-                  </option>
-                ))}
-              </select>
+                placeholder="Support"
+              />
+            </Field>
+
+            <Field label="Department">
+              <ThemedSelect
+                value={profileForm.departmentId}
+                disabled={savingProfile}
+                onChange={(value) => {
+                  const department = departments.find(
+                    (item) => (item._id || item.id) === value,
+                  );
+                  setProfileForm({
+                    ...profileForm,
+                    departmentId: value,
+                    team: department?.name || profileForm.team,
+                  });
+                }}
+                options={[
+                  { value: "", label: "No department", prefix: "-" },
+                  ...departments
+                    .filter((department) => department.active !== false)
+                    .map((department) => ({
+                      value: department._id || department.id,
+                      label: department.name,
+                      meta: department.code,
+                      prefix: department.code || department.name.slice(0, 2).toUpperCase(),
+                    })),
+                ]}
+              />
             </Field>
 
             <Field label="Role">

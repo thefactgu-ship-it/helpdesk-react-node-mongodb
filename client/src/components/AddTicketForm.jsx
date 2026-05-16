@@ -1,3 +1,5 @@
+import ThemedSelect from "./ThemedSelect";
+
 function AddTicketForm({
   canAssignTickets = false,
   form,
@@ -7,13 +9,14 @@ function AddTicketForm({
   users,
   problemTypes = [],
   loadingProblemTypes = false,
+  departments = [],
 }) {
   const fieldClass =
     "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-violet-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-violet-400 dark:focus:bg-slate-900";
-  const selectClass = `${fieldClass} appearance-none`;
   const labelClass = "text-sm font-semibold text-slate-700 dark:text-slate-300";
 
   const categoryOptions = problemTypes.filter((type) => type.active !== false);
+  const departmentOptions = departments.filter((department) => department.active !== false);
   const hasProblemTypes = categoryOptions.length > 0;
 
   return (
@@ -55,7 +58,7 @@ function AddTicketForm({
                 maxLength={100}
                 disabled={submitting}
                 onChange={(e) =>
-                  setForm({ ...form, requester: e.target.value })
+                  setForm({ ...form, requester: e.target.value, requesterUserId: "" })
                 }
                 className={fieldClass}
               />
@@ -66,52 +69,40 @@ function AddTicketForm({
 
             {canAssignTickets && (
               <Field label="Assigned To" labelClass={labelClass}>
-                <div className="relative">
-                  <select
-                    value={form.assignedTo}
-                    disabled={submitting}
-                    onChange={(e) =>
-                      setForm({ ...form, assignedTo: e.target.value })
-                    }
-                    className={selectClass}
-                  >
-                    <option value="">Unassigned</option>
-                    {users
+                <ThemedSelect
+                  value={form.assignedTo}
+                  disabled={submitting}
+                  onChange={(value) => setForm({ ...form, assignedTo: value })}
+                  options={[
+                    { value: "", label: "Unassigned", prefix: "-" },
+                    ...users
                       .filter((user) => user.role !== "User")
-                      .map((user) => (
-                        <option key={user._id} value={user._id}>
-                          {user.name} ({user.role})
-                        </option>
-                      ))}
-                  </select>
-                  <SelectChevron />
-                </div>
+                      .map((user) => ({
+                        value: user._id,
+                        label: user.name,
+                        meta: user.role,
+                        prefix: getInitials(user.name),
+                      })),
+                  ]}
+                />
               </Field>
             )}
 
             <Field label="Issue Category" labelClass={labelClass}>
-              <div className="relative">
-                <select
-                  value={form.category}
-                  disabled={submitting || loadingProblemTypes || !hasProblemTypes}
-                  onChange={(e) =>
-                    setForm({ ...form, category: e.target.value })
-                  }
-                  className={selectClass}
-                >
-                  {!hasProblemTypes && (
-                    <option value="">
-                      {loadingProblemTypes ? "Loading problem types..." : "No problem types available"}
-                    </option>
-                  )}
-                  {categoryOptions.map((type) => (
-                    <option key={type._id || type.name} value={type.name}>
-                      {type.name}
-                    </option>
-                  ))}
-                </select>
-                <SelectChevron />
-              </div>
+              <ThemedSelect
+                value={form.category}
+                disabled={submitting || loadingProblemTypes || !hasProblemTypes}
+                emptyLabel={
+                  loadingProblemTypes ? "Loading problem types..." : "No problem types available"
+                }
+                onChange={(value) => setForm({ ...form, category: value })}
+                options={categoryOptions.map((type) => ({
+                  value: type.name,
+                  label: type.name,
+                  meta: type.description || "Issue category",
+                  prefix: "#",
+                }))}
+              />
               {!loadingProblemTypes && !hasProblemTypes && (
                 <p className="text-xs font-semibold text-rose-600 dark:text-rose-300">
                   Ask an admin to add a problem type before creating tickets.
@@ -120,41 +111,49 @@ function AddTicketForm({
             </Field>
 
             <Field label="Urgency Level" labelClass={labelClass}>
-              <div className="relative">
-                <select
-                  value={form.priority}
-                  disabled={submitting}
-                  onChange={(e) =>
-                    setForm({ ...form, priority: e.target.value })
-                  }
-                  className={selectClass}
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="critical">Critical</option>
-                </select>
-                <SelectChevron />
-              </div>
+              <ThemedSelect
+                value={form.priority}
+                disabled={submitting}
+                onChange={(value) => setForm({ ...form, priority: value })}
+                options={[
+                  { value: "low", label: "Low", meta: "72 hour SLA", prefix: "L" },
+                  { value: "medium", label: "Medium", meta: "24 hour SLA", prefix: "M" },
+                  { value: "high", label: "High", meta: "8 hour SLA", prefix: "H" },
+                  { value: "critical", label: "Critical", meta: "4 hour SLA", prefix: "C" },
+                ]}
+              />
             </Field>
 
             <Field label="Department" labelClass={labelClass}>
-              <div className="relative">
-                <select
-                  value={form.department}
-                  disabled={submitting}
-                  onChange={(e) =>
-                    setForm({ ...form, department: e.target.value })
-                  }
-                  className={selectClass}
-                >
-                  <option value="IT">IT</option>
-                  <option value="HR">HR</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Operations">Operations</option>
-                </select>
-                <SelectChevron />
-              </div>
+              <ThemedSelect
+                value={form.departmentId || form.department}
+                disabled={submitting}
+                onChange={(value) => {
+                  const department = departmentOptions.find(
+                    (item) => (item._id || item.id) === value,
+                  );
+                  setForm({
+                    ...form,
+                    departmentId: department ? value : "",
+                    department: department?.name || value,
+                  });
+                }}
+                options={[
+                  ...departmentOptions.map((department) => ({
+                    value: department._id || department.id,
+                    label: department.name,
+                    meta: department.code,
+                    prefix: department.code || department.name.slice(0, 2).toUpperCase(),
+                  })),
+                  ...(!departmentOptions.length
+                    ? ["IT", "HR", "Finance", "Operations"].map((department) => ({
+                        value: department,
+                        label: department,
+                        prefix: department.slice(0, 2).toUpperCase(),
+                      }))
+                    : []),
+                ]}
+              />
             </Field>
 
             <Field label="Due Date" labelClass={labelClass}>
@@ -205,12 +204,14 @@ function Field({ children, label, labelClass }) {
   );
 }
 
-function SelectChevron() {
-  return (
-    <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
-      v
-    </span>
-  );
+function getInitials(name) {
+  return String(name || "U")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 }
 
 export default AddTicketForm;

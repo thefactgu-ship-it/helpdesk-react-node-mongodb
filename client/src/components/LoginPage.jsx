@@ -1,10 +1,16 @@
 import { useState } from "react";
+import ThemedSelect from "./ThemedSelect";
 
 const socialButtons = [
   { label: "Google", icon: GoogleIcon },
   { label: "GitHub", icon: GitHubIcon },
   { label: "Apple", icon: AppleIcon },
 ];
+const teamOptions = ["Support", "Operations", "Sales", "HR"].map((team) => ({
+  value: team,
+  label: team,
+  prefix: team.slice(0, 2).toUpperCase(),
+}));
 
 function LoginPage({ onLogin, onRegister }) {
   const [mode, setMode] = useState("login");
@@ -138,19 +144,12 @@ function LoginPage({ onLogin, onRegister }) {
               <span className="mb-2 block text-sm font-semibold text-slate-700">
                 Team
               </span>
-              <select
+              <ThemedSelect
                 value={registerForm.team}
                 disabled={loading}
-                onChange={(e) =>
-                  setRegisterForm({ ...registerForm, team: e.target.value })
-                }
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 outline-none transition focus:border-purple-500 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <option value="Support">Support</option>
-                <option value="Operations">Operations</option>
-                <option value="Sales">Sales</option>
-                <option value="HR">HR</option>
-              </select>
+                onChange={(value) => setRegisterForm({ ...registerForm, team: value })}
+                options={teamOptions}
+              />
             </label>
           )}
 

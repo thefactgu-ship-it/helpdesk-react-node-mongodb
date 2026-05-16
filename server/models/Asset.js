@@ -16,7 +16,12 @@ const assetSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      unique: true,
+    },
+    hotelId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hotel",
+      required: true,
+      index: true,
     },
     owner: {
       type: String,
@@ -67,5 +72,9 @@ const assetSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+assetSchema.index({ hotelId: 1, serialNumber: 1 }, { unique: true });
+assetSchema.index({ hotelId: 1, createdAt: -1 });
+assetSchema.index({ hotelId: 1, status: 1 });
 
 module.exports = mongoose.model("Asset", assetSchema);

@@ -11,12 +11,17 @@ import Sidebar from "./components/Sidebar";
 import toast, { Toaster } from "react-hot-toast";
 import ConfirmModal from "./components/ConfirmModal";
 import LoginPage from "./components/LoginPage";
+import ThemedSelect from "./components/ThemedSelect";
 import TicketDetailModal from "./components/TicketDetailModal";
 import { API_BASE_URL } from "./services/api";
+import { getHotels } from "./services/hotelService";
+import { getDepartments } from "./services/departmentService";
 
 const AddTicketPage = lazy(() => import("./pages/AddTicketPage"));
 const AssetManagementPage = lazy(() => import("./pages/AssetManagementPage"));
 const DashboardPage = lazy(() => import("./pages/DashboardPage"));
+const DepartmentManagementPage = lazy(() => import("./pages/DepartmentManagementPage"));
+const HotelManagementPage = lazy(() => import("./pages/HotelManagementPage"));
 const MonthlyReportPage = lazy(() => import("./pages/MonthlyReportPage"));
 const ProblemTypesPage = lazy(() => import("./pages/ProblemTypesPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
@@ -27,6 +32,9 @@ const UserManagementPage = lazy(() => import("./pages/UserManagementPage"));
 
 const API_URL = `${API_BASE_URL}/tickets`;
 const AUTH_URL = `${API_BASE_URL}/auth`;
+const groupRoles = ["GroupAdmin", "Admin", "RegionalManager"];
+const adminRoles = ["GroupAdmin", "Admin", "HotelAdmin"];
+const ticketManagerRoles = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"];
 
 const pageTitles = {
   dashboard: {
@@ -52,6 +60,14 @@ const pageTitles = {
   assets: {
     title: "Asset Management",
     subtitle: "Prepare and track IT assets for each department",
+  },
+  hotels: {
+    title: "Hotel Management",
+    subtitle: "Create hotels and control group-level tenant setup",
+  },
+  departments: {
+    title: "Department Management",
+    subtitle: "Maintain hotel departments for tickets, users, and reports",
   },
   "user-management": {
     title: "User Management",
@@ -86,6 +102,11 @@ function App() {
     JSON.parse(localStorage.getItem("user")) || null,
   );
   const [users, setUsers] = useState([]);
+  const [hotels, setHotels] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [selectedHotelId, setSelectedHotelId] = useState(
+    localStorage.getItem("selectedHotelId") || "all",
+  );
   const [currentPage, setCurrentPage] = useState(1);
   const ticketsPerPage = 5;
   const [tickets, setTickets] = useState([]);
@@ -111,8 +132,10 @@ function App() {
     title: "",
     description: "",
     requester: "",
+    requesterUserId: "",
     category: "",
     department: "IT",
+    departmentId: "",
     priority: "medium",
     assignedTo: "",
     dueDate: "",
@@ -127,6 +150,10 @@ function App() {
         : {},
     [token],
   );
+  const scopedParams = useMemo(() => {
+    if (!selectedHotelId || selectedHotelId === "all") return {};
+    return { hotelId: selectedHotelId };
+  }, [selectedHotelId]);
 
   const fetchTickets = useCallback(async () => {
     if (!token) {
@@ -139,15 +166,16 @@ function App() {
       setLoading(true);
       const res = await axios.get(API_URL, {
         headers: authHeaders,
+        params: scopedParams,
       });
-      setTickets(res.data);
+      setTickets(Array.isArray(res.data) ? res.data : res.data.data || []);
     } catch (error) {
       console.error("Failed to fetch tickets", error);
       toast.error(getErrorMessage(error, "Failed to fetch tickets"));
     } finally {
       setLoading(false);
     }
-  }, [authHeaders, token]);
+  }, [authHeaders, scopedParams, token]);
 
   const fetchSummaryTickets = useCallback(async () => {
     if (!token) {
@@ -158,13 +186,14 @@ function App() {
     try {
       const res = await axios.get(`${API_URL}/summary`, {
         headers: authHeaders,
+        params: scopedParams,
       });
       setSummaryTickets(res.data);
     } catch (error) {
       console.error("Failed to fetch ticket summary", error);
       toast.error(getErrorMessage(error, "Failed to fetch ticket summary"));
     }
-  }, [authHeaders, token]);
+  }, [authHeaders, scopedParams, token]);
 
   const fetchUsers = useCallback(async () => {
     if (!token) return;
@@ -172,12 +201,41 @@ function App() {
     try {
       const res = await axios.get(`${AUTH_URL}/users`, {
         headers: authHeaders,
+        params: scopedParams,
       });
       setUsers(res.data);
     } catch (error) {
       console.error("Failed to fetch users", error);
     }
-  }, [authHeaders, token]);
+  }, [authHeaders, scopedParams, token]);
+
+  const fetchHotels = useCallback(async () => {
+    if (!token) {
+      setHotels([]);
+      return;
+    }
+
+    try {
+      const data = await getHotels(token);
+      setHotels(data);
+    } catch (error) {
+      console.error("Failed to fetch hotels", error);
+    }
+  }, [token]);
+
+  const fetchDepartments = useCallback(async () => {
+    if (!token) {
+      setDepartments([]);
+      return;
+    }
+
+    try {
+      const data = await getDepartments(token, scopedParams);
+      setDepartments(data);
+    } catch (error) {
+      console.error("Failed to fetch departments", error);
+    }
+  }, [scopedParams, token]);
 
   const fetchCurrentUser = useCallback(async () => {
     if (!token || currentUser) return;
@@ -202,6 +260,8 @@ function App() {
       setCurrentUser(res.data.user);
       setTickets([]);
       setSummaryTickets([]);
+      setHotels([]);
+      setDepartments([]);
       toast.success("Login successful");
       return true;
     } catch (error) {
@@ -231,6 +291,9 @@ function App() {
     setTickets([]);
     setSummaryTickets([]);
     setUsers([]);
+    setHotels([]);
+    localStorage.removeItem("selectedHotelId");
+    setSelectedHotelId("all");
     setSearch("");
     setFilterStatus("all");
     setCurrentPage(1);
@@ -276,12 +339,17 @@ function App() {
           title: form.title.trim(),
           description: form.description.trim(),
           requester: form.requester.trim(),
+          requesterUserId: form.requesterUserId || undefined,
           category: form.category.trim(),
+          departmentId: form.departmentId || undefined,
+          department: form.department.trim(),
           assignedTo: canManageTickets ? form.assignedTo || undefined : undefined,
           dueDate: form.dueDate || undefined,
+          hotelId: selectedHotelId !== "all" ? selectedHotelId : undefined,
         },
         {
           headers: authHeaders,
+          params: scopedParams,
         },
       );
       toast.success("Ticket added successfully");
@@ -289,8 +357,10 @@ function App() {
         title: "",
         description: "",
         requester: "",
+        requesterUserId: "",
         category: "",
         department: "IT",
+        departmentId: "",
         priority: "medium",
         assignedTo: "",
         dueDate: "",
@@ -318,6 +388,7 @@ function App() {
         { status },
         {
           headers: authHeaders,
+          params: scopedParams,
         },
       );
       toast.success("Status updated");
@@ -345,6 +416,7 @@ function App() {
         { assignedTo },
         {
           headers: authHeaders,
+          params: scopedParams,
         },
       );
       toast.success("Ticket assigned");
@@ -365,6 +437,7 @@ function App() {
     try {
       const res = await axios.get(`${API_URL}/${id}`, {
         headers: authHeaders,
+        params: scopedParams,
       });
       setSelectedTicket(res.data);
     } catch (error) {
@@ -384,6 +457,7 @@ function App() {
         { text },
         {
           headers: authHeaders,
+          params: scopedParams,
         },
       );
       toast.success("Comment added");
@@ -411,6 +485,7 @@ function App() {
           ...authHeaders,
           "Content-Type": "multipart/form-data",
         },
+        params: scopedParams,
       });
       toast.success("Attachment uploaded");
       await fetchTickets();
@@ -427,6 +502,7 @@ function App() {
       setDeletingTicketId(deleteId);
       await axios.delete(`${API_URL}/${deleteId}`, {
         headers: authHeaders,
+        params: scopedParams,
       });
       toast.success("Ticket deleted");
       setDeleteId(null);
@@ -452,8 +528,12 @@ function App() {
 
     try {
       setSavingUser(true);
-      await axios.post(`${AUTH_URL}/users`, userForm, {
+      await axios.post(`${AUTH_URL}/users`, {
+        ...userForm,
+        hotelId: userForm.hotelId || (selectedHotelId !== "all" ? selectedHotelId : undefined),
+      }, {
         headers: authHeaders,
+        params: scopedParams,
       });
       toast.success("User created");
       await fetchUsers();
@@ -515,6 +595,7 @@ function App() {
       setTickets([]);
       setSummaryTickets([]);
       setUsers([]);
+      setDepartments([]);
       setSearch("");
       setFilterStatus("all");
       setCurrentPage(1);
@@ -539,6 +620,7 @@ function App() {
       setSavingUser(true);
       const res = await axios.patch(`${AUTH_URL}/users/${id}`, userForm, {
         headers: authHeaders,
+        params: scopedParams,
       });
 
       if (currentUser && (currentUser.id === id || currentUser._id === id)) {
@@ -567,6 +649,7 @@ function App() {
       setDeletingUserId(deleteUserId);
       await axios.delete(`${AUTH_URL}/users/${deleteUserId}`, {
         headers: authHeaders,
+        params: scopedParams,
       });
       toast.success("User deleted");
       setDeleteUserId(null);
@@ -586,23 +669,30 @@ function App() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchCurrentUser();
     fetchUsers();
+    fetchHotels();
+    fetchDepartments();
     fetchTickets();
     fetchSummaryTickets();
-  }, [fetchCurrentUser, fetchUsers, fetchTickets, fetchSummaryTickets, token]);
+  }, [fetchCurrentUser, fetchDepartments, fetchHotels, fetchUsers, fetchTickets, fetchSummaryTickets, token]);
 
-  const isAdmin = currentUser?.role === "Admin";
-  const canManageTickets = ["Admin", "Manager"].includes(currentUser?.role);
+  const isAdmin = adminRoles.includes(currentUser?.role);
+  const canManageTickets = ticketManagerRoles.includes(currentUser?.role);
+  const canSelectHotel = groupRoles.includes(currentUser?.role) && hotels.length > 1;
   const canUploadSelectedTicketAttachment =
     canManageTickets ||
     (currentUser?.role === "Agent" &&
       getEntityId(selectedTicket?.assignedTo) === getEntityId(currentUser));
 
   useEffect(() => {
-    if (activePage === "user-management" && !isAdmin) {
+    if (
+      (activePage === "user-management" && !isAdmin) ||
+      (activePage === "hotels" && !["GroupAdmin", "Admin"].includes(currentUser?.role)) ||
+      (activePage === "departments" && !ticketManagerRoles.includes(currentUser?.role))
+    ) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setActivePage("dashboard");
     }
-  }, [activePage, isAdmin]);
+  }, [activePage, currentUser?.role, isAdmin]);
 
   const currentPageMeta = pageTitles[activePage] || pageTitles.dashboard;
   const pendingDeleteUser = users.find(
@@ -614,7 +704,7 @@ function App() {
       ticket.title.toLowerCase().includes(search.toLowerCase()) ||
       ticket.description.toLowerCase().includes(search.toLowerCase()) ||
       ticket.category.toLowerCase().includes(search.toLowerCase()) ||
-      ticket.department.toLowerCase().includes(search.toLowerCase());
+      String(ticket.departmentName || ticket.department || "").toLowerCase().includes(search.toLowerCase());
 
     const matchesStatus =
       filterStatus === "all" || ticket.status === filterStatus;
@@ -632,6 +722,11 @@ function App() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [search, filterStatus]);
+
+  useEffect(() => {
+    if (!selectedHotelId) return;
+    localStorage.setItem("selectedHotelId", selectedHotelId);
+  }, [selectedHotelId]);
 
   if (!token) {
     return (
@@ -689,6 +784,23 @@ function App() {
               </div>
 
               <div className="flex gap-3">
+                {canSelectHotel && (
+                  <ThemedSelect
+                    className="w-full min-w-[15rem] sm:w-72"
+                    value={selectedHotelId}
+                    onChange={setSelectedHotelId}
+                    variant="pill"
+                    options={[
+                      { value: "all", label: "All Hotels", meta: "Group dashboard", prefix: "ALL" },
+                      ...hotels.map((hotel) => ({
+                        value: hotel._id || hotel.id,
+                        label: `${hotel.code} / ${hotel.name}`,
+                        meta: hotel.region || "Hotel",
+                        prefix: String(hotel.code || hotel.name || "HT").slice(0, 2),
+                      })),
+                    ]}
+                  />
+                )}
                 <button
                   onClick={() => setDarkMode(!darkMode)}
                   className="rounded-full border border-purple-200 bg-white px-5 py-2 text-sm font-semibold text-purple-700 shadow-sm transition hover:border-purple-400 hover:bg-purple-50 dark:border-slate-700 dark:bg-slate-950 dark:text-purple-200 dark:hover:border-purple-400 dark:hover:bg-slate-800"
@@ -739,6 +851,9 @@ function App() {
                   submitting={submitting}
                   users={users}
                   token={token}
+                  hotelId={selectedHotelId}
+                  currentUser={currentUser}
+                  departments={departments}
                 />
               )}
 
@@ -751,7 +866,29 @@ function App() {
               )}
 
               {activePage === "assets" && (
-                <AssetManagementPage currentUser={currentUser} token={token} />
+                <AssetManagementPage
+                  currentUser={currentUser}
+                  hotelId={selectedHotelId}
+                  token={token}
+                />
+              )}
+
+              {activePage === "departments" && ticketManagerRoles.includes(currentUser?.role) && (
+                <DepartmentManagementPage
+                  departments={departments}
+                  hotels={hotels}
+                  onDepartmentsChange={fetchDepartments}
+                  selectedHotelId={selectedHotelId}
+                  token={token}
+                />
+              )}
+
+              {activePage === "hotels" && ["GroupAdmin", "Admin"].includes(currentUser?.role) && (
+                <HotelManagementPage
+                  hotels={hotels}
+                  onHotelsChange={fetchHotels}
+                  token={token}
+                />
               )}
 
               {activePage === "user-management" && isAdmin && (
@@ -763,15 +900,22 @@ function App() {
                   onUpdateUser={updateUser}
                   savingUser={savingUser}
                   users={users}
+                  departments={departments}
+                  hotels={hotels}
+                  selectedHotelId={selectedHotelId}
                 />
               )}
 
               {activePage === "request-users" && (
-                <RequestUsersPage users={users} />
+                <RequestUsersPage users={users} departments={departments} />
               )}
 
               {activePage === "problem-types" && (
-                <ProblemTypesPage currentUser={currentUser} token={token} />
+                <ProblemTypesPage
+                  currentUser={currentUser}
+                  hotelId={selectedHotelId}
+                  token={token}
+                />
               )}
 
               {activePage === "profile" && (
@@ -782,6 +926,7 @@ function App() {
                   onChangePassword={changeMyPassword}
                   onUpdateProfile={updateMyProfile}
                   savingProfile={savingProfile}
+                  departments={departments}
                 />
               )}
             </Suspense>

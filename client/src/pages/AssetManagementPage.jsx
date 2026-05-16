@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 import ConfirmModal from "../components/ConfirmModal";
+import ThemedSelect from "../components/ThemedSelect";
 import {
   createAsset,
   deleteAsset,
@@ -28,8 +29,12 @@ const assetTypes = ["Workstation", "Laptop", "Printer", "Network", "POS", "Mobil
 const departments = ["IT", "Front Office", "F&B", "Housekeeping", "Finance", "HR", "Operations"];
 const statuses = ["Active", "In Repair", "Spare", "Retired"];
 const conditions = ["Good", "Monitor", "Needs Repair", "End of Life"];
+const assetTypeOptions = assetTypes.map((type) => ({ value: type, label: type, prefix: type.slice(0, 2).toUpperCase() }));
+const departmentOptions = departments.map((department) => ({ value: department, label: department, prefix: department.slice(0, 2).toUpperCase() }));
+const statusOptions = statuses.map((status) => ({ value: status, label: status, prefix: status.slice(0, 2).toUpperCase() }));
+const conditionOptions = conditions.map((condition) => ({ value: condition, label: condition, prefix: condition.slice(0, 2).toUpperCase() }));
 
-function AssetManagementPage({ currentUser, token }) {
+function AssetManagementPage({ currentUser, hotelId = "all", token }) {
   const [assets, setAssets] = useState([]);
   const [form, setForm] = useState(emptyAssetForm);
   const [editForm, setEditForm] = useState(emptyAssetForm);
@@ -39,14 +44,18 @@ function AssetManagementPage({ currentUser, token }) {
   const [deletingId, setDeletingId] = useState(null);
   const [deleteAssetId, setDeleteAssetId] = useState(null);
   const [selectedAsset, setSelectedAsset] = useState(null);
-  const isAdmin = currentUser?.role === "Admin";
+  const isAdmin = ["GroupAdmin", "Admin", "HotelAdmin"].includes(currentUser?.role);
+  const scopedParams = useMemo(
+    () => (hotelId && hotelId !== "all" ? { hotelId } : undefined),
+    [hotelId],
+  );
 
   const fetchAssets = useCallback(async () => {
     if (!token) return;
 
     try {
       setLoading(true);
-      const data = await getAssets(token);
+      const data = await getAssets(token, scopedParams);
       setAssets(data);
     } catch (error) {
       console.error("Failed to load assets", error);
@@ -54,7 +63,7 @@ function AssetManagementPage({ currentUser, token }) {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [scopedParams, token]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -72,7 +81,7 @@ function AssetManagementPage({ currentUser, token }) {
 
     try {
       setSaving(true);
-      await createAsset(token, buildPayload(form));
+      await createAsset(token, buildPayload(form), scopedParams);
       toast.success("Asset created");
       setForm(emptyAssetForm);
       await fetchAssets();
@@ -94,7 +103,7 @@ function AssetManagementPage({ currentUser, token }) {
 
     try {
       setDeletingId(deleteAssetId);
-      await deleteAsset(token, deleteAssetId);
+      await deleteAsset(token, deleteAssetId, scopedParams);
       toast.success("Asset deleted");
       setDeleteAssetId(null);
       await fetchAssets();
@@ -128,7 +137,7 @@ function AssetManagementPage({ currentUser, token }) {
     try {
       setUpdating(true);
       const assetId = selectedAsset._id || selectedAsset.id;
-      const updated = await updateAsset(token, assetId, buildPayload(editForm));
+      const updated = await updateAsset(token, assetId, buildPayload(editForm), scopedParams);
       toast.success("Asset updated");
       await fetchAssets();
       setSelectedAsset(updated);
@@ -202,18 +211,12 @@ function AssetManagementPage({ currentUser, token }) {
             </Field>
 
             <Field label="Asset Type">
-              <select
+              <ThemedSelect
                 value={form.assetType}
                 disabled={saving || !isAdmin}
-                onChange={(event) => setFormValue(setForm, "assetType", event.target.value)}
-                className={inputClass}
-              >
-                {assetTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setFormValue(setForm, "assetType", value)}
+                options={assetTypeOptions}
+              />
             </Field>
 
             <Field label="Serial Number">
@@ -237,33 +240,21 @@ function AssetManagementPage({ currentUser, token }) {
             </Field>
 
             <Field label="Department">
-              <select
+              <ThemedSelect
                 value={form.department}
                 disabled={saving || !isAdmin}
-                onChange={(event) => setFormValue(setForm, "department", event.target.value)}
-                className={inputClass}
-              >
-                {departments.map((department) => (
-                  <option key={department} value={department}>
-                    {department}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setFormValue(setForm, "department", value)}
+                options={departmentOptions}
+              />
             </Field>
 
             <Field label="Status">
-              <select
+              <ThemedSelect
                 value={form.status}
                 disabled={saving || !isAdmin}
-                onChange={(event) => setFormValue(setForm, "status", event.target.value)}
-                className={inputClass}
-              >
-                {statuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setFormValue(setForm, "status", value)}
+                options={statusOptions}
+              />
             </Field>
 
             <Field label="Purchase Date">
@@ -293,20 +284,12 @@ function AssetManagementPage({ currentUser, token }) {
             </Field>
 
             <Field label="Condition">
-              <select
+              <ThemedSelect
                 value={form.lifeCycle.condition}
                 disabled={saving || !isAdmin}
-                onChange={(event) =>
-                  setLifeCycleValue(setForm, "condition", event.target.value)
-                }
-                className={inputClass}
-              >
-                {conditions.map((condition) => (
-                  <option key={condition} value={condition}>
-                    {condition}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setLifeCycleValue(setForm, "condition", value)}
+                options={conditionOptions}
+              />
             </Field>
 
             <Field className="md:col-span-2 xl:col-span-1" label="Life Cycle Notes">
@@ -511,20 +494,12 @@ function AssetDetailModal({
                 />
               </Field>
               <Field label="Asset Type">
-                <select
+                <ThemedSelect
                   value={editForm.assetType}
                   disabled={!isAdmin || updating}
-                  onChange={(event) =>
-                    setFormValue(onEditFormChange, "assetType", event.target.value)
-                  }
-                  className={inputClass}
-                >
-                  {assetTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => setFormValue(onEditFormChange, "assetType", value)}
+                  options={assetTypeOptions}
+                />
               </Field>
               <Field label="Serial Number">
                 <input
@@ -547,36 +522,20 @@ function AssetDetailModal({
                 />
               </Field>
               <Field label="Department">
-                <select
+                <ThemedSelect
                   value={editForm.department}
                   disabled={!isAdmin || updating}
-                  onChange={(event) =>
-                    setFormValue(onEditFormChange, "department", event.target.value)
-                  }
-                  className={inputClass}
-                >
-                  {departments.map((department) => (
-                    <option key={department} value={department}>
-                      {department}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => setFormValue(onEditFormChange, "department", value)}
+                  options={departmentOptions}
+                />
               </Field>
               <Field label="Status">
-                <select
+                <ThemedSelect
                   value={editForm.status}
                   disabled={!isAdmin || updating}
-                  onChange={(event) =>
-                    setFormValue(onEditFormChange, "status", event.target.value)
-                  }
-                  className={inputClass}
-                >
-                  {statuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(value) => setFormValue(onEditFormChange, "status", value)}
+                  options={statusOptions}
+                />
               </Field>
               <Field label="Purchase Date">
                 <input
@@ -603,20 +562,14 @@ function AssetDetailModal({
                 />
               </Field>
               <Field label="Condition">
-                <select
+                <ThemedSelect
                   value={editForm.lifeCycle.condition}
                   disabled={!isAdmin || updating}
-                  onChange={(event) =>
-                    setLifeCycleValue(onEditFormChange, "condition", event.target.value)
+                  onChange={(value) =>
+                    setLifeCycleValue(onEditFormChange, "condition", value)
                   }
-                  className={inputClass}
-                >
-                  {conditions.map((condition) => (
-                    <option key={condition} value={condition}>
-                      {condition}
-                    </option>
-                  ))}
-                </select>
+                  options={conditionOptions}
+                />
               </Field>
               <Field className="sm:col-span-2" label="Notes">
                 <textarea

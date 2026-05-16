@@ -1,4 +1,5 @@
 const { body, validationResult } = require("express-validator");
+const mongoose = require("mongoose");
 
 const createProblemTypeValidationRules = () => [
   body("name")
@@ -12,6 +13,10 @@ const createProblemTypeValidationRules = () => [
     .trim()
     .isLength({ max: 500 })
     .withMessage("Description must not exceed 500 characters"),
+  body("hotelId")
+    .optional()
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid hotel ID"),
 ];
 
 const handleValidationErrors = (req, res, next) => {

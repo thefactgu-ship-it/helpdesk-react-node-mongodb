@@ -21,6 +21,14 @@ const menuGroups = [
     adminOnly: true,
     items: [
       { id: "assets", text: "Asset Management", icon: "AM", enabled: true },
+      { id: "departments", text: "Departments", icon: "DP", enabled: true, managerOnly: true },
+      {
+        id: "hotels",
+        text: "Hotel Management",
+        icon: "HT",
+        enabled: true,
+        groupOnly: true,
+      },
       { id: "user-management", text: "User Management", icon: "UM", enabled: true },
       { id: "request-users", text: "Request Users", icon: "RU", enabled: true },
       { id: "problem-types", text: "Problem Types", icon: "#", enabled: true },
@@ -53,7 +61,9 @@ function Sidebar({
   const userName = currentUser?.name || "Welcome";
   const userRole = currentUser?.role || "User";
   const userTeam = currentUser?.team || "Support";
-  const isAdmin = currentUser?.role === "Admin";
+  const isAdmin = ["GroupAdmin", "Admin", "HotelAdmin"].includes(currentUser?.role);
+  const isGroupAdmin = ["GroupAdmin", "Admin"].includes(currentUser?.role);
+  const isManager = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"].includes(currentUser?.role);
 
   useEffect(() => {
     if (!userMenuOpen) return;
@@ -95,10 +105,10 @@ function Sidebar({
 
         <div>
           <h1 className="text-2xl font-black leading-tight text-slate-950 dark:text-white">
-            IT Helpdesk
+            IT Help Desk System
           </h1>
           <p className="text-xs font-medium text-violet-600 dark:text-violet-300">
-            Thavorn Hotels Group
+            Multi-Hotel Support
           </p>
         </div>
       </div>
@@ -113,7 +123,10 @@ function Sidebar({
             </p>
 
             <div className="space-y-1">
-              {group.items.map((item) => (
+              {group.items
+                .filter((item) => !item.groupOnly || isGroupAdmin)
+                .filter((item) => !item.managerOnly || isManager)
+                .map((item) => (
                 <MenuItem
                   key={item.id}
                   active={activePage === item.id}

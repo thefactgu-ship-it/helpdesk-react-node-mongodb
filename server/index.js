@@ -11,13 +11,21 @@ const ticketRoutes = require("./routes/ticketRoutes");
 const authRoutes = require("./routes/authRoutes");
 const assetRoutes = require("./routes/assetRoutes");
 const problemTypeRoutes = require("./routes/problemTypeRoutes");
+const hotelRoutes = require("./routes/hotelRoutes");
+const departmentRoutes = require("./routes/departmentRoutes");
 
 // Import models
 const User = require("./models/User");
+const Hotel = require("./models/Hotel");
+const Ticket = require("./models/Ticket");
+const Asset = require("./models/Asset");
+const ProblemType = require("./models/ProblemType");
+const Department = require("./models/Department");
 
 // Import middleware
 const errorHandler = require("./middleware/errorHandler");
 const validateEnv = require("./middleware/envValidator");
+const requestContext = require("./middleware/requestContext");
 
 require("dotenv").config();
 
@@ -25,6 +33,8 @@ require("dotenv").config();
 validateEnv();
 
 const app = express();
+
+app.use(requestContext);
 
 // Security middleware
 app.use(helmet()); // Set security headers
@@ -87,17 +97,79 @@ function sanitizeRequest(req, res, next) {
   next();
 }
 
-async function ensureAdminUser() {
+async function ensureDefaultHotel() {
+  const code = process.env.DEFAULT_HOTEL_CODE || "THG";
+  const name = process.env.DEFAULT_HOTEL_NAME || "Thavorn Hotels Group";
+  const region = process.env.DEFAULT_HOTEL_REGION || "Phuket";
+
+  return Hotel.findOneAndUpdate(
+    { code },
+    {
+      $setOnInsert: {
+        name,
+        code,
+        region,
+        timezone: process.env.DEFAULT_HOTEL_TIMEZONE || "Asia/Bangkok",
+        active: true,
+      },
+    },
+    { new: true, upsert: true }
+  );
+}
+
+async function migrateLegacyHotelData(defaultHotel) {
+  const hotelId = defaultHotel._id;
+
+  await Promise.all([
+    User.updateMany({ hotelId: { $in: [null, undefined] } }, { hotelId }),
+    Ticket.updateMany({ hotelId: { $exists: false } }, { hotelId }),
+    Asset.updateMany({ hotelId: { $exists: false } }, { hotelId }),
+    ProblemType.updateMany({ hotelId: { $exists: false } }, { hotelId }),
+    User.updateMany({ active: { $exists: false } }, { active: true }),
+  ]);
+}
+
+async function ensureDefaultDepartments() {
+  const hotels = await Hotel.find({ active: { $ne: false } }).select("_id");
+  const defaultDepartments = [
+    { name: "IT", code: "IT", sortOrder: 10 },
+    { name: "Operations", code: "OPS", sortOrder: 20 },
+    { name: "Finance", code: "FIN", sortOrder: 30 },
+    { name: "HR", code: "HR", sortOrder: 40 },
+    { name: "Sales", code: "SAL", sortOrder: 50 },
+  ];
+
+  await Promise.all(
+    hotels.flatMap((hotel) =>
+      defaultDepartments.map((department) =>
+        Department.findOneAndUpdate(
+          { hotelId: hotel._id, code: department.code },
+          {
+            $setOnInsert: {
+              ...department,
+              hotelId: hotel._id,
+              active: true,
+            },
+          },
+          { upsert: true, new: true }
+        )
+      )
+    )
+  );
+}
+
+async function ensureAdminUser(defaultHotel) {
   const adminEmail = process.env.ADMIN_EMAIL || "admin@test.com";
   const adminPassword = process.env.ADMIN_PASSWORD || "ChangeMeNow!2026";
   const adminName = process.env.ADMIN_NAME || "System Admin";
 
-  const existingAdmin = await User.findOne({ email: adminEmail });
+  const existingAdmin = await User.findOne({ email: adminEmail, hotelId: defaultHotel._id });
 
   if (existingAdmin) {
-    if (existingAdmin.role !== "Admin") {
-      existingAdmin.role = "Admin";
+    if (!["Admin", "GroupAdmin"].includes(existingAdmin.role)) {
+      existingAdmin.role = "GroupAdmin";
       existingAdmin.team = existingAdmin.team || "System";
+      existingAdmin.hotelId = existingAdmin.hotelId || defaultHotel._id;
       await existingAdmin.save();
       console.log(`Admin role ensured for ${adminEmail}`);
     }
@@ -110,8 +182,10 @@ async function ensureAdminUser() {
     name: adminName,
     email: adminEmail,
     password: hashedPassword,
-    role: "Admin",
+    role: "GroupAdmin",
     team: "System",
+    hotelId: defaultHotel._id,
+    hotelAccess: [defaultHotel._id],
   });
 
   console.log(`Default admin created: ${adminEmail}`);
@@ -122,7 +196,10 @@ mongoose
   .connect(process.env.MONGO_URI)
   .then(async () => {
     console.log("MongoDB Connected");
-    await ensureAdminUser();
+    const defaultHotel = await ensureDefaultHotel();
+    await migrateLegacyHotelData(defaultHotel);
+    await ensureDefaultDepartments();
+    await ensureAdminUser(defaultHotel);
   })
   .catch((err) => {
     console.error("MongoDB Connection Error:", err.message);
@@ -139,6 +216,8 @@ app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
 app.use("/api/auth/me/password", passwordChangeLimiter);
 app.use("/api/auth", authRoutes);
+app.use("/api/hotels", hotelRoutes);
+app.use("/api/departments", departmentRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/assets", assetRoutes);
 app.use("/api/problem-types", problemTypeRoutes);

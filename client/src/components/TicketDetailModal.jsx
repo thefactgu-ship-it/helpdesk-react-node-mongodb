@@ -110,7 +110,7 @@ function TicketDetailModal({
               Ticket Details
             </h2>
             <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-              {ticket.ticketNumber} / {ticket.category} / {ticket.department}
+              {ticket.ticketNumber} / {ticket.category} / {ticket.departmentName || ticket.department}
             </p>
           </div>
 

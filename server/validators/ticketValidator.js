@@ -17,11 +17,14 @@ const createTicketValidationRules = () => [
     .isLength({ max: 5000 })
     .withMessage("Description must not exceed 5000 characters"),
   body("requester")
+    .optional({ checkFalsy: true })
     .trim()
-    .notEmpty()
-    .withMessage("Requester is required")
     .isLength({ min: 2, max: 100 })
     .withMessage("Requester must be between 2 and 100 characters"),
+  body("requesterUserId")
+    .optional({ checkFalsy: true })
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid requester user ID"),
   body("category")
     .trim()
     .notEmpty()
@@ -33,6 +36,10 @@ const createTicketValidationRules = () => [
     .trim()
     .isLength({ min: 1, max: 50 })
     .withMessage("Department must be between 1 and 50 characters"),
+  body("departmentId")
+    .optional({ checkFalsy: true })
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid department ID"),
   body("priority")
     .optional()
     .isIn(["low", "medium", "high", "critical"])
@@ -45,6 +52,10 @@ const createTicketValidationRules = () => [
     .optional()
     .custom((value) => mongoose.Types.ObjectId.isValid(value))
     .withMessage("Invalid assigned user ID"),
+  body("hotelId")
+    .optional()
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid hotel ID"),
 ];
 
 /**
@@ -64,12 +75,16 @@ const updateTicketValidationRules = () => [
     .isLength({ max: 5000 })
     .withMessage("Description must not exceed 5000 characters"),
   body("requester")
-    .optional()
+    .optional({ checkFalsy: true })
     .trim()
     .notEmpty()
     .withMessage("Requester cannot be empty")
     .isLength({ min: 2, max: 100 })
     .withMessage("Requester must be between 2 and 100 characters"),
+  body("requesterUserId")
+    .optional({ checkFalsy: true })
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid requester user ID"),
   body("category")
     .optional()
     .trim()
@@ -80,6 +95,10 @@ const updateTicketValidationRules = () => [
     .trim()
     .isLength({ min: 1, max: 50 })
     .withMessage("Department must be between 1 and 50 characters"),
+  body("departmentId")
+    .optional({ checkFalsy: true })
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid department ID"),
   body("priority")
     .optional()
     .isIn(["low", "medium", "high", "critical"])

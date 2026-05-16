@@ -1,12 +1,13 @@
-# IT Helpdesk Dashboard
+# IT Help Desk System
 
-A full-stack IT Helpdesk Dashboard for Thavorn Hotels Group, built with React, Vite, Tailwind CSS, Node.js, Express, MongoDB, Mongoose, and JWT authentication.
+A full-stack IT Help Desk System for multi-hotel operations, built with React, Vite, Tailwind CSS, Node.js, Express, MongoDB, Mongoose, and JWT authentication.
 
 The app supports helpdesk ticket workflows, dashboard analytics, reports, asset tracking, user management, requester review, problem type management, protected ticket comments and attachments, self-service profile updates, and production-focused security hardening.
 
 ## Features
 
-- Dashboard KPIs, charts, status summary, severity, category, and open-day analysis from all ticket data
+- Multi-hotel tenant scoping with hotel-aware users, tickets, assets, problem types, and dashboard filtering
+- Dashboard KPIs, charts, status summary, severity, category, and open-day analysis from scoped ticket data
 - Permission-limited Helpdesk Tickets table with search, filter, pagination, detail modal, assignment, status updates, comments, activity log, and protected image attachments
 - Add Ticket form with role-aware assignment and issue categories loaded from backend Problem Types
 - Monthly, quarterly, and yearly reports using all ticket data for authenticated users
@@ -96,6 +97,7 @@ PORT=5000
 MONGO_URI=mongodb://127.0.0.1:27017/helpdesk_db
 JWT_SECRET=replace_with_at_least_32_random_characters
 CORS_ORIGIN=http://localhost:5173
+ATTACHMENT_STORAGE_PROVIDER=local
 
 ADMIN_EMAIL=admin@test.com
 ADMIN_PASSWORD=replace_with_a_strong_password
@@ -156,9 +158,15 @@ Backend service:
   - `JWT_SECRET`
   - `CORS_ORIGIN=https://your-frontend.onrender.com`
   - `ADMIN_PASSWORD` with at least 12 characters
+  - `ATTACHMENT_STORAGE_PROVIDER=local` for development-style disk storage or `s3` for object storage
 - Optional admin seed variables:
   - `ADMIN_EMAIL`
   - `ADMIN_NAME`
+  - `S3_ENDPOINT`
+  - `S3_BUCKET`
+  - `S3_REGION`
+  - `S3_ACCESS_KEY_ID`
+  - `S3_SECRET_ACCESS_KEY`
 
 Frontend static site:
 
@@ -170,17 +178,20 @@ Frontend static site:
 
 ## Roles And Access
 
-- `Admin`: full user management, asset create/edit/delete, problem type create/delete, ticket assign/delete, and all ticket access
+- `GroupAdmin`: full cross-hotel management, hotel administration, and dashboard visibility
+- `RegionalManager`: dashboard and ticket visibility for assigned regions
+- `HotelAdmin`: hotel-level user, asset, problem type, and ticket management
+- `Admin`: legacy group-admin-compatible role retained for existing deployments
 - `Manager`: can view all tickets, assign tickets, delete tickets, and access the staff/user list needed for assignment
 - `Agent`: can view tickets they created or tickets assigned to them; can work on assigned tickets
 - `User`: can create tickets, view tickets they created or are assigned to, view assignee/detail/comments, and add comments
 
 Ticket table data is permission-limited:
 
-- Admin/Manager see all tickets.
+- GroupAdmin/Admin can see all authorized hotels; HotelAdmin/Manager see their hotel tickets.
 - Agent/User see tickets where they are `createdBy` or `assignedTo`.
 
-Dashboard and report summary data use all ticket data for authenticated users because they are system-level summaries.
+Dashboard and report summary data are scoped by hotel access. Group-level users can use the hotel selector to view one hotel or all authorized hotels.
 
 Tickets can only be assigned by Admin or Manager. Assignment targets must be staff-like roles such as Admin, Manager, or Agent.
 
@@ -205,6 +216,8 @@ Tickets can only be assigned by Admin or Manager. Assignment targets must be sta
 - `JWT_SECRET` must be strong; production should use at least 32 random characters.
 - `ADMIN_PASSWORD` must be set to at least 12 characters in production.
 - Production 500 errors avoid returning internal error details.
+- Every hotel-scoped API filters by authorized hotel access on the backend; frontend filters are convenience controls only.
+- User, hotel, ticket, and asset changes emit structured `[AUDIT]` logs with request IDs.
 - Ticket attachments are limited to JPG, PNG, GIF, or WEBP images and a maximum size of 5 MB.
 - Uploaded files are not served through public static hosting; they are viewed through protected ticket attachment routes.
 - `server/uploads/*` is ignored by Git to avoid committing user-uploaded files.
@@ -230,6 +243,15 @@ GET    /api/auth/users          Admin/Manager only
 POST   /api/auth/users          Admin only
 PATCH  /api/auth/users/:id      Admin only
 DELETE /api/auth/users/:id      Admin only
+```
+
+### Hotels
+
+```txt
+GET    /api/hotels
+POST   /api/hotels          GroupAdmin/Admin only
+PATCH  /api/hotels/:id      GroupAdmin/Admin only
+DELETE /api/hotels/:id      GroupAdmin/Admin only, soft deactivates
 ```
 
 ### Tickets

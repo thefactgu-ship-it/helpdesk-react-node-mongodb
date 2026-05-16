@@ -11,6 +11,9 @@ function AddTicketPage({
   submitting,
   users,
   token,
+  hotelId = "all",
+  currentUser,
+  departments = [],
 }) {
   const [problemTypes, setProblemTypes] = useState([]);
   const [loadingProblemTypes, setLoadingProblemTypes] = useState(false);
@@ -22,7 +25,10 @@ function AddTicketPage({
     const loadProblemTypes = async () => {
       try {
         setLoadingProblemTypes(true);
-        const types = await getProblemTypes(token);
+        const types = await getProblemTypes(
+          token,
+          hotelId && hotelId !== "all" ? { hotelId } : undefined,
+        );
         setProblemTypes(types || []);
       } catch (error) {
         console.error("Failed to load problem types", error);
@@ -35,7 +41,7 @@ function AddTicketPage({
     };
 
     loadProblemTypes();
-  }, [token]);
+  }, [hotelId, token]);
 
   useEffect(() => {
     if (!problemTypesLoaded) return;
@@ -54,6 +60,34 @@ function AddTicketPage({
     }
   }, [form.category, problemTypes, problemTypesLoaded, setForm]);
 
+  useEffect(() => {
+    setForm((currentForm) => {
+      const nextRequester = currentForm.requester || currentUser?.name || "";
+      const nextRequesterUserId = currentForm.requesterUserId || currentUser?.id || currentUser?._id || "";
+      const nextDepartmentId =
+        currentForm.departmentId ||
+        currentUser?.departmentId?._id ||
+        currentUser?.departmentId ||
+        "";
+      const department = departments.find(
+        (item) =>
+          (item._id || item.id) === nextDepartmentId ||
+          item.name === currentForm.department ||
+          item.name === currentUser?.departmentName ||
+          item.name === currentUser?.team,
+      );
+      const resolvedDepartmentId = department?._id || department?.id || nextDepartmentId;
+
+      return {
+        ...currentForm,
+        requester: nextRequester,
+        requesterUserId: nextRequesterUserId,
+        departmentId: resolvedDepartmentId,
+        department: currentForm.department || department?.name || currentUser?.departmentName || currentUser?.team || "IT",
+      };
+    });
+  }, [currentUser, departments, setForm]);
+
   return (
     <AddTicketForm
       canAssignTickets={canAssignTickets}
@@ -64,6 +98,7 @@ function AddTicketPage({
       users={users}
       problemTypes={problemTypes}
       loadingProblemTypes={loadingProblemTypes}
+      departments={departments}
     />
   );
 }

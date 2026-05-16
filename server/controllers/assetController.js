@@ -1,14 +1,18 @@
 const Asset = require("../models/Asset");
 const { sendError } = require("../utils/errorHandler");
+const { buildHotelScopeQuery, getUserHotelId } = require("../utils/tenantScope");
+const auditLog = require("../utils/auditLogger");
 
 const ASSET_POPULATE_CONFIG = [
+  { path: "hotelId", select: "name code region timezone active" },
   { path: "createdBy", select: "name email role team" },
   { path: "updatedBy", select: "name email role team" },
 ];
 
 async function getAllAssets(req, res) {
   try {
-    const assets = await Asset.find()
+    const hotelScope = await buildHotelScopeQuery(req.user, req.query);
+    const assets = await Asset.find(hotelScope)
       .sort({ createdAt: -1 })
       .populate(ASSET_POPULATE_CONFIG);
 
@@ -21,14 +25,25 @@ async function getAllAssets(req, res) {
 async function createAsset(req, res) {
   try {
     const payload = buildAssetPayload(req.body);
+    const hotelScope = await buildHotelScopeQuery(
+      req.user,
+      req.body.hotelId ? { hotelId: req.body.hotelId } : req.query
+    );
+    const hotelId = String(hotelScope.hotelId?.$in?.[0] || getUserHotelId(req.user) || "");
+
+    if (!hotelId) {
+      return res.status(400).json({ message: "Hotel is required" });
+    }
 
     const asset = await Asset.create({
       ...payload,
+      hotelId,
       createdBy: req.user.id,
       updatedBy: req.user.id,
     });
 
     await asset.populate(ASSET_POPULATE_CONFIG);
+    auditLog("asset.created", req, { assetId: asset._id, hotelId });
     res.status(201).json(withLifeCycleRecommendation(asset));
   } catch (error) {
     sendError(res, 400, "Failed to create asset", error);
@@ -38,9 +53,10 @@ async function createAsset(req, res) {
 async function updateAsset(req, res) {
   try {
     const payload = buildAssetPayload(req.body, { partial: true });
+    const hotelScope = await buildHotelScopeQuery(req.user, req.query);
 
-    const asset = await Asset.findByIdAndUpdate(
-      req.params.id,
+    const asset = await Asset.findOneAndUpdate(
+      { _id: req.params.id, ...hotelScope },
       {
         ...payload,
         updatedBy: req.user.id,
@@ -52,6 +68,7 @@ async function updateAsset(req, res) {
       return res.status(404).json({ message: "Asset not found" });
     }
 
+    auditLog("asset.updated", req, { assetId: asset._id, hotelId: asset.hotelId });
     res.json(withLifeCycleRecommendation(asset));
   } catch (error) {
     sendError(res, 400, "Failed to update asset", error);
@@ -60,12 +77,14 @@ async function updateAsset(req, res) {
 
 async function deleteAsset(req, res) {
   try {
-    const asset = await Asset.findByIdAndDelete(req.params.id);
+    const hotelScope = await buildHotelScopeQuery(req.user, req.query);
+    const asset = await Asset.findOneAndDelete({ _id: req.params.id, ...hotelScope });
 
     if (!asset) {
       return res.status(404).json({ message: "Asset not found" });
     }
 
+    auditLog("asset.deleted", req, { assetId: asset._id, hotelId: asset.hotelId });
     res.json({ message: "Asset deleted" });
   } catch (error) {
     sendError(res, 400, "Failed to delete asset", error);

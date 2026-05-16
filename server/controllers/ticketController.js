@@ -1,8 +1,8 @@
-const fs = require("fs");
 const path = require("path");
 const Ticket = require("../models/Ticket");
 const User = require("../models/User");
 const ProblemType = require("../models/ProblemType");
+const Department = require("../models/Department");
 const {
   generateTicketNumber,
   getSlaHoursByPriority,
@@ -11,6 +11,18 @@ const {
 } = require("../utils/ticketHelper");
 const { TICKET_POPULATE_CONFIG, TICKET_STATUSES } = require("../constants");
 const { sendError } = require("../utils/errorHandler");
+const {
+  readAttachmentFile,
+  saveAttachmentFile,
+} = require("../services/attachmentStorage");
+const {
+  buildDateRangeQuery,
+  buildHotelScopeQuery,
+  canManageTickets,
+  getUserHotelId,
+  isStaffRole,
+} = require("../utils/tenantScope");
+const auditLog = require("../utils/auditLogger");
 
 const IMAGE_CONTENT_TYPES = {
   ".gif": "image/gif",
@@ -20,12 +32,12 @@ const IMAGE_CONTENT_TYPES = {
   ".webp": "image/webp",
 };
 
-function canManageTickets(user) {
-  return ["Admin", "Manager"].includes(user?.role);
-}
-
 function getUserId(user) {
   return String(user?._id || user?.id || "");
+}
+
+function getTicketHotelId(ticket) {
+  return String(ticket?.hotelId?._id || ticket?.hotelId || "");
 }
 
 function isAssignedToUser(user, ticket) {
@@ -38,6 +50,7 @@ function isCreatedByUser(user, ticket) {
 
 function canAccessTicket(user, ticket) {
   if (canManageTickets(user)) return true;
+  if (getTicketHotelId(ticket) !== getUserHotelId(user)) return false;
   return isAssignedToUser(user, ticket) || isCreatedByUser(user, ticket);
 }
 
@@ -46,15 +59,7 @@ function canWorkOnTicket(user, ticket) {
   return user?.role === "Agent" && isAssignedToUser(user, ticket);
 }
 
-function buildVisibleTicketsQuery(user) {
-  if (canManageTickets(user)) return {};
-
-  return {
-    $or: [{ createdBy: getUserId(user) }, { assignedTo: getUserId(user) }],
-  };
-}
-
-async function ensureProblemTypeName(name) {
+async function ensureProblemTypeName(name, hotelId) {
   const normalizedName = String(name || "").trim();
 
   if (!normalizedName) {
@@ -62,6 +67,7 @@ async function ensureProblemTypeName(name) {
   }
 
   const problemType = await ProblemType.findOne({
+    hotelId,
     name: normalizedName,
     active: { $ne: false },
   }).select("_id name");
@@ -73,14 +79,14 @@ async function ensureProblemTypeName(name) {
   return { ok: true, name: problemType.name };
 }
 
-async function ensureAssignableUser(userId) {
-  const user = await User.findById(userId).select("role");
+async function ensureAssignableUser(userId, hotelId) {
+  const user = await User.findById(userId).select("role hotelId hotelAccess");
 
   if (!user) {
     return { ok: false, status: 404, message: "Assigned user not found" };
   }
 
-  if (user.role === "User") {
+  if (!isStaffRole(user.role)) {
     return {
       ok: false,
       status: 400,
@@ -88,7 +94,55 @@ async function ensureAssignableUser(userId) {
     };
   }
 
+  const sameHotel = String(user.hotelId || "") === String(hotelId);
+  const hasHotelAccess = (user.hotelAccess || []).some(
+    (allowedHotelId) => String(allowedHotelId) === String(hotelId)
+  );
+
+  if (!sameHotel && !hasHotelAccess) {
+    return { ok: false, status: 400, message: "Assigned user does not have access to this hotel" };
+  }
+
   return { ok: true };
+}
+
+async function resolveRequesterUser(userId, hotelId) {
+  if (!userId) return null;
+
+  const user = await User.findOne({
+    _id: userId,
+    hotelId,
+    role: "User",
+    active: { $ne: false },
+  }).select("_id name departmentId departmentName team");
+
+  if (!user) {
+    return { ok: false, status: 400, message: "Requester user must be an active requester for this hotel" };
+  }
+
+  return { ok: true, user };
+}
+
+async function resolveDepartment(departmentId, hotelId) {
+  if (!departmentId) return null;
+
+  const department = await Department.findOne({
+    _id: departmentId,
+    hotelId,
+    active: { $ne: false },
+  }).select("_id name code");
+
+  if (!department) {
+    return { ok: false, status: 400, message: "Department must be active for this hotel" };
+  }
+
+  return { ok: true, department };
+}
+
+async function resolveTicketHotelId(req) {
+  const hotelScope = await buildHotelScopeQuery(req.user, req.body.hotelId ? { hotelId: req.body.hotelId } : req.query);
+  const hotelIds = hotelScope.hotelId?.$in || [];
+  return String(hotelIds[0] || getUserHotelId(req.user) || "");
 }
 
 /**
@@ -97,14 +151,45 @@ async function ensureAssignableUser(userId) {
  */
 async function getAllTickets(req, res) {
   try {
-    const query = buildVisibleTicketsQuery(req.user);
-    const tickets = await Ticket.find(query)
+    const hotelScope = await buildHotelScopeQuery(req.user, req.query);
+    const visibilityQuery = canManageTickets(req.user)
+      ? {}
+      : { $or: [{ createdBy: getUserId(req.user) }, { assignedTo: getUserId(req.user) }] };
+    const query = {
+      ...hotelScope,
+      ...visibilityQuery,
+      ...buildDateRangeQuery(req.query),
+    };
+
+    if (req.query.status) query.status = req.query.status;
+    if (req.query.category) query.category = req.query.category;
+    if (req.query.priority) query.priority = req.query.priority;
+    if (req.query.departmentId) query.departmentId = req.query.departmentId;
+    if (req.query.requesterUserId) query.requesterUserId = req.query.requesterUserId;
+
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200);
+    const skip = (page - 1) * limit;
+
+    const [tickets, total] = await Promise.all([
+      Ticket.find(query)
       .sort({ createdAt: -1 })
-      .populate(TICKET_POPULATE_CONFIG);
-    res.json(tickets);
+        .skip(skip)
+        .limit(limit)
+        .populate(TICKET_POPULATE_CONFIG),
+      Ticket.countDocuments(query),
+    ]);
+
+    res.json({ data: tickets, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
   } catch (error) {
     sendError(res, 500, "Failed to fetch tickets", error);
   }
+}
+
+async function findScopedTicketById(req, id) {
+  const hotelScope = await buildHotelScopeQuery(req.user, req.query);
+  return Ticket.findOne({ _id: id, ...hotelScope })
+      .populate(TICKET_POPULATE_CONFIG);
 }
 
 /**
@@ -113,7 +198,15 @@ async function getAllTickets(req, res) {
  */
 async function getInsights(req, res) {
   try {
-    const tickets = await Ticket.find();
+    const hotelScope = await buildHotelScopeQuery(req.user, req.query);
+    const tickets = await Ticket.find({
+      ...hotelScope,
+      ...buildDateRangeQuery(req.query),
+      ...(req.query.departmentId ? { departmentId: req.query.departmentId } : {}),
+      ...(req.query.status ? { status: req.query.status } : {}),
+      ...(req.query.category ? { category: req.query.category } : {}),
+      ...(req.query.priority ? { priority: req.query.priority } : {}),
+    });
     const total = tickets.length;
 
     // Calculate average resolution time
@@ -177,9 +270,7 @@ async function getInsights(req, res) {
  */
 async function getTicketById(req, res) {
   try {
-    const ticket = await Ticket.findById(req.params.id).populate(
-      TICKET_POPULATE_CONFIG
-    );
+    const ticket = await findScopedTicketById(req, req.params.id);
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
@@ -203,8 +294,10 @@ async function createTicket(req, res) {
       title,
       description = "",
       requester,
+      requesterUserId,
       category,
       department = "IT",
+      departmentId,
       priority = "medium",
       dueDate,
       assignedTo,
@@ -214,14 +307,31 @@ async function createTicket(req, res) {
     if (!title || !title.trim()) {
       return res.status(400).json({ message: "Ticket title is required" });
     }
-    if (!requester || !requester.trim()) {
+    if (!requesterUserId && (!requester || !requester.trim())) {
       return res.status(400).json({ message: "Requester is required" });
     }
 
-    const problemType = await ensureProblemTypeName(category);
+    const hotelId = await resolveTicketHotelId(req);
+    if (!hotelId) {
+      return res.status(400).json({ message: "Hotel is required" });
+    }
+
+    const problemType = await ensureProblemTypeName(category, hotelId);
     if (!problemType.ok) {
       return res.status(problemType.status).json({ message: problemType.message });
     }
+
+    const requesterResult = await resolveRequesterUser(requesterUserId || req.user.id, hotelId);
+    if (requesterUserId && !requesterResult.ok) {
+      return res.status(requesterResult.status).json({ message: requesterResult.message });
+    }
+
+    const requesterUser = requesterResult?.ok ? requesterResult.user : null;
+    const departmentResult = await resolveDepartment(departmentId || requesterUser?.departmentId, hotelId);
+    if (departmentId && !departmentResult.ok) {
+      return res.status(departmentResult.status).json({ message: departmentResult.message });
+    }
+    const selectedDepartment = departmentResult?.ok ? departmentResult.department : null;
 
     let assignedUser = null;
     if (assignedTo) {
@@ -229,7 +339,7 @@ async function createTicket(req, res) {
         return res.status(403).json({ message: "Only Admin or Manager can assign tickets" });
       }
 
-      const assignable = await ensureAssignableUser(assignedTo);
+      const assignable = await ensureAssignableUser(assignedTo, hotelId);
       if (!assignable.ok) {
         return res.status(assignable.status).json({ message: assignable.message });
       }
@@ -247,11 +357,15 @@ async function createTicket(req, res) {
     // Create ticket
     const ticket = await Ticket.create({
       ticketNumber: generateTicketNumber(),
+      hotelId,
       title,
       description,
-      requester: requester.trim(),
+      requester: requesterUser?.name || requester.trim(),
+      requesterUserId: requesterUser?._id || null,
       category: problemType.name,
-      department,
+      department: selectedDepartment?.name || department,
+      departmentId: selectedDepartment?._id || null,
+      departmentName: selectedDepartment?.name || department,
       priority,
       status,
       assignedTo: assignedUser,
@@ -265,6 +379,7 @@ async function createTicket(req, res) {
     });
 
     await ticket.populate(TICKET_POPULATE_CONFIG);
+    auditLog("ticket.created", req, { ticketId: ticket._id, hotelId });
     res.status(201).json(ticket);
   } catch (error) {
     res.status(400).json({
@@ -280,7 +395,7 @@ async function createTicket(req, res) {
  */
 async function updateTicket(req, res) {
   try {
-    const existingTicket = await Ticket.findById(req.params.id);
+    const existingTicket = await findScopedTicketById(req, req.params.id);
     if (!existingTicket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
@@ -298,8 +413,10 @@ async function updateTicket(req, res) {
       title,
       description,
       requester,
+      requesterUserId,
       category,
       department,
+      departmentId,
       priority,
       status,
       assignedTo,
@@ -319,8 +436,18 @@ async function updateTicket(req, res) {
       updateFields.requester = requester;
       logDetails.push("Requester updated");
     }
+    if (requesterUserId) {
+      const requesterResult = await resolveRequesterUser(requesterUserId, getTicketHotelId(existingTicket));
+      if (!requesterResult.ok) {
+        return res.status(requesterResult.status).json({ message: requesterResult.message });
+      }
+      updateFields.requesterUserId = requesterResult.user._id;
+      updateFields.requester = requesterResult.user.name;
+      logDetails.push("Requester account updated");
+    }
     if (category) {
-      const problemType = await ensureProblemTypeName(category);
+      const existingHotelId = getTicketHotelId(existingTicket);
+      const problemType = await ensureProblemTypeName(category, existingHotelId);
       if (!problemType.ok) {
         return res.status(problemType.status).json({ message: problemType.message });
       }
@@ -330,6 +457,17 @@ async function updateTicket(req, res) {
     }
     if (department) {
       updateFields.department = department;
+      updateFields.departmentName = department;
+      logDetails.push("Department updated");
+    }
+    if (departmentId) {
+      const departmentResult = await resolveDepartment(departmentId, getTicketHotelId(existingTicket));
+      if (!departmentResult.ok) {
+        return res.status(departmentResult.status).json({ message: departmentResult.message });
+      }
+      updateFields.departmentId = departmentResult.department._id;
+      updateFields.department = departmentResult.department.name;
+      updateFields.departmentName = departmentResult.department.name;
       logDetails.push("Department updated");
     }
     if (priority) {
@@ -346,7 +484,7 @@ async function updateTicket(req, res) {
         return res.status(403).json({ message: "Only Admin or Manager can assign tickets" });
       }
 
-      const assignable = await ensureAssignableUser(assignedTo);
+      const assignable = await ensureAssignableUser(assignedTo, getTicketHotelId(existingTicket));
       if (!assignable.ok) {
         return res.status(assignable.status).json({ message: assignable.message });
       }
@@ -366,8 +504,8 @@ async function updateTicket(req, res) {
     updateFields.updatedBy = req.user.id;
 
     // Update ticket
-    const ticket = await Ticket.findByIdAndUpdate(
-      req.params.id,
+    const ticket = await Ticket.findOneAndUpdate(
+      { _id: req.params.id, hotelId: getTicketHotelId(existingTicket) },
       {
         ...updateFields,
         $push: {
@@ -385,6 +523,7 @@ async function updateTicket(req, res) {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
+    auditLog("ticket.updated", req, { ticketId: ticket._id, hotelId: ticket.hotelId });
     res.json(ticket);
   } catch (error) {
     sendError(res, 400, "Failed to update ticket", error);
@@ -398,7 +537,7 @@ async function updateTicket(req, res) {
 async function updateTicketStatus(req, res) {
   try {
     const { status } = req.body;
-    const existingTicket = await Ticket.findById(req.params.id);
+    const existingTicket = await findScopedTicketById(req, req.params.id);
     if (!existingTicket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
@@ -433,7 +572,7 @@ async function updateTicketStatus(req, res) {
     }
 
     // Update ticket
-    const ticket = await Ticket.findByIdAndUpdate(req.params.id, updateData, {
+    const ticket = await Ticket.findOneAndUpdate({ _id: req.params.id, hotelId: getTicketHotelId(existingTicket) }, updateData, {
       new: true,
       runValidators: true,
     }).populate(TICKET_POPULATE_CONFIG);
@@ -464,14 +603,19 @@ async function assignTicket(req, res) {
       return res.status(400).json({ message: "Assigned user is required" });
     }
 
-    const assignable = await ensureAssignableUser(assignedTo);
+    const existingTicket = await findScopedTicketById(req, req.params.id);
+    if (!existingTicket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    const assignable = await ensureAssignableUser(assignedTo, getTicketHotelId(existingTicket));
     if (!assignable.ok) {
       return res.status(assignable.status).json({ message: assignable.message });
     }
 
     // Assign ticket
-    const ticket = await Ticket.findByIdAndUpdate(
-      req.params.id,
+    const ticket = await Ticket.findOneAndUpdate(
+      { _id: req.params.id, hotelId: getTicketHotelId(existingTicket) },
       {
         assignedTo,
         status: "in_progress",
@@ -503,7 +647,7 @@ async function assignTicket(req, res) {
 async function addComment(req, res) {
   try {
     const { text } = req.body;
-    const existingTicket = await Ticket.findById(req.params.id);
+    const existingTicket = await findScopedTicketById(req, req.params.id);
     if (!existingTicket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
@@ -517,8 +661,8 @@ async function addComment(req, res) {
     }
 
     // Add comment
-    const ticket = await Ticket.findByIdAndUpdate(
-      req.params.id,
+    const ticket = await Ticket.findOneAndUpdate(
+      { _id: req.params.id, hotelId: getTicketHotelId(existingTicket) },
       {
         $push: {
           comments: {
@@ -548,7 +692,7 @@ async function addComment(req, res) {
  */
 async function uploadAttachment(req, res) {
   try {
-    const existingTicket = await Ticket.findById(req.params.id);
+    const existingTicket = await findScopedTicketById(req, req.params.id);
     if (!existingTicket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
@@ -563,17 +707,21 @@ async function uploadAttachment(req, res) {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
+    const storedFile = await saveAttachmentFile(req.file);
+
     // Create attachment object
     const attachment = {
-      filename: req.file.filename,
+      filename: storedFile.filename,
       originalName: req.file.originalname,
-      url: `/uploads/${req.file.filename}`,
+      url: storedFile.url,
+      storageProvider: storedFile.storageProvider,
+      objectKey: storedFile.objectKey,
       uploadedBy: req.user.id,
     };
 
     // Add attachment to ticket
-    const ticket = await Ticket.findByIdAndUpdate(
-      req.params.id,
+    const ticket = await Ticket.findOneAndUpdate(
+      { _id: req.params.id, hotelId: getTicketHotelId(existingTicket) },
       {
         $push: {
           attachments: attachment,
@@ -604,8 +752,20 @@ async function uploadAttachment(req, res) {
  */
 async function getSummaryTickets(req, res) {
   try {
-    const tickets = await Ticket.find()
+    const hotelScope = await buildHotelScopeQuery(req.user, req.query);
+    const query = {
+      ...hotelScope,
+      ...buildDateRangeQuery(req.query),
+    };
+    if (req.query.status) query.status = req.query.status;
+    if (req.query.category) query.category = req.query.category;
+    if (req.query.priority) query.priority = req.query.priority;
+    if (req.query.departmentId) query.departmentId = req.query.departmentId;
+    if (req.query.requesterUserId) query.requesterUserId = req.query.requesterUserId;
+
+    const tickets = await Ticket.find(query)
       .sort({ createdAt: -1 })
+      .limit(Math.min(Number(req.query.limit) || 1000, 5000))
       .populate(TICKET_POPULATE_CONFIG);
     res.json(tickets);
   } catch (error) {
@@ -619,7 +779,7 @@ async function getSummaryTickets(req, res) {
  */
 async function viewAttachment(req, res) {
   try {
-    const ticket = await Ticket.findById(req.params.id);
+    const ticket = await findScopedTicketById(req, req.params.id);
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
@@ -632,11 +792,9 @@ async function viewAttachment(req, res) {
       return res.status(404).json({ message: "Attachment not found" });
     }
 
-    const uploadsDir = path.resolve(__dirname, "..", "uploads");
-    const safeFilename = path.basename(attachment.filename);
-    const filePath = path.join(uploadsDir, safeFilename);
+    const fileBuffer = await readAttachmentFile(attachment);
 
-    if (!filePath.startsWith(uploadsDir) || !fs.existsSync(filePath)) {
+    if (!fileBuffer) {
       return res.status(404).json({ message: "Attachment file not found" });
     }
 
@@ -649,7 +807,7 @@ async function viewAttachment(req, res) {
       "Content-Disposition",
       `inline; filename="${encodeURIComponent(originalName)}"`
     );
-    res.sendFile(filePath);
+    res.send(fileBuffer);
   } catch (error) {
     sendError(res, 400, "Failed to load attachment", error);
   }
@@ -665,12 +823,21 @@ async function deleteTicket(req, res) {
       return res.status(403).json({ message: "Only Admin or Manager can delete tickets" });
     }
 
-    const ticket = await Ticket.findByIdAndDelete(req.params.id);
+    const existingTicket = await findScopedTicketById(req, req.params.id);
+    if (!existingTicket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    const ticket = await Ticket.findOneAndDelete({
+      _id: req.params.id,
+      hotelId: getTicketHotelId(existingTicket),
+    });
 
     if (!ticket) {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
+    auditLog("ticket.deleted", req, { ticketId: ticket._id, hotelId: ticket.hotelId });
     res.json({ message: "Ticket deleted" });
   } catch (error) {
     sendError(res, 400, "Failed to delete ticket", error);

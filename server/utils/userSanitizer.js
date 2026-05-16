@@ -25,6 +25,12 @@ function sanitizeUser(user) {
     email: user.email,
     role: user.role,
     team: user.team,
+    departmentId: user.departmentId,
+    departmentName: user.departmentName,
+    active: user.active !== false,
+    hotelId: user.hotelId,
+    hotelAccess: user.hotelAccess || [],
+    regions: user.regions || [],
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

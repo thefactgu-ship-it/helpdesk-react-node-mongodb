@@ -1,4 +1,6 @@
 const { body, validationResult } = require("express-validator");
+const mongoose = require("mongoose");
+const { USER_ROLES } = require("../constants");
 
 /**
  * Validation rules for user registration
@@ -27,6 +29,14 @@ const registerValidationRules = () => [
     .trim()
     .isLength({ min: 1, max: 50 })
     .withMessage("Team must be between 1 and 50 characters"),
+  body("hotelId")
+    .optional()
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid hotel ID"),
+  body("departmentId")
+    .optional({ checkFalsy: true })
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid department ID"),
 ];
 
 /**
@@ -43,6 +53,10 @@ const loginValidationRules = () => [
   body("password")
     .notEmpty()
     .withMessage("Password is required"),
+  body("hotelId")
+    .optional()
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid hotel ID"),
 ];
 
 /**
@@ -69,13 +83,33 @@ const createUserValidationRules = () => [
     .withMessage("Password must be at least 6 characters"),
   body("role")
     .optional()
-    .isIn(["Admin", "Manager", "Agent", "User"])
+    .isIn(USER_ROLES)
     .withMessage("Invalid role"),
+  body("hotelId")
+    .optional()
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid hotel ID"),
+  body("departmentId")
+    .optional({ checkFalsy: true })
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid department ID"),
+  body("hotelAccess")
+    .optional()
+    .isArray()
+    .withMessage("Hotel access must be an array"),
+  body("hotelAccess.*")
+    .optional()
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid hotel access ID"),
   body("team")
     .optional()
     .trim()
     .isLength({ min: 1, max: 50 })
     .withMessage("Team must be between 1 and 50 characters"),
+  body("active")
+    .optional()
+    .isBoolean()
+    .withMessage("Active must be true or false"),
 ];
 
 /**
@@ -103,13 +137,33 @@ const updateUserValidationRules = () => [
     .withMessage("Password must be at least 6 characters"),
   body("role")
     .optional()
-    .isIn(["Admin", "Manager", "Agent", "User"])
+    .isIn(USER_ROLES)
     .withMessage("Invalid role"),
+  body("hotelId")
+    .optional()
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid hotel ID"),
+  body("departmentId")
+    .optional({ checkFalsy: true })
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid department ID"),
+  body("hotelAccess")
+    .optional()
+    .isArray()
+    .withMessage("Hotel access must be an array"),
+  body("hotelAccess.*")
+    .optional()
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid hotel access ID"),
   body("team")
     .optional()
     .trim()
     .isLength({ min: 1, max: 50 })
     .withMessage("Team must be between 1 and 50 characters"),
+  body("active")
+    .optional()
+    .isBoolean()
+    .withMessage("Active must be true or false"),
 ];
 
 /**
@@ -135,6 +189,10 @@ const updateCurrentUserValidationRules = () => [
     .withMessage("Team is required")
     .isLength({ min: 1, max: 50 })
     .withMessage("Team must be between 1 and 50 characters"),
+  body("departmentId")
+    .optional({ checkFalsy: true })
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid department ID"),
   body("role")
     .not()
     .exists()

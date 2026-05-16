@@ -1,7 +1,19 @@
 // User roles
-const USER_ROLES = ["Admin", "Manager", "Agent", "User"];
+const USER_ROLES = [
+  "GroupAdmin",
+  "RegionalManager",
+  "HotelAdmin",
+  "Admin",
+  "Manager",
+  "Agent",
+  "User",
+];
 const DEFAULT_ROLE = "User";
 const DEFAULT_TEAM = "Support";
+const GROUP_ROLES = ["GroupAdmin", "Admin"];
+const HOTEL_ADMIN_ROLES = ["GroupAdmin", "Admin", "HotelAdmin"];
+const MANAGER_ROLES = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"];
+const STAFF_ROLES = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager", "Agent"];
 
 // Ticket priorities and SLA hours mapping
 const TICKET_PRIORITIES = ["low", "medium", "high", "critical"];
@@ -23,14 +35,17 @@ const DEFAULT_CATEGORY = "General";
 const DEFAULT_DEPARTMENT = "IT";
 
 // API response fields
-const PUBLIC_USER_FIELDS = "name email role team createdAt updatedAt";
+const PUBLIC_USER_FIELDS = "name email role team departmentId departmentName active hotelId hotelAccess createdAt updatedAt";
 const TICKET_POPULATE_CONFIG = [
-  { path: "createdBy", select: "name email role team" },
-  { path: "assignedTo", select: "name email role team" },
-  { path: "updatedBy", select: "name email role team" },
-  { path: "comments.author", select: "name email role team" },
-  { path: "activityLog.user", select: "name email role team" },
-  { path: "attachments.uploadedBy", select: "name email role team" },
+  { path: "hotelId", select: "name code region timezone active" },
+  { path: "requesterUserId", select: "name email role team departmentId departmentName hotelId" },
+  { path: "departmentId", select: "name code active hotelId" },
+  { path: "createdBy", select: "name email role team departmentId departmentName hotelId" },
+  { path: "assignedTo", select: "name email role team departmentId departmentName hotelId" },
+  { path: "updatedBy", select: "name email role team departmentId departmentName hotelId" },
+  { path: "comments.author", select: "name email role team departmentId departmentName hotelId" },
+  { path: "activityLog.user", select: "name email role team departmentId departmentName hotelId" },
+  { path: "attachments.uploadedBy", select: "name email role team departmentId departmentName hotelId" },
 ];
 
 // Activity log actions
@@ -46,6 +61,10 @@ module.exports = {
   USER_ROLES,
   DEFAULT_ROLE,
   DEFAULT_TEAM,
+  GROUP_ROLES,
+  HOTEL_ADMIN_ROLES,
+  MANAGER_ROLES,
+  STAFF_ROLES,
   TICKET_PRIORITIES,
   SLA_HOURS_MAP,
   DEFAULT_PRIORITY,

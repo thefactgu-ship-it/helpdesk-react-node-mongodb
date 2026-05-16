@@ -7,6 +7,13 @@ const ticketSchema = new mongoose.Schema(
       unique: true,
     },
 
+    hotelId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hotel",
+      required: true,
+      index: true,
+    },
+
     title: {
       type: String,
       required: true,
@@ -23,6 +30,13 @@ const ticketSchema = new mongoose.Schema(
       trim: true,
     },
 
+    requesterUserId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+      index: true,
+    },
+
     category: {
       type: String,
       default: "General",
@@ -31,6 +45,19 @@ const ticketSchema = new mongoose.Schema(
     department: {
       type: String,
       default: "IT",
+    },
+
+    departmentId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Department",
+      default: null,
+      index: true,
+    },
+
+    departmentName: {
+      type: String,
+      trim: true,
+      default: "",
     },
 
     priority: {
@@ -131,6 +158,15 @@ const ticketSchema = new mongoose.Schema(
           type: String,
           required: true,
         },
+        storageProvider: {
+          type: String,
+          enum: ["local", "s3"],
+          default: "local",
+        },
+        objectKey: {
+          type: String,
+          default: "",
+        },
         uploadedBy: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
@@ -147,6 +183,14 @@ const ticketSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+ticketSchema.index({ hotelId: 1, createdAt: -1 });
+ticketSchema.index({ hotelId: 1, status: 1, createdAt: -1 });
+ticketSchema.index({ hotelId: 1, assignedTo: 1, createdAt: -1 });
+ticketSchema.index({ hotelId: 1, createdBy: 1, createdAt: -1 });
+ticketSchema.index({ hotelId: 1, requesterUserId: 1, createdAt: -1 });
+ticketSchema.index({ hotelId: 1, departmentId: 1, createdAt: -1 });
+ticketSchema.index({ hotelId: 1, category: 1, createdAt: -1 });
 
 ticketSchema.virtual("isOverdue").get(function () {
   if (!this.dueDate) return false;

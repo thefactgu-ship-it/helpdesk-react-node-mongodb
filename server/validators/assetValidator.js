@@ -1,4 +1,5 @@
 const { body, validationResult } = require("express-validator");
+const mongoose = require("mongoose");
 
 const assetStatuses = ["Active", "In Repair", "Spare", "Retired"];
 const assetConditions = ["Good", "Monitor", "Needs Repair", "End of Life"];
@@ -22,6 +23,10 @@ const createAssetValidationRules = () => [
     .withMessage("Serial number is required")
     .isLength({ max: 120 })
     .withMessage("Serial number must not exceed 120 characters"),
+  body("hotelId")
+    .optional()
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid hotel ID"),
   ...optionalAssetRules(),
 ];
 
@@ -47,6 +52,10 @@ const updateAssetValidationRules = () => [
     .withMessage("Serial number cannot be empty")
     .isLength({ max: 120 })
     .withMessage("Serial number must not exceed 120 characters"),
+  body("hotelId")
+    .optional()
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("Invalid hotel ID"),
   ...optionalAssetRules(),
 ];
 
