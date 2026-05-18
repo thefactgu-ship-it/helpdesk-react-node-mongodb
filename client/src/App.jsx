@@ -11,6 +11,7 @@ import Sidebar from "./components/Sidebar";
 import toast, { Toaster } from "react-hot-toast";
 import ConfirmModal from "./components/ConfirmModal";
 import LoginPage from "./components/LoginPage";
+import NotificationBell from "./components/NotificationBell";
 import ThemedSelect from "./components/ThemedSelect";
 import TicketDetailModal from "./components/TicketDetailModal";
 import { API_BASE_URL } from "./services/api";
@@ -434,6 +435,11 @@ function App() {
     setSelectedTicket(null);
   };
 
+  const openNotificationTicket = async (ticketId) => {
+    setActivePage("tickets");
+    await openTicketDetails(ticketId);
+  };
+
   const addTicketComment = async (ticketId, text) => {
     try {
       await axios.post(
@@ -777,6 +783,12 @@ function App() {
               </div>
 
               <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="self-start sm:self-auto">
+                  <NotificationBell
+                    token={token}
+                    onOpenTicket={openNotificationTicket}
+                  />
+                </div>
                 {canSelectHotel && (
                   <ThemedSelect
                     className="w-full min-w-[15rem] sm:w-72"

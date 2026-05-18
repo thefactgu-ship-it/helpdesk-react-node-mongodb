@@ -17,6 +17,13 @@ const {
   saveAttachmentFile,
 } = require("../services/attachmentStorage");
 const {
+  notifySafely,
+  notifyTicketAssigned,
+  notifyTicketCommented,
+  notifyTicketCreated,
+  notifyTicketStatusChanged,
+} = require("../services/notificationService");
+const {
   buildDateRangeQuery,
   buildHotelScopeQuery,
   canManageTickets,
@@ -380,6 +387,7 @@ async function createTicket(req, res) {
 
     await ticket.populate(TICKET_POPULATE_CONFIG);
     auditLog("ticket.created", req, { ticketId: ticket._id, hotelId });
+    await notifySafely(notifyTicketCreated, ticket, req.user.id);
     res.status(201).json(ticket);
   } catch (error) {
     res.status(400).json({
@@ -524,6 +532,12 @@ async function updateTicket(req, res) {
     }
 
     auditLog("ticket.updated", req, { ticketId: ticket._id, hotelId: ticket.hotelId });
+    if (status) {
+      await notifySafely(notifyTicketStatusChanged, ticket, req.user.id);
+    }
+    if (assignedTo) {
+      await notifySafely(notifyTicketAssigned, ticket, req.user.id);
+    }
     res.json(ticket);
   } catch (error) {
     sendError(res, 400, "Failed to update ticket", error);
@@ -581,6 +595,7 @@ async function updateTicketStatus(req, res) {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
+    await notifySafely(notifyTicketStatusChanged, ticket, req.user.id);
     res.json(ticket);
   } catch (error) {
     sendError(res, 400, "Failed to update status", error);
@@ -631,6 +646,7 @@ async function assignTicket(req, res) {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
+    await notifySafely(notifyTicketAssigned, ticket, req.user.id);
     res.json(ticket);
   } catch (error) {
     res.status(400).json({
@@ -680,6 +696,7 @@ async function addComment(req, res) {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
+    await notifySafely(notifyTicketCommented, ticket, req.user.id);
     res.json(ticket);
   } catch (error) {
     sendError(res, 400, "Failed to add comment", error);

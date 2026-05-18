@@ -13,6 +13,7 @@ const assetRoutes = require("./routes/assetRoutes");
 const problemTypeRoutes = require("./routes/problemTypeRoutes");
 const hotelRoutes = require("./routes/hotelRoutes");
 const departmentRoutes = require("./routes/departmentRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 // Import models
 const User = require("./models/User");
@@ -254,6 +255,7 @@ app.use("/api/departments", departmentRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/assets", assetRoutes);
 app.use("/api/problem-types", problemTypeRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // 404 handler
 app.use((req, res) => {
