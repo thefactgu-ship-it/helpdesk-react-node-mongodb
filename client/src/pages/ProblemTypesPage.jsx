@@ -20,7 +20,7 @@ function ProblemTypesPage({ currentUser, token }) {
   const [problemTypes, setProblemTypes] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(Boolean(token));
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [deleteTypeId, setDeleteTypeId] = useState(null);
@@ -30,7 +30,6 @@ function ProblemTypesPage({ currentUser, token }) {
     if (!token) return;
 
     try {
-      setLoading(true);
       const data = await getProblemTypes(token);
       setProblemTypes(data);
     } catch (error) {
@@ -42,7 +41,6 @@ function ProblemTypesPage({ currentUser, token }) {
   }, [token]);
 
   useEffect(() => {
-
     fetchProblemTypes();
   }, [fetchProblemTypes]);
 

@@ -38,7 +38,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
   const [assets, setAssets] = useState([]);
   const [form, setForm] = useState(emptyAssetForm);
   const [editForm, setEditForm] = useState(emptyAssetForm);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(Boolean(token));
   const [saving, setSaving] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
@@ -54,7 +54,6 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
     if (!token) return;
 
     try {
-      setLoading(true);
       const data = await getAssets(token, scopedParams);
       setAssets(data);
     } catch (error) {
@@ -66,7 +65,6 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
   }, [scopedParams, token]);
 
   useEffect(() => {
-
     fetchAssets();
   }, [fetchAssets]);
 
