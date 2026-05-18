@@ -15,6 +15,7 @@ const emptyForm = {
   sortOrder: 100,
   active: true,
 };
+const departmentsPerPage = 8;
 
 function DepartmentManagementPage({
   departments = [],
@@ -31,11 +32,18 @@ function DepartmentManagementPage({
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const isEditing = Boolean(editingDepartmentId);
   const activeDepartments = useMemo(
     () => departments.filter((department) => department.active !== false),
     [departments],
   );
+  const totalPages = Math.max(1, Math.ceil(departments.length / departmentsPerPage));
+  const visiblePage = Math.min(currentPage, totalPages);
+  const paginatedDepartments = useMemo(() => {
+    const startIndex = (visiblePage - 1) * departmentsPerPage;
+    return departments.slice(startIndex, startIndex + departmentsPerPage);
+  }, [departments, visiblePage]);
   const pendingDeleteDepartment = departments.find(
     (department) => (department._id || department.id) === pendingDeleteId,
   );
@@ -69,6 +77,7 @@ function DepartmentManagementPage({
 
       setForm({ ...emptyForm, hotelId: selectedHotelId === "all" ? "" : selectedHotelId });
       setEditingDepartmentId(null);
+      setCurrentPage(1);
       await onDepartmentsChange();
     } catch (error) {
       console.error("Failed to save department", error);
@@ -104,6 +113,7 @@ function DepartmentManagementPage({
       await deactivateDepartment(token, pendingDeleteId, hotelId ? { hotelId } : undefined);
       toast.success("Department deactivated");
       setPendingDeleteId(null);
+      setCurrentPage(visiblePage);
       await onDepartmentsChange();
     } catch (error) {
       console.error("Failed to deactivate department", error);
@@ -237,12 +247,12 @@ function DepartmentManagementPage({
               Departments
             </h4>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              {activeDepartments.length} active departments
+              {activeDepartments.length} active / {departments.length} total departments
             </p>
           </div>
 
           <div className="grid gap-3 md:hidden">
-            {departments.map((department) => {
+            {paginatedDepartments.map((department) => {
               const departmentId = department._id || department.id;
               const isActive = department.active !== false;
 
@@ -310,7 +320,7 @@ function DepartmentManagementPage({
                 </tr>
               </thead>
               <tbody>
-                {departments.map((department) => {
+                {paginatedDepartments.map((department) => {
                   const departmentId = department._id || department.id;
                   const isActive = department.active !== false;
 
@@ -371,6 +381,12 @@ function DepartmentManagementPage({
               </tbody>
             </table>
           </div>
+
+          <PaginationControls
+            currentPage={visiblePage}
+            onPageChange={setCurrentPage}
+            totalPages={totalPages}
+          />
         </div>
       </section>
     </div>
@@ -414,6 +430,36 @@ function MobileMeta({ label, value }) {
       <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
         {value}
       </dd>
+    </div>
+  );
+}
+
+function PaginationControls({ currentPage, onPageChange, totalPages }) {
+  if (totalPages <= 1) return null;
+
+  return (
+    <div className="mt-5 flex items-center justify-between gap-3">
+      <button
+        type="button"
+        disabled={currentPage === 1}
+        onClick={() => onPageChange(currentPage - 1)}
+        className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold disabled:opacity-40 dark:border-slate-700"
+      >
+        Previous
+      </button>
+
+      <span className="text-sm text-slate-500 dark:text-slate-400">
+        Page {currentPage} of {totalPages}
+      </span>
+
+      <button
+        type="button"
+        disabled={currentPage === totalPages}
+        onClick={() => onPageChange(currentPage + 1)}
+        className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold disabled:opacity-40 dark:border-slate-700"
+      >
+        Next
+      </button>
     </div>
   );
 }
