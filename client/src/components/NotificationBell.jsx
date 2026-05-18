@@ -11,7 +11,9 @@ function NotificationBell({ token, onOpenTicket }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [mobilePanelStyle, setMobilePanelStyle] = useState({});
   const menuRef = useRef(null);
+  const buttonRef = useRef(null);
 
   const fetchNotifications = useCallback(async () => {
     if (!token) return;
@@ -27,6 +29,20 @@ function NotificationBell({ token, onOpenTicket }) {
       setLoading(false);
     }
   }, [token]);
+
+  const updateMobilePanelPosition = useCallback(() => {
+    const buttonRect = buttonRef.current?.getBoundingClientRect();
+    if (!buttonRect || window.innerWidth >= 640) {
+      setMobilePanelStyle({});
+      return;
+    }
+
+    const top = Math.max(buttonRect.bottom + 8, 72);
+    setMobilePanelStyle({
+      top: `${top}px`,
+      maxHeight: `calc(100vh - ${top}px - 5.75rem)`,
+    });
+  }, []);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -52,6 +68,19 @@ function NotificationBell({ token, onOpenTicket }) {
     document.addEventListener("mousedown", closeOnOutsideClick);
     return () => document.removeEventListener("mousedown", closeOnOutsideClick);
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    updateMobilePanelPosition();
+    window.addEventListener("resize", updateMobilePanelPosition);
+    window.addEventListener("scroll", updateMobilePanelPosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updateMobilePanelPosition);
+      window.removeEventListener("scroll", updateMobilePanelPosition, true);
+    };
+  }, [open, updateMobilePanelPosition]);
 
   const handleOpenNotification = async (notification) => {
     try {
@@ -83,8 +112,16 @@ function NotificationBell({ token, onOpenTicket }) {
   return (
     <div ref={menuRef} className="relative">
       <button
+        ref={buttonRef}
         type="button"
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          if (!open) {
+            updateMobilePanelPosition();
+          } else {
+            setMobilePanelStyle({});
+          }
+          setOpen((current) => !current);
+        }}
         className="relative grid h-11 w-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-violet-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-violet-400 dark:hover:bg-slate-800"
         aria-label="Open notifications"
         aria-expanded={open}
@@ -98,7 +135,10 @@ function NotificationBell({ token, onOpenTicket }) {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-12 z-30 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-slate-200/80 dark:border-slate-700 dark:bg-slate-950 dark:shadow-slate-950/60">
+        <div
+          className="fixed left-4 right-4 z-50 flex w-auto flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-slate-200/80 dark:border-slate-700 dark:bg-slate-950 dark:shadow-slate-950/60 sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:z-30 sm:w-[min(22rem,calc(100vw-2rem))] sm:max-h-none"
+          style={mobilePanelStyle}
+        >
           <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
             <div>
               <p className="text-sm font-black text-slate-900 dark:text-white">
@@ -120,7 +160,7 @@ function NotificationBell({ token, onOpenTicket }) {
             </button>
           </div>
 
-          <div className="max-h-96 overflow-y-auto p-2">
+          <div className="min-h-0 flex-1 overflow-y-auto p-2 sm:max-h-96">
             {loading && !notifications.length && (
               <p className="px-3 py-5 text-center text-sm text-slate-500 dark:text-slate-400">
                 Loading notifications...
@@ -147,10 +187,10 @@ function NotificationBell({ token, onOpenTicket }) {
                   aria-hidden="true"
                 />
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-bold text-slate-900 dark:text-white">
+                  <span className="block overflow-hidden text-sm font-bold text-slate-900 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] dark:text-white">
                     {notification.title}
                   </span>
-                  <span className="mt-0.5 block truncate text-xs text-slate-500 dark:text-slate-400">
+                  <span className="mt-0.5 block overflow-hidden text-xs leading-5 text-slate-500 [display:-webkit-box] [-webkit-box-orient:vertical] [-webkit-line-clamp:2] dark:text-slate-400">
                     {notification.message}
                   </span>
                   <span className="mt-1 block text-[11px] font-semibold text-slate-400 dark:text-slate-500">
