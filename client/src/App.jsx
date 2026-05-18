@@ -31,6 +31,7 @@ const UserManagementPage = lazy(() => import("./pages/UserManagementPage"));
 
 const API_URL = `${API_BASE_URL}/tickets`;
 const AUTH_URL = `${API_BASE_URL}/auth`;
+const attachmentsEnabled = import.meta.env.VITE_ATTACHMENTS_ENABLED === "true";
 const groupRoles = ["GroupAdmin", "Admin", "RegionalManager"];
 const adminRoles = ["GroupAdmin", "Admin", "HotelAdmin"];
 const ticketManagerRoles = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"];
@@ -662,9 +663,10 @@ function App() {
   const canManageTickets = ticketManagerRoles.includes(currentUser?.role);
   const canSelectHotel = groupRoles.includes(currentUser?.role) && hotels.length > 1;
   const canUploadSelectedTicketAttachment =
-    canManageTickets ||
-    (currentUser?.role === "Agent" &&
-      getEntityId(selectedTicket?.assignedTo) === getEntityId(currentUser));
+    attachmentsEnabled &&
+    (canManageTickets ||
+      (currentUser?.role === "Agent" &&
+        getEntityId(selectedTicket?.assignedTo) === getEntityId(currentUser)));
 
   useEffect(() => {
     if (

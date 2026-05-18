@@ -12,6 +12,7 @@ const {
 const { TICKET_POPULATE_CONFIG, TICKET_STATUSES } = require("../constants");
 const { sendError } = require("../utils/errorHandler");
 const {
+  getProvider: getAttachmentStorageProvider,
   readAttachmentFile,
   saveAttachmentFile,
 } = require("../services/attachmentStorage");
@@ -691,6 +692,12 @@ async function addComment(req, res) {
  */
 async function uploadAttachment(req, res) {
   try {
+    if (getAttachmentStorageProvider() === "disabled") {
+      return res.status(503).json({
+        message: "Ticket attachments are disabled. Please use ticket comments for updates.",
+      });
+    }
+
     const existingTicket = await findScopedTicketById(req, req.params.id);
     if (!existingTicket) {
       return res.status(404).json({ message: "Ticket not found" });

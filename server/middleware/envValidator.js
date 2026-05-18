@@ -42,27 +42,20 @@ function validateEnv() {
       process.exit(1);
     }
 
-    if (process.env.ATTACHMENT_STORAGE_PROVIDER !== "s3") {
+    const attachmentProvider = String(
+      process.env.ATTACHMENT_STORAGE_PROVIDER || "disabled"
+    ).toLowerCase();
+
+    if (!["disabled", "local"].includes(attachmentProvider)) {
       console.error(
-        "ATTACHMENT_STORAGE_PROVIDER must be set to s3 in production."
+        "ATTACHMENT_STORAGE_PROVIDER must be disabled or local."
       );
       process.exit(1);
     }
-  }
 
-  if (process.env.ATTACHMENT_STORAGE_PROVIDER === "s3") {
-    const requiredS3Envs = [
-      "S3_ENDPOINT",
-      "S3_BUCKET",
-      "S3_REGION",
-      "S3_ACCESS_KEY_ID",
-      "S3_SECRET_ACCESS_KEY",
-    ];
-    const missingS3Envs = requiredS3Envs.filter((env) => !process.env[env]);
-
-    if (missingS3Envs.length > 0) {
+    if (attachmentProvider === "local") {
       console.error(
-        `Missing required S3 environment variables: ${missingS3Envs.join(", ")}`
+        "ATTACHMENT_STORAGE_PROVIDER=local is not allowed in production. Use disabled."
       );
       process.exit(1);
     }

@@ -21,7 +21,7 @@ Group-level roles can query across hotels. Hotel-level roles are restricted to t
 - Frontend: static hosting with CDN.
 - Backend: managed Node.js service on Render. Set the health check path to `/healthz`.
 - Database: MongoDB Atlas with automated backups and alerts.
-- Files: set `ATTACHMENT_STORAGE_PROVIDER=s3` and configure `S3_ENDPOINT`, `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, and `S3_SECRET_ACCESS_KEY` for production attachments. Keep `local` only for development.
+- Files: ticket attachment upload is disabled by default in production. Keep `ATTACHMENT_STORAGE_PROVIDER=disabled` unless object storage is deliberately added later.
 - Environments: use separate `development`, `staging`, and `production` services and databases.
 
 ## Required Production Controls
@@ -48,12 +48,7 @@ CORS_ORIGIN=https://your-frontend.onrender.com
 ADMIN_EMAIL=admin@example.com
 ADMIN_PASSWORD=replace_with_a_strong_password
 ADMIN_NAME=System Admin
-ATTACHMENT_STORAGE_PROVIDER=s3
-S3_ENDPOINT=https://your-object-storage-endpoint
-S3_BUCKET=your-bucket
-S3_REGION=your-region
-S3_ACCESS_KEY_ID=your-access-key
-S3_SECRET_ACCESS_KEY=your-secret-key
+ATTACHMENT_STORAGE_PROVIDER=disabled
 ```
 
 Frontend required variable:
@@ -102,10 +97,10 @@ Confirm Atlas shows `name_1` as unique on `problemtypes`, and does not keep `hot
 Run this after every Render production deployment:
 
 1. `GET /healthz` returns 200.
-2. `GET /readyz` returns 200 and reports MongoDB connected with storage configured.
+2. `GET /readyz` returns 200 and reports MongoDB connected with storage disabled.
 3. Admin login succeeds.
 4. Admin can create or verify hotel, department, user, and problem type records.
-5. Ticket workflow works: create, assign, update status, comment, upload attachment, view attachment.
+5. Ticket workflow works: create, assign, update status, and comment.
 6. Dashboard and reports show hotel-scoped data.
 7. Non-admin roles cannot access admin-only pages or APIs.
 

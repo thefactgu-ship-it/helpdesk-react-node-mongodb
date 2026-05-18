@@ -221,35 +221,25 @@ app.get("/healthz", (req, res) => {
 
 app.get("/readyz", (req, res) => {
   const storageProvider = String(
-    process.env.ATTACHMENT_STORAGE_PROVIDER || "local"
+    process.env.ATTACHMENT_STORAGE_PROVIDER ||
+      (process.env.NODE_ENV === "production" ? "disabled" : "local")
   ).toLowerCase();
-  const missingS3Envs =
-    storageProvider === "s3"
-      ? [
-          "S3_ENDPOINT",
-          "S3_BUCKET",
-          "S3_REGION",
-          "S3_ACCESS_KEY_ID",
-          "S3_SECRET_ACCESS_KEY",
-        ].filter((env) => !process.env[env])
-      : [];
   const checks = {
     database: mongoose.connection.readyState === 1 ? "connected" : "not_connected",
     storage:
-      storageProvider === "s3" && missingS3Envs.length === 0
-        ? "configured"
+      storageProvider === "disabled"
+        ? "disabled"
         : storageProvider === "local" && process.env.NODE_ENV !== "production"
           ? "local_development"
           : "not_configured",
   };
   const ready =
     checks.database === "connected" &&
-    (checks.storage === "configured" || checks.storage === "local_development");
+    ["disabled", "local_development"].includes(checks.storage);
 
   res.status(ready ? 200 : 503).json({
     status: ready ? "ready" : "not_ready",
     checks,
-    missingS3Envs,
     timestamp: new Date().toISOString(),
   });
 });

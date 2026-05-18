@@ -2,13 +2,13 @@
 
 A full-stack IT Help Desk System for multi-hotel operations, built with React, Vite, Tailwind CSS, Node.js, Express, MongoDB, Mongoose, and JWT authentication.
 
-The app supports helpdesk ticket workflows, dashboard analytics, reports, asset tracking, user management, requester review, problem type management, protected ticket comments and attachments, self-service profile updates, and production-focused security hardening.
+The app supports helpdesk ticket workflows, dashboard analytics, reports, asset tracking, user management, requester review, problem type management, protected ticket comments, self-service profile updates, and production-focused security hardening.
 
 ## Features
 
 - Multi-hotel tenant scoping with hotel-aware users, tickets, assets, and dashboard filtering
 - Dashboard KPIs, charts, status summary, severity, category, and open-day analysis from scoped ticket data
-- Permission-limited Helpdesk Tickets table with search, filter, pagination, detail modal, assignment, status updates, comments, activity log, and protected image attachments
+- Permission-limited Helpdesk Tickets table with search, filter, pagination, detail modal, assignment, status updates, comments, and activity log
 - Add Ticket form with role-aware assignment and issue categories loaded from backend Problem Types
 - Monthly, quarterly, and yearly reports using all ticket data for authenticated users
 - Asset Management with lifecycle fields, age calculation, recommendation status, detail modal, and admin-only create/edit/delete
@@ -17,7 +17,7 @@ The app supports helpdesk ticket workflows, dashboard analytics, reports, asset 
 - Self-service Profile page for all users with profile update and current-password-protected password change
 - Sidebar user-card menu for Update Profile, Change Password, and Logout
 - Master Problem Types page with admin-only create/delete and Add Ticket integration for every hotel
-- JWT authentication, role-based access, CORS restrictions, Helmet headers, NoSQL key sanitization, rate limiting, and protected uploads
+- JWT authentication, role-based access, CORS restrictions, Helmet headers, NoSQL key sanitization, and rate limiting
 - Lazy-loaded pages for smaller production chunks
 
 ## Tech Stack
@@ -163,15 +163,10 @@ Backend service:
   - `JWT_SECRET`
   - `CORS_ORIGIN=https://your-frontend.onrender.com`
   - `ADMIN_PASSWORD` with at least 12 characters
-  - `ATTACHMENT_STORAGE_PROVIDER=s3`
-  - `S3_ENDPOINT`
-  - `S3_BUCKET`
-  - `S3_REGION`
-  - `S3_ACCESS_KEY_ID`
-  - `S3_SECRET_ACCESS_KEY`
 - Optional admin seed variables:
   - `ADMIN_EMAIL`
   - `ADMIN_NAME`
+  - `ATTACHMENT_STORAGE_PROVIDER=disabled` to make the no-attachment production setting explicit
   - `ALLOW_PUBLIC_REGISTRATION=true` only if you intentionally want public signup enabled in that environment
 
 Frontend static site:
@@ -181,6 +176,8 @@ Frontend static site:
 - Publish directory: `dist`
 - Required environment variable:
   - `VITE_API_URL=https://your-backend.onrender.com/api`
+- Optional environment variable:
+  - `VITE_ATTACHMENTS_ENABLED=true` only for local development if attachment upload is intentionally re-enabled
 
 ## Roles And Access
 
@@ -226,9 +223,8 @@ Tickets can only be assigned by Admin or Manager. Assignment targets must be sta
 - Production 500 errors avoid returning internal error details.
 - Every hotel-scoped API filters by authorized hotel access on the backend; frontend filters are convenience controls only.
 - User, hotel, ticket, and asset changes emit structured `[AUDIT]` logs with request IDs.
-- Ticket attachments are limited to JPG, PNG, GIF, or WEBP images and a maximum size of 5 MB.
-- Uploaded files are not served through public static hosting; they are viewed through protected ticket attachment routes.
-- Production attachments require S3-compatible object storage because Render local disk is not durable across normal deployments unless a persistent disk is explicitly configured.
+- Ticket attachment upload is disabled by default in production. Use ticket comments for follow-up details.
+- Existing historical attachments, if any, can still be viewed through protected ticket attachment routes when their original storage is available.
 - `server/uploads/*` is ignored by Git to avoid committing user-uploaded files.
 - Delete actions use confirmation modals before destructive requests.
 
@@ -275,8 +271,8 @@ PATCH  /api/tickets/:id                     Admin/Manager or assigned Agent
 PATCH  /api/tickets/:id/status              Admin/Manager or assigned Agent
 PATCH  /api/tickets/:id/assign              Admin/Manager only
 POST   /api/tickets/:id/comment             Admin/Manager, creator, or assignee
-POST   /api/tickets/:id/attachments         Admin/Manager or assigned Agent, image only, max 5 MB
-GET    /api/tickets/:id/attachments/:attachmentId/view
+POST   /api/tickets/:id/attachments         Disabled by default unless attachment storage is explicitly enabled
+GET    /api/tickets/:id/attachments/:attachmentId/view   Historical attachment view only
 DELETE /api/tickets/:id                     Admin/Manager only
 ```
 
@@ -352,10 +348,10 @@ The script checks for duplicate problem type names across the master list, ensur
 After each Render deployment:
 
 1. Open `https://your-backend.onrender.com/healthz` and confirm HTTP 200.
-2. Open `https://your-backend.onrender.com/readyz` and confirm HTTP 200 with MongoDB connected and storage configured.
+2. Open `https://your-backend.onrender.com/readyz` and confirm HTTP 200 with MongoDB connected and storage disabled.
 3. Log in with the seeded admin account.
 4. Create or verify at least one hotel, department, user, and problem type.
-5. Create a ticket, assign it, update status, add a comment, and upload/view one image attachment.
+5. Create a ticket, assign it, update status, and add a comment.
 6. Confirm Dashboard, Monthly Report, and Quarterly / Yearly views show scoped data.
 7. Log in as a lower-privilege role and confirm admin-only pages and APIs are denied.
 

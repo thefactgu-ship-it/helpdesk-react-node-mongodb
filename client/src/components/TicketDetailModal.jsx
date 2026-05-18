@@ -151,7 +151,7 @@ function TicketDetailModal({
           </button>
         </div>
 
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className={`grid gap-3 ${ticket.attachments?.length ? "lg:grid-cols-2" : ""}`}>
           <CompactPanel>
             <SectionLabel>Title</SectionLabel>
             <p className="mt-1 text-base font-semibold text-slate-900 dark:text-white">
@@ -179,15 +179,15 @@ function TicketDetailModal({
             </div>
           </CompactPanel>
 
-          <CompactPanel>
-            <SectionLabel>Updated By</SectionLabel>
-            <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">
-              {ticket.updatedBy?.name || ticket.createdBy?.name || "Unknown"}
-            </p>
+          {ticket.attachments?.length ? (
+            <CompactPanel>
+              <SectionLabel>Updated By</SectionLabel>
+              <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">
+                {ticket.updatedBy?.name || ticket.createdBy?.name || "Unknown"}
+              </p>
 
-            <div className="mt-4">
-              <SectionLabel>Attachments</SectionLabel>
-              {ticket.attachments?.length ? (
+              <div className="mt-4">
+                <SectionLabel>Archived Attachments</SectionLabel>
                 <ul className="mt-2 max-h-40 space-y-2 overflow-y-auto">
                   {ticket.attachments.map((attachment) => (
                     <li
@@ -214,13 +214,9 @@ function TicketDetailModal({
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-                  No attachments yet.
-                </p>
-              )}
-            </div>
-          </CompactPanel>
+              </div>
+            </CompactPanel>
+          ) : null}
         </div>
 
         <div className={`mt-3 grid gap-3 ${canUploadAttachment ? "lg:grid-cols-2" : ""}`}>

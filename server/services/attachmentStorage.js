@@ -5,23 +5,28 @@ const path = require("path");
 const uploadsDir = path.resolve(__dirname, "..", "uploads");
 
 async function saveAttachmentFile(file) {
-  if (getProvider() === "s3") {
-    return saveToS3(file);
+  const provider = getProvider();
+
+  if (provider === "disabled") {
+    const error = new Error("Ticket attachments are disabled in this environment");
+    error.status = 503;
+    throw error;
   }
 
   return saveToLocal(file);
 }
 
 async function readAttachmentFile(attachment) {
-  if (attachment.storageProvider === "s3" || String(attachment.url || "").startsWith("s3://")) {
-    return readFromS3(attachment);
+  if (attachment.storageProvider && attachment.storageProvider !== "local") {
+    return null;
   }
 
   return readFromLocal(attachment);
 }
 
 function getProvider() {
-  return String(process.env.ATTACHMENT_STORAGE_PROVIDER || "local").toLowerCase();
+  const defaultProvider = process.env.NODE_ENV === "production" ? "disabled" : "local";
+  return String(process.env.ATTACHMENT_STORAGE_PROVIDER || defaultProvider).toLowerCase();
 }
 
 function buildObjectKey(file) {
@@ -54,115 +59,8 @@ async function readFromLocal(attachment) {
   return fs.promises.readFile(filePath);
 }
 
-async function saveToS3(file) {
-  const objectKey = buildObjectKey(file);
-  const bucket = requireS3Env("S3_BUCKET");
-  const endpoint = requireS3Env("S3_ENDPOINT").replace(/\/$/, "");
-  const url = `${endpoint}/${bucket}/${objectKey}`;
-
-  const response = await signedS3Fetch("PUT", url, {
-    body: file.buffer,
-    contentType: file.mimetype,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Object storage upload failed with status ${response.status}`);
-  }
-
-  return {
-    filename: path.basename(objectKey),
-    objectKey,
-    storageProvider: "s3",
-    url: `s3://${bucket}/${objectKey}`,
-  };
-}
-
-async function readFromS3(attachment) {
-  const bucket = requireS3Env("S3_BUCKET");
-  const endpoint = requireS3Env("S3_ENDPOINT").replace(/\/$/, "");
-  const objectKey = attachment.objectKey || String(attachment.url || "").replace(`s3://${bucket}/`, "");
-  const url = `${endpoint}/${bucket}/${objectKey}`;
-  const response = await signedS3Fetch("GET", url);
-
-  if (!response.ok) return null;
-
-  return Buffer.from(await response.arrayBuffer());
-}
-
-async function signedS3Fetch(method, url, options = {}) {
-  const accessKeyId = requireS3Env("S3_ACCESS_KEY_ID");
-  const secretAccessKey = requireS3Env("S3_SECRET_ACCESS_KEY");
-  const region = process.env.S3_REGION || "us-east-1";
-  const service = "s3";
-  const body = options.body || Buffer.alloc(0);
-  const payloadHash = sha256(body, "hex");
-  const now = new Date();
-  const amzDate = now.toISOString().replace(/[:-]|\.\d{3}/g, "");
-  const dateStamp = amzDate.slice(0, 8);
-  const parsedUrl = new URL(url);
-  const headers = {
-    host: parsedUrl.host,
-    "x-amz-content-sha256": payloadHash,
-    "x-amz-date": amzDate,
-  };
-
-  if (options.contentType) headers["content-type"] = options.contentType;
-
-  const signedHeaders = Object.keys(headers).sort().join(";");
-  const canonicalHeaders = Object.keys(headers)
-    .sort()
-    .map((key) => `${key}:${headers[key]}\n`)
-    .join("");
-  const canonicalRequest = [
-    method,
-    encodeURI(parsedUrl.pathname),
-    parsedUrl.searchParams.toString(),
-    canonicalHeaders,
-    signedHeaders,
-    payloadHash,
-  ].join("\n");
-  const credentialScope = `${dateStamp}/${region}/${service}/aws4_request`;
-  const stringToSign = [
-    "AWS4-HMAC-SHA256",
-    amzDate,
-    credentialScope,
-    sha256(canonicalRequest, "hex"),
-  ].join("\n");
-  const signingKey = getSignatureKey(secretAccessKey, dateStamp, region, service);
-  const signature = hmac(signingKey, stringToSign, "hex");
-
-  headers.authorization = `AWS4-HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
-
-  return fetch(url, {
-    method,
-    headers,
-    body: method === "GET" ? undefined : body,
-  });
-}
-
-function requireS3Env(name) {
-  if (!process.env[name]) {
-    throw new Error(`${name} is required when ATTACHMENT_STORAGE_PROVIDER=s3`);
-  }
-  return process.env[name];
-}
-
-function sha256(value, encoding) {
-  return crypto.createHash("sha256").update(value).digest(encoding);
-}
-
-function hmac(key, value, encoding) {
-  return crypto.createHmac("sha256", key).update(value).digest(encoding);
-}
-
-function getSignatureKey(secretAccessKey, dateStamp, regionName, serviceName) {
-  const kDate = hmac(`AWS4${secretAccessKey}`, dateStamp);
-  const kRegion = hmac(kDate, regionName);
-  const kService = hmac(kRegion, serviceName);
-  return hmac(kService, "aws4_request");
-}
-
 module.exports = {
+  getProvider,
   readAttachmentFile,
   saveAttachmentFile,
 };
