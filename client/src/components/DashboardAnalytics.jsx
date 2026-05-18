@@ -29,6 +29,40 @@ function daysBetween(start, end = new Date()) {
   return Math.max(0, Math.ceil(diff / 86400000));
 }
 
+function hoursUntil(value, now = new Date()) {
+  if (!value) return null;
+  return Math.ceil((new Date(value) - now) / 3600000);
+}
+
+function getAssigneeName(ticket) {
+  return ticket.assignedTo?.name || ticket.assignedTo?.email || "Unassigned";
+}
+
+function getEscalationLevel(ticket, now = new Date()) {
+  if (isCompletedTicket(ticket)) return null;
+
+  const remainingHours = hoursUntil(ticket.dueDate, now);
+  const unassigned = !ticket.assignedTo;
+
+  if (remainingHours !== null && remainingHours < 0) return "L2";
+  if (ticket.priority === "critical" && unassigned) return "L2";
+  if (ticket.priority === "critical") return "L1";
+  if (remainingHours !== null && remainingHours <= 4) return "L1";
+  if (ticket.priority === "high" && unassigned) return "L1";
+
+  return null;
+}
+
+function getEscalationReason(ticket, now = new Date()) {
+  const remainingHours = hoursUntil(ticket.dueDate, now);
+  if (remainingHours !== null && remainingHours < 0) {
+    return `${Math.abs(remainingHours)}h overdue`;
+  }
+  if (!ticket.assignedTo) return "Unassigned";
+  if (remainingHours !== null && remainingHours <= 4) return `${remainingHours}h left`;
+  return ticket.priority === "critical" ? "Critical priority" : "Needs review";
+}
+
 function getWeekLabel(date) {
   return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
@@ -43,6 +77,7 @@ function buildDashboardData(tickets) {
     (ticket) => !isCompletedTicket(ticket),
   );
   const completionStats = getCompletionStats(tickets);
+  const now = new Date();
 
   const avgDaysOpen = activeTickets.length
     ? Math.round(
@@ -136,6 +171,33 @@ function buildDashboardData(tickets) {
     };
   });
 
+  const slaTickets = activeTickets.filter((ticket) => ticket.dueDate);
+  const breachedSla = slaTickets.filter((ticket) => hoursUntil(ticket.dueDate, now) < 0);
+  const dueSoon = slaTickets.filter((ticket) => {
+    const remainingHours = hoursUntil(ticket.dueDate, now);
+    return remainingHours >= 0 && remainingHours <= 4;
+  });
+  const unassignedUrgent = activeTickets.filter(
+    (ticket) =>
+      !ticket.assignedTo &&
+      ["critical", "high"].includes(ticket.priority),
+  );
+  const escalationQueue = activeTickets
+    .map((ticket) => ({
+      ...ticket,
+      escalationLevel: getEscalationLevel(ticket, now),
+      escalationReason: getEscalationReason(ticket, now),
+      remainingHours: hoursUntil(ticket.dueDate, now),
+    }))
+    .filter((ticket) => ticket.escalationLevel)
+    .sort((a, b) => {
+      const levelRank = { L2: 0, L1: 1 };
+      const levelDiff = levelRank[a.escalationLevel] - levelRank[b.escalationLevel];
+      if (levelDiff) return levelDiff;
+      return (a.remainingHours ?? 9999) - (b.remainingHours ?? 9999);
+    })
+    .slice(0, 6);
+
   return {
     avgDaysOpen,
     categoryData,
@@ -146,6 +208,12 @@ function buildDashboardData(tickets) {
     resolved,
     completionStats,
     severityData,
+    sla: {
+      breached: breachedSla.length,
+      dueSoon: dueSoon.length,
+      escalationQueue,
+      unassignedUrgent: unassignedUrgent.length,
+    },
     statusData,
     total,
     weeklyTrend,
@@ -204,7 +272,50 @@ function DashboardAnalytics({ darkMode, tickets }) {
         />
       </section>
 
+      <section className="grid grid-cols-1 gap-3 md:grid-cols-4">
+        <StatCard
+          title="SLA Breached"
+          value={data.sla.breached.toLocaleString()}
+          detail="active tickets"
+          icon="!"
+          bars={[72, 48, 66, 32]}
+        />
+        <StatCard
+          title="Due In 4h"
+          value={data.sla.dueSoon.toLocaleString()}
+          detail="needs follow-up"
+          icon="4"
+          bars={[24, 54, 78, 42]}
+        />
+        <StatCard
+          title="Urgent Unassigned"
+          value={data.sla.unassignedUrgent.toLocaleString()}
+          detail="high or critical"
+          icon="U"
+          bars={[40, 62, 36, 70]}
+        />
+        <StatCard
+          title="Escalation Queue"
+          value={data.sla.escalationQueue.length.toLocaleString()}
+          detail="L1 / L2 watch"
+          icon="E"
+          bars={[52, 34, 74, 58]}
+        />
+      </section>
+
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+        <DashboardPanel className="xl:col-span-12" title="SLA And Escalation Queue">
+          {data.sla.escalationQueue.length ? (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {data.sla.escalationQueue.map((ticket) => (
+                <EscalationItem key={ticket._id || ticket.id} ticket={ticket} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState message="No tickets currently need escalation" />
+          )}
+        </DashboardPanel>
+
         <DashboardPanel className="xl:col-span-3" title="By Ticket Status">
           <div className="space-y-5">
             {data.statusData.map((item) => (
@@ -333,6 +444,54 @@ function DashboardAnalytics({ darkMode, tickets }) {
           </div>
         </DashboardPanel>
       </section>
+    </div>
+  );
+}
+
+function EscalationItem({ ticket }) {
+  const isL2 = ticket.escalationLevel === "L2";
+
+  return (
+    <article className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <span
+          className={`rounded-full px-2.5 py-1 text-[11px] font-black ${
+            isL2
+              ? "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200"
+              : "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200"
+          }`}
+        >
+          {ticket.escalationLevel}
+        </span>
+        <span className="truncate text-[11px] font-bold uppercase text-slate-400">
+          {ticket.ticketNumber || ticket.priority}
+        </span>
+      </div>
+      <h4 className="line-clamp-2 text-sm font-black text-slate-900 dark:text-white">
+        {ticket.title}
+      </h4>
+      <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+        <EscalationMeta label="Reason" value={ticket.escalationReason} />
+        <EscalationMeta label="Owner" value={getAssigneeName(ticket)} />
+        <EscalationMeta label="Priority" value={formatStatus(ticket.priority)} />
+        <EscalationMeta
+          label="Due"
+          value={ticket.dueDate ? new Date(ticket.dueDate).toLocaleString() : "No SLA"}
+        />
+      </div>
+    </article>
+  );
+}
+
+function EscalationMeta({ label, value }) {
+  return (
+    <div className="min-w-0">
+      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+        {label}
+      </p>
+      <p className="truncate font-semibold text-slate-700 dark:text-slate-200">
+        {value}
+      </p>
     </div>
   );
 }

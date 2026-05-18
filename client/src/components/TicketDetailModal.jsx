@@ -25,7 +25,7 @@ function TicketDetailModal({
 
   useEffect(() => {
     if (!open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+
       setComment("");
       setFile(null);
       setFileError("");
@@ -37,7 +37,7 @@ function TicketDetailModal({
   useEffect(() => {
     if (!open || !ticket) return;
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setSatisfactionScore(ticket.satisfactionScore ? String(ticket.satisfactionScore) : "");
     setSatisfactionComment(ticket.satisfactionComment || "");
   }, [open, ticket]);

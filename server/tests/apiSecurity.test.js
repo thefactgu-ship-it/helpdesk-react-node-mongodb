@@ -1,0 +1,135 @@
+const assert = require("node:assert/strict");
+const http = require("node:http");
+const test = require("node:test");
+const express = require("express");
+const jwt = require("jsonwebtoken");
+
+process.env.JWT_SECRET = process.env.JWT_SECRET || "test_secret_with_at_least_32_chars";
+process.env.NODE_ENV = "test";
+
+const authMiddleware = require("../middleware/authMiddleware");
+const authRoutes = require("../routes/authRoutes");
+const ticketRoutes = require("../routes/ticketRoutes");
+const errorHandler = require("../middleware/errorHandler");
+
+function createTestApp() {
+  const app = express();
+  app.use(express.json());
+  app.use("/api/auth", authRoutes);
+  app.use("/api/tickets", ticketRoutes);
+  app.use(errorHandler);
+  return app;
+}
+
+function listen(app) {
+  return new Promise((resolve) => {
+    const server = http.createServer(app);
+    server.listen(0, () => resolve(server));
+  });
+}
+
+async function request(app, path, options = {}) {
+  const server = await listen(app);
+  const { port } = server.address();
+  const headers = { ...(options.headers || {}) };
+  let body;
+
+  if (options.body) {
+    body = JSON.stringify(options.body);
+    headers["content-type"] = "application/json";
+  }
+
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}${path}`, {
+      method: options.method || "GET",
+      headers,
+      body,
+    });
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : null;
+    return { status: response.status, data };
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+}
+
+function mockResponse() {
+  return {
+    statusCode: 200,
+    body: null,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(payload) {
+      this.body = payload;
+      return this;
+    },
+  };
+}
+
+test("auth API rejects invalid registration payload before hitting persistence", async () => {
+  const app = createTestApp();
+
+  const response = await request(app, "/api/auth/register", {
+    method: "POST",
+    body: { email: "not-an-email", password: "short" },
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.data.message, "Validation error");
+  assert.ok(response.data.errors.some((error) => error.field === "name"));
+  assert.ok(response.data.errors.some((error) => error.field === "email"));
+});
+
+test("auth API rejects malformed login payload", async () => {
+  const app = createTestApp();
+
+  const response = await request(app, "/api/auth/login", {
+    method: "POST",
+    body: { email: "not-an-email", password: "" },
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.data.message, "Validation error");
+});
+
+test("ticket API requires authentication", async () => {
+  const app = createTestApp();
+
+  const response = await request(app, "/api/tickets", { method: "GET" });
+
+  assert.equal(response.status, 401);
+  assert.equal(response.data.message, "No token provided");
+});
+
+test("auth middleware rejects invalid bearer tokens", async () => {
+  const req = { headers: { authorization: "Bearer not-a-real-token" } };
+  const res = mockResponse();
+  let nextCalled = false;
+
+  await authMiddleware(req, res, () => {
+    nextCalled = true;
+  });
+
+  assert.equal(nextCalled, false);
+  assert.equal(res.statusCode, 401);
+  assert.equal(res.body.message, "Invalid token");
+});
+
+test("auth middleware rejects expired bearer tokens", async () => {
+  const token = jwt.sign({ id: "507f1f77bcf86cd799439011" }, process.env.JWT_SECRET, {
+    expiresIn: "-1s",
+  });
+  const req = { headers: { authorization: `Bearer ${token}` } };
+  const res = mockResponse();
+  let nextCalled = false;
+
+  await authMiddleware(req, res, () => {
+    nextCalled = true;
+  });
+
+  assert.equal(nextCalled, false);
+  assert.equal(res.statusCode, 401);
+  assert.equal(res.body.message, "Token expired");
+});

@@ -66,7 +66,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
   }, [scopedParams, token]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     fetchAssets();
   }, [fetchAssets]);
 

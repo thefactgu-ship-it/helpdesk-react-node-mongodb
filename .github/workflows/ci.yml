@@ -35,6 +35,10 @@ jobs:
           node --check services/attachmentStorage.js
           node --check utils/tenantScope.js
 
+      - name: Test server
+        working-directory: server
+        run: npm test
+
       - name: Install client dependencies
         working-directory: client
         run: npm ci

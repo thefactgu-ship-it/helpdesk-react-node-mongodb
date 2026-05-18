@@ -6,6 +6,7 @@
   "scripts": {
     "check:syntax": "node scripts/checkSyntax.js",
     "db:fix-problem-type-indexes": "node scripts/ensureProblemTypeIndexes.js",
+    "test": "node --test tests/*.test.js",
     "dev": "nodemon index.js",
     "start": "node index.js"
   },

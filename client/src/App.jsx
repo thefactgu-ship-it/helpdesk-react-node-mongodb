@@ -14,6 +14,13 @@ import LoginPage from "./components/LoginPage";
 import NotificationBell from "./components/NotificationBell";
 import ThemedSelect from "./components/ThemedSelect";
 import TicketDetailModal from "./components/TicketDetailModal";
+import {
+  adminRoles,
+  groupRoles,
+  pageTitles,
+  ticketManagerRoles,
+} from "./config/appConfig";
+import { useTicketFilters } from "./hooks/useTicketFilters";
 import { API_BASE_URL } from "./services/api";
 import { getHotels } from "./services/hotelService";
 import { getDepartments } from "./services/departmentService";
@@ -33,56 +40,6 @@ const UserManagementPage = lazy(() => import("./pages/UserManagementPage"));
 const API_URL = `${API_BASE_URL}/tickets`;
 const AUTH_URL = `${API_BASE_URL}/auth`;
 const attachmentsEnabled = import.meta.env.VITE_ATTACHMENTS_ENABLED === "true";
-const groupRoles = ["GroupAdmin", "Admin", "RegionalManager"];
-const adminRoles = ["GroupAdmin", "Admin", "HotelAdmin"];
-const ticketManagerRoles = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"];
-
-const pageTitles = {
-  dashboard: {
-    title: "Dashboard",
-    subtitle: "Important issues and problem patterns for helpdesk analysis",
-  },
-  tickets: {
-    title: "Helpdesk Tickets",
-    subtitle: "Search, review, update, and manage all tickets",
-  },
-  "add-ticket": {
-    title: "Add Ticket",
-    subtitle: "Create a new helpdesk request",
-  },
-  "monthly-report": {
-    title: "Monthly Report",
-    subtitle: "Review helpdesk performance by month",
-  },
-  "quarterly-report": {
-    title: "Quarterly / Yearly",
-    subtitle: "Compare ticket trends across longer periods",
-  },
-  assets: {
-    title: "Asset Management",
-    subtitle: "Prepare and track IT assets for each department",
-  },
-  hotels: {
-    title: "Hotel Management",
-    subtitle: "Create hotels and control group-level tenant setup",
-  },
-  departments: {
-    title: "Department Management",
-    subtitle: "Maintain hotel departments for tickets, users, and reports",
-  },
-  "user-management": {
-    title: "User Management",
-    subtitle: "Create accounts and manage system access",
-  },
-  "problem-types": {
-    title: "Problem Types",
-    subtitle: "Maintain common helpdesk categories",
-  },
-  profile: {
-    title: "Profile",
-    subtitle: "Update your account details and password",
-  },
-};
 
 function getErrorMessage(error, fallback) {
   const validationMessage = error?.response?.data?.errors?.[0]?.message;
@@ -113,7 +70,6 @@ function App() {
     localStorage.getItem("selectedHotelId") || "all",
   );
   const [currentPage, setCurrentPage] = useState(1);
-  const ticketsPerPage = 5;
   const [tickets, setTickets] = useState([]);
   const [summaryTickets, setSummaryTickets] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
@@ -686,7 +642,7 @@ function App() {
 
   useEffect(() => {
     if (!token) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     fetchCurrentUser();
     fetchUsers();
     fetchHotels();
@@ -714,14 +670,14 @@ function App() {
       (activePage === "hotels" && !["GroupAdmin", "Admin"].includes(currentUser?.role)) ||
       (activePage === "departments" && !ticketManagerRoles.includes(currentUser?.role))
     ) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+
       setActivePage("dashboard");
     }
   }, [activePage, currentUser?.role, isAdmin]);
 
   useEffect(() => {
     if (activePage === "request-users" && isAdmin) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+
       setActivePage("user-management");
     }
   }, [activePage, isAdmin]);
@@ -730,28 +686,15 @@ function App() {
   const pendingDeleteUser = users.find(
     (user) => user._id === deleteUserId || user.id === deleteUserId,
   );
-
-  const filteredTickets = tickets.filter((ticket) => {
-    const matchesSearch =
-      ticket.title.toLowerCase().includes(search.toLowerCase()) ||
-      ticket.description.toLowerCase().includes(search.toLowerCase()) ||
-      ticket.category.toLowerCase().includes(search.toLowerCase()) ||
-      String(ticket.departmentName || ticket.department || "").toLowerCase().includes(search.toLowerCase());
-
-    const matchesStatus =
-      filterStatus === "all" || ticket.status === filterStatus;
-
-    return matchesSearch && matchesStatus;
+  const { paginatedTickets, totalPages } = useTicketFilters({
+    currentPage,
+    filterStatus,
+    search,
+    tickets,
   });
 
-  const totalPages = Math.ceil(filteredTickets.length / ticketsPerPage);
-  const paginatedTickets = filteredTickets.slice(
-    (currentPage - 1) * ticketsPerPage,
-    currentPage * ticketsPerPage,
-  );
-
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+
     setCurrentPage(1);
   }, [search, filterStatus]);
 
