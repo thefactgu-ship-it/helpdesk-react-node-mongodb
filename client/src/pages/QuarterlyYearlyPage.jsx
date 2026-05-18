@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Download, FileText } from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -13,12 +14,29 @@ import {
 import StatCard from "../components/StatCard";
 import ThemedSelect from "../components/ThemedSelect";
 import { getCompletionStats, getSuccessDetail, isCompletedTicket } from "../utils/ticketMetrics";
+import {
+  exportReportExcel,
+  exportReportPrompt,
+  getHotelScopeLabel,
+  makeReportFilename,
+} from "../utils/reportExport";
 
-function QuarterlyYearlyPage({ tickets }) {
+function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [] }) {
   const [mode, setMode] = useState("quarterly");
   const [year, setYear] = useState(String(new Date().getFullYear()));
   const report = buildPeriodReport(tickets, Number(year), mode);
   const years = getAvailableYears(tickets);
+  const scopeLabel = getHotelScopeLabel(selectedHotelId, hotels);
+  const periodLabel = mode === "quarterly" ? `Quarterly ${year}` : `Yearly ${year}`;
+  const filenameBase = makeReportFilename(`helpdesk-${mode}`, year, scopeLabel);
+  const exportPayload = {
+    filename: filenameBase,
+    periodLabel,
+    report,
+    reportTitle: mode === "quarterly" ? "Quarterly Helpdesk Report" : "Yearly Helpdesk Report",
+    scopeLabel,
+    tickets: report.filteredTickets,
+  };
 
   return (
     <div className="space-y-5">
@@ -66,6 +84,25 @@ function QuarterlyYearlyPage({ tickets }) {
               }))}
             />
           </label>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => exportReportExcel({ ...exportPayload, filename: `${filenameBase}.xlsx` })}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-violet-200 hover:text-violet-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-violet-500"
+            >
+              <Download size={16} />
+              Excel
+            </button>
+            <button
+              type="button"
+              onClick={() => exportReportPrompt({ ...exportPayload, filename: `${filenameBase}-ai-prompt.txt` })}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-violet-200 hover:text-violet-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-violet-500"
+            >
+              <FileText size={16} />
+              AI Prompt
+            </button>
+          </div>
         </div>
       </section>
 
@@ -167,6 +204,7 @@ function buildPeriodReport(tickets, year, mode) {
     closed,
     completedCount: completionStats.completedCount,
     completionRate: completionStats.completionRate,
+    filteredTickets: yearTickets,
     label: mode === "quarterly" ? "Quarterly" : "Yearly",
     mostOverduePeriod: getTopPeriod(periods, "overdue"),
     open,

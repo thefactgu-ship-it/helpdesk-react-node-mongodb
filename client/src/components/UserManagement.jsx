@@ -9,11 +9,13 @@ const emptyForm = {
   team: "Support",
   departmentId: "",
   hotelId: "",
+  hotelAccess: [],
 };
 
-const roles = ["GroupAdmin", "RegionalManager", "HotelAdmin", "Manager", "Agent", "User"];
+const roles = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager", "Agent", "User"];
 const roleOptions = roles.map((role) => ({ value: role, label: role, prefix: role.slice(0, 2).toUpperCase() }));
 const staffRoles = new Set(["GroupAdmin", "RegionalManager", "HotelAdmin", "Admin", "Manager", "Agent"]);
+const multiHotelRoles = new Set(["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"]);
 
 function UserManagement({
   currentUser,
@@ -27,10 +29,7 @@ function UserManagement({
   hotels = [],
   selectedHotelId = "all",
 }) {
-  const [form, setForm] = useState({
-    ...emptyForm,
-    hotelId: selectedHotelId === "all" ? "" : selectedHotelId,
-  });
+  const [form, setForm] = useState(getEmptyUserForm(selectedHotelId));
   const [editingUserId, setEditingUserId] = useState(null);
   const [accountView, setAccountView] = useState("staff");
   const isEditing = Boolean(editingUserId);
@@ -46,6 +45,11 @@ function UserManagement({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const normalizedHotelAccess = normalizeHotelAccess(
+      form.hotelId,
+      form.hotelAccess,
+      form.role,
+    );
 
     const payload = {
       name: form.name.trim(),
@@ -54,6 +58,7 @@ function UserManagement({
       team: form.team,
       departmentId: form.departmentId || undefined,
       hotelId: form.hotelId || undefined,
+      hotelAccess: normalizedHotelAccess,
     };
 
     if (form.password) {
@@ -65,12 +70,13 @@ function UserManagement({
       : await onCreateUser({ ...payload, password: form.password });
 
     if (success) {
-      setForm(emptyForm);
+      setForm(getEmptyUserForm(selectedHotelId));
       setEditingUserId(null);
     }
   };
 
   const startEdit = (user) => {
+    const primaryHotelId = getEntityId(user.hotelId);
     setEditingUserId(user._id || user.id);
     setForm({
       name: user.name || "",
@@ -79,13 +85,14 @@ function UserManagement({
       role: user.role || "User",
       team: user.team || "Support",
       departmentId: user.departmentId?._id || user.departmentId || "",
-      hotelId: user.hotelId?._id || user.hotelId || "",
+      hotelId: primaryHotelId,
+      hotelAccess: normalizeHotelAccess(primaryHotelId, getHotelAccessIds(user), user.role || "User"),
     });
   };
 
   const cancelEdit = () => {
     setEditingUserId(null);
-    setForm(emptyForm);
+    setForm(getEmptyUserForm(selectedHotelId));
   };
 
   return (
@@ -150,7 +157,13 @@ function UserManagement({
             <ThemedSelect
               value={form.role}
               disabled={savingUser}
-              onChange={(value) => setForm({ ...form, role: value })}
+              onChange={(value) =>
+                setForm({
+                  ...form,
+                  role: value,
+                  hotelAccess: normalizeHotelAccess(form.hotelId, form.hotelAccess, value),
+                })
+              }
               options={roleOptions}
             />
           </Field>
@@ -179,6 +192,11 @@ function UserManagement({
                   departmentId: value,
                   team: department?.name || form.team,
                   hotelId: department?.hotelId?._id || department?.hotelId || form.hotelId,
+                  hotelAccess: normalizeHotelAccess(
+                    department?.hotelId?._id || department?.hotelId || form.hotelId,
+                    form.hotelAccess,
+                    form.role,
+                  ),
                 });
               }}
               options={[
@@ -197,7 +215,14 @@ function UserManagement({
             <ThemedSelect
               value={form.hotelId}
               disabled={savingUser}
-              onChange={(value) => setForm({ ...form, hotelId: value })}
+              onChange={(value) =>
+                setForm({
+                  ...form,
+                  hotelId: value,
+                  departmentId: "",
+                  hotelAccess: normalizeHotelAccess(value, form.hotelAccess, form.role),
+                })
+              }
               options={[
                 { value: "", label: "Default hotel", prefix: "-" },
                 ...hotels.map((hotel) => ({
@@ -209,6 +234,65 @@ function UserManagement({
               ]}
             />
           </Field>
+
+          {canUseMultiHotelAccess(form.role) && (
+            <div className="lg:col-span-4">
+              <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Hotel Access
+              </span>
+              <div className="grid max-h-48 gap-2 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900 sm:grid-cols-2">
+                {hotels.map((hotel) => {
+                  const hotelId = getEntityId(hotel);
+                  const selected = normalizeHotelAccess(
+                    form.hotelId,
+                    form.hotelAccess,
+                    form.role,
+                  ).includes(hotelId);
+                  const isPrimary = hotelId && hotelId === form.hotelId;
+
+                  return (
+                    <label
+                      key={hotelId}
+                      className={`flex min-w-0 items-center gap-3 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+                        selected
+                          ? "border-violet-200 bg-white text-violet-700 shadow-sm dark:border-violet-500/40 dark:bg-slate-950 dark:text-violet-200"
+                          : "border-transparent bg-transparent text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-950"
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        disabled={savingUser || isPrimary}
+                        onChange={(event) => {
+                          const nextAccess = event.target.checked
+                            ? [...form.hotelAccess, hotelId]
+                            : form.hotelAccess.filter((id) => String(id) !== hotelId);
+                          setForm({
+                            ...form,
+                            hotelAccess: normalizeHotelAccess(form.hotelId, nextAccess, form.role),
+                          });
+                        }}
+                        className="h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500 disabled:opacity-60"
+                      />
+                      <span className="min-w-0 flex-1 truncate">
+                        {getHotelLabel(hotel)}
+                      </span>
+                      {isPrimary && (
+                        <span className="shrink-0 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-violet-700 dark:bg-violet-500/20 dark:text-violet-200">
+                          Primary
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+                {!hotels.length && (
+                  <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-slate-700">
+                    No hotels available
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="flex items-end lg:col-span-2">
             <button
@@ -288,7 +372,8 @@ function UserManagement({
 
                 <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <MobileMeta label="Team" value={user.departmentId?.name || user.departmentName || user.team || "-"} />
-                  <MobileMeta label="Hotel" value={user.hotelId?.code || user.hotelId?.name || "-"} />
+                  <MobileMeta label="Primary Hotel" value={getHotelLabel(user.hotelId) || "-"} />
+                  <MobileMeta label="Access" value={getAccessSummary(user, hotels)} />
                   <MobileMeta
                     label="Created"
                     value={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}
@@ -331,7 +416,8 @@ function UserManagement({
                 <th className="py-3">User</th>
                 <th>Role</th>
                 <th>Team</th>
-                <th>Hotel</th>
+                <th>Primary Hotel</th>
+                <th>Access</th>
                 <th>Created</th>
                 <th className="text-right">Actions</th>
               </tr>
@@ -361,7 +447,10 @@ function UserManagement({
                       {user.departmentId?.name || user.departmentName || user.team}
                     </td>
                     <td className="text-slate-600 dark:text-slate-300">
-                      {user.hotelId?.code || user.hotelId?.name || "-"}
+                      {getHotelLabel(user.hotelId) || "-"}
+                    </td>
+                    <td className="text-slate-600 dark:text-slate-300">
+                      {getAccessSummary(user, hotels)}
                     </td>
                     <td className="text-slate-500 dark:text-slate-400">
                       {user.createdAt
@@ -393,7 +482,7 @@ function UserManagement({
 
               {!visibleUsers.length && (
                 <tr>
-                  <td colSpan="6" className="py-8 text-center text-slate-500">
+                  <td colSpan="7" className="py-8 text-center text-slate-500">
                     No users found
                   </td>
                 </tr>
@@ -404,6 +493,57 @@ function UserManagement({
       </section>
     </div>
   );
+}
+
+function canUseMultiHotelAccess(role) {
+  return multiHotelRoles.has(role);
+}
+
+function getEmptyUserForm(selectedHotelId) {
+  const primaryHotelId = selectedHotelId === "all" ? "" : selectedHotelId;
+  return {
+    ...emptyForm,
+    hotelId: primaryHotelId,
+    hotelAccess: primaryHotelId ? [primaryHotelId] : [],
+  };
+}
+
+function getEntityId(entity) {
+  return String(entity?._id || entity?.id || entity || "");
+}
+
+function getHotelLabel(hotel) {
+  if (!hotel) return "";
+  if (typeof hotel === "string") return hotel;
+  return [hotel.code, hotel.name].filter(Boolean).join(" / ") || getEntityId(hotel);
+}
+
+function getHotelAccessIds(user) {
+  return Array.isArray(user?.hotelAccess)
+    ? user.hotelAccess.map(getEntityId).filter(Boolean)
+    : [];
+}
+
+function normalizeHotelAccess(primaryHotelId, accessIds, role) {
+  const primaryId = String(primaryHotelId || "");
+  const ids = canUseMultiHotelAccess(role)
+    ? accessIds.map((id) => String(id?._id || id || "")).filter(Boolean)
+    : [];
+  return [...new Set([primaryId, ...ids].filter(Boolean))];
+}
+
+function getAccessSummary(user, hotels) {
+  const primaryId = getEntityId(user.hotelId);
+  const hotelLookup = new Map(hotels.map((hotel) => [getEntityId(hotel), hotel]));
+  const accessIds = normalizeHotelAccess(primaryId, getHotelAccessIds(user), user.role);
+  const otherHotels = accessIds
+    .filter((id) => id !== primaryId)
+    .map((id) => hotelLookup.get(id) || user.hotelAccess?.find((hotel) => getEntityId(hotel) === id))
+    .filter(Boolean);
+  const primaryHotel = user.hotelId || hotelLookup.get(primaryId);
+  const primaryLabel = getHotelLabel(primaryHotel) || "-";
+
+  return otherHotels.length ? `${primaryLabel} + ${otherHotels.length} more` : primaryLabel;
 }
 
 const inputClass =

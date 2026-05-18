@@ -90,7 +90,15 @@ function getErrorMessage(error, fallback) {
 }
 
 function getEntityId(entity) {
+  if (typeof entity === "string") return entity;
   return String(entity?._id || entity?.id || "");
+}
+
+function getUserHotelAccessIds(user) {
+  return [
+    getEntityId(user?.hotelId),
+    ...(Array.isArray(user?.hotelAccess) ? user.hotelAccess.map(getEntityId) : []),
+  ].filter(Boolean);
 }
 
 function App() {
@@ -689,7 +697,10 @@ function App() {
 
   const isAdmin = adminRoles.includes(currentUser?.role);
   const canManageTickets = ticketManagerRoles.includes(currentUser?.role);
-  const canSelectHotel = groupRoles.includes(currentUser?.role) && hotels.length > 1;
+  const accessibleHotelIds = [...new Set(getUserHotelAccessIds(currentUser))];
+  const canSelectHotel =
+    hotels.length > 1 &&
+    (groupRoles.includes(currentUser?.role) || accessibleHotelIds.length > 1);
   const canUploadSelectedTicketAttachment =
     attachmentsEnabled &&
     (canManageTickets ||
@@ -887,11 +898,19 @@ function App() {
               )}
 
               {activePage === "monthly-report" && (
-                <MonthlyReportPage tickets={summaryTickets} />
+                <MonthlyReportPage
+                  hotels={hotels}
+                  selectedHotelId={selectedHotelId}
+                  tickets={summaryTickets}
+                />
               )}
 
               {activePage === "quarterly-report" && (
-                <QuarterlyYearlyPage tickets={summaryTickets} />
+                <QuarterlyYearlyPage
+                  hotels={hotels}
+                  selectedHotelId={selectedHotelId}
+                  tickets={summaryTickets}
+                />
               )}
 
               {activePage === "assets" && (

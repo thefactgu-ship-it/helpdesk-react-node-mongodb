@@ -10,12 +10,29 @@ import {
   YAxis,
 } from "recharts";
 import { useState } from "react";
+import { Download, FileText } from "lucide-react";
 import StatCard from "../components/StatCard";
 import { getCompletionStats, getSuccessDetail, isCompletedTicket } from "../utils/ticketMetrics";
+import {
+  exportReportExcel,
+  exportReportPrompt,
+  getHotelScopeLabel,
+  makeReportFilename,
+} from "../utils/reportExport";
 
-function MonthlyReportPage({ tickets }) {
+function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] }) {
   const [selectedMonth, setSelectedMonth] = useState(getMonthInputValue(new Date()));
   const report = buildMonthlyReport(tickets, selectedMonth);
+  const scopeLabel = getHotelScopeLabel(selectedHotelId, hotels);
+  const filenameBase = makeReportFilename("helpdesk-monthly", selectedMonth, scopeLabel);
+  const exportPayload = {
+    filename: filenameBase,
+    periodLabel: report.monthLabel,
+    report,
+    reportTitle: "Monthly Helpdesk Report",
+    scopeLabel,
+    tickets: report.filteredTickets,
+  };
 
   return (
     <div className="space-y-5">
@@ -32,17 +49,38 @@ function MonthlyReportPage({ tickets }) {
           </p>
         </div>
 
-        <label className="block">
-          <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
-            Filter month
-          </span>
-          <input
-            type="month"
-            value={selectedMonth}
-            onChange={(event) => setSelectedMonth(event.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400 md:w-56"
-          />
-        </label>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
+              Filter month
+            </span>
+            <input
+              type="month"
+              value={selectedMonth}
+              onChange={(event) => setSelectedMonth(event.target.value)}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400 md:w-56"
+            />
+          </label>
+
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => exportReportExcel({ ...exportPayload, filename: `${filenameBase}.xlsx` })}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-violet-200 hover:text-violet-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-violet-500"
+            >
+              <Download size={16} />
+              Excel
+            </button>
+            <button
+              type="button"
+              onClick={() => exportReportPrompt({ ...exportPayload, filename: `${filenameBase}-ai-prompt.txt` })}
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-violet-200 hover:text-violet-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-violet-500"
+            >
+              <FileText size={16} />
+              AI Prompt
+            </button>
+          </div>
+        </div>
       </section>
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
@@ -161,6 +199,7 @@ function buildMonthlyReport(tickets, selectedMonth) {
     completedCount: completionStats.completedCount,
     completionRate: completionStats.completionRate,
     critical,
+    filteredTickets: monthTickets,
     monthLabel: selectedDate.toLocaleDateString("en-US", {
       month: "long",
       year: "numeric",
