@@ -26,7 +26,6 @@ const MonthlyReportPage = lazy(() => import("./pages/MonthlyReportPage"));
 const ProblemTypesPage = lazy(() => import("./pages/ProblemTypesPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const QuarterlyYearlyPage = lazy(() => import("./pages/QuarterlyYearlyPage"));
-const RequestUsersPage = lazy(() => import("./pages/RequestUsersPage"));
 const TicketsPage = lazy(() => import("./pages/TicketsPage"));
 const UserManagementPage = lazy(() => import("./pages/UserManagementPage"));
 
@@ -72,10 +71,6 @@ const pageTitles = {
   "user-management": {
     title: "User Management",
     subtitle: "Create accounts and manage system access",
-  },
-  "request-users": {
-    title: "Request Users",
-    subtitle: "Review requesters separately from helpdesk staff",
   },
   "problem-types": {
     title: "Problem Types",
@@ -674,6 +669,7 @@ function App() {
   useEffect(() => {
     if (
       (activePage === "user-management" && !isAdmin) ||
+      (activePage === "request-users" && !isAdmin) ||
       (activePage === "hotels" && !["GroupAdmin", "Admin"].includes(currentUser?.role)) ||
       (activePage === "departments" && !ticketManagerRoles.includes(currentUser?.role))
     ) {
@@ -681,6 +677,13 @@ function App() {
       setActivePage("dashboard");
     }
   }, [activePage, currentUser?.role, isAdmin]);
+
+  useEffect(() => {
+    if (activePage === "request-users" && isAdmin) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setActivePage("user-management");
+    }
+  }, [activePage, isAdmin]);
 
   const currentPageMeta = pageTitles[activePage] || pageTitles.dashboard;
   const pendingDeleteUser = users.find(
@@ -892,10 +895,6 @@ function App() {
                   hotels={hotels}
                   selectedHotelId={selectedHotelId}
                 />
-              )}
-
-              {activePage === "request-users" && (
-                <RequestUsersPage users={users} departments={departments} />
               )}
 
               {activePage === "problem-types" && (

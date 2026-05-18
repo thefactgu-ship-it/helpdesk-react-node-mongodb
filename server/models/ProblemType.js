@@ -10,7 +10,6 @@ const problemTypeSchema = new mongoose.Schema(
     hotelId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Hotel",
-      required: true,
       index: true,
     },
     description: {
@@ -31,7 +30,7 @@ const problemTypeSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-problemTypeSchema.index({ hotelId: 1, name: 1 }, { unique: true });
-problemTypeSchema.index({ hotelId: 1, active: 1 });
+problemTypeSchema.index({ name: 1 }, { unique: true });
+problemTypeSchema.index({ active: 1 });
 
 module.exports = mongoose.model("ProblemType", problemTypeSchema);

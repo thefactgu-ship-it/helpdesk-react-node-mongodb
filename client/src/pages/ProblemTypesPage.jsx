@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import ConfirmModal from "../components/ConfirmModal";
 import {
@@ -16,7 +16,7 @@ const defaultProblemTypes = [
   "Printer",
 ];
 
-function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
+function ProblemTypesPage({ currentUser, token }) {
   const [problemTypes, setProblemTypes] = useState([]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -25,19 +25,13 @@ function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
   const [deletingId, setDeletingId] = useState(null);
   const [deleteTypeId, setDeleteTypeId] = useState(null);
   const isAdmin = ["GroupAdmin", "Admin", "HotelAdmin"].includes(currentUser?.role);
-  const isGroupScope = ["GroupAdmin", "Admin", "RegionalManager"].includes(currentUser?.role);
-  const requiresHotelSelection = isGroupScope && (!hotelId || hotelId === "all");
-  const scopedParams = useMemo(
-    () => (hotelId && hotelId !== "all" ? { hotelId } : undefined),
-    [hotelId],
-  );
 
   const fetchProblemTypes = useCallback(async () => {
     if (!token) return;
 
     try {
       setLoading(true);
-      const data = await getProblemTypes(token, scopedParams);
+      const data = await getProblemTypes(token);
       setProblemTypes(data);
     } catch (error) {
       console.error("Failed to load problem types", error);
@@ -45,7 +39,7 @@ function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
     } finally {
       setLoading(false);
     }
-  }, [scopedParams, token]);
+  }, [token]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -55,10 +49,6 @@ function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
   const addProblemType = async (event) => {
     event.preventDefault();
     if (!isAdmin) return;
-    if (requiresHotelSelection) {
-      toast.error("Select a hotel before adding a problem type");
-      return;
-    }
 
     const nextName = name.trim();
     if (!nextName) {
@@ -71,7 +61,7 @@ function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
       await createProblemType(token, {
         name: nextName,
         description: description.trim(),
-      }, scopedParams);
+      });
       toast.success("Problem type added");
       setName("");
       setDescription("");
@@ -94,7 +84,7 @@ function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
 
     try {
       setDeletingId(deleteTypeId);
-      await deleteProblemType(token, deleteTypeId, scopedParams);
+      await deleteProblemType(token, deleteTypeId);
       toast.success("Problem type deleted");
       setDeleteTypeId(null);
       await fetchProblemTypes();
@@ -132,13 +122,8 @@ function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
         Problem Types
       </h3>
       <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
-        Maintain common helpdesk categories such as Hardware, Software, Network, Account, POS, and Printer.
+        Maintain master helpdesk categories shared by every hotel, such as Hardware, Software, Network, Account, POS, and Printer.
       </p>
-      {requiresHotelSelection && (
-        <p className="mt-3 text-sm font-semibold text-amber-600 dark:text-amber-300">
-          Select one hotel from the hotel filter before adding a problem type.
-        </p>
-      )}
       {!isAdmin && (
         <p className="mt-3 text-sm font-semibold text-slate-500 dark:text-slate-400">
           Read-only access. Only Admin can add problem types.
@@ -149,7 +134,7 @@ function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
         <input
           type="text"
           value={name}
-          disabled={saving || !isAdmin || requiresHotelSelection}
+          disabled={saving || !isAdmin}
           onChange={(event) => setName(event.target.value)}
           placeholder="Add problem type"
           className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400 lg:col-span-2"
@@ -157,14 +142,14 @@ function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
         <input
           type="text"
           value={description}
-          disabled={saving || !isAdmin || requiresHotelSelection}
+          disabled={saving || !isAdmin}
           onChange={(event) => setDescription(event.target.value)}
           placeholder="Description"
           className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400 lg:col-span-2"
         />
         <button
           type="submit"
-          disabled={saving || !isAdmin || requiresHotelSelection}
+          disabled={saving || !isAdmin}
           className="rounded-2xl bg-violet-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:shadow-violet-950/40 dark:hover:bg-violet-400"
         >
           {saving ? "Adding..." : "Add"}
@@ -175,7 +160,6 @@ function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
         {visibleTypes.map((type) => {
           const typeId = type._id || type.id;
           const canDelete = isAdmin && typeId;
-          const hotelLabel = getHotelLabel(type.hotelId);
 
           return (
             <div
@@ -190,11 +174,9 @@ function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
                   <p className="mt-1 break-words text-xs text-slate-500 dark:text-slate-400">
                     {type.description || "No description"}
                   </p>
-                  {hotelLabel && (
-                    <p className="mt-2 text-xs font-bold uppercase tracking-wide text-violet-500 dark:text-violet-300">
-                      {hotelLabel}
-                    </p>
-                  )}
+                  <p className="mt-2 text-xs font-bold uppercase tracking-wide text-violet-500 dark:text-violet-300">
+                    Master Problem Type
+                  </p>
                 </div>
 
                 {canDelete && (
@@ -224,14 +206,6 @@ function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
 
 function getErrorMessage(error, fallback) {
   return error?.response?.data?.message || error?.message || fallback;
-}
-
-function getHotelLabel(hotel) {
-  if (!hotel) return "";
-  if (typeof hotel === "string") return "";
-  return hotel.code && hotel.name
-    ? `${hotel.code} / ${hotel.name}`
-    : hotel.code || hotel.name || "";
 }
 
 export default ProblemTypesPage;

@@ -59,7 +59,7 @@ function canWorkOnTicket(user, ticket) {
   return user?.role === "Agent" && isAssignedToUser(user, ticket);
 }
 
-async function ensureProblemTypeName(name, hotelId) {
+async function ensureProblemTypeName(name) {
   const normalizedName = String(name || "").trim();
 
   if (!normalizedName) {
@@ -67,7 +67,6 @@ async function ensureProblemTypeName(name, hotelId) {
   }
 
   const problemType = await ProblemType.findOne({
-    hotelId,
     name: normalizedName,
     active: { $ne: false },
   }).select("_id name");
@@ -316,7 +315,7 @@ async function createTicket(req, res) {
       return res.status(400).json({ message: "Hotel is required" });
     }
 
-    const problemType = await ensureProblemTypeName(category, hotelId);
+    const problemType = await ensureProblemTypeName(category);
     if (!problemType.ok) {
       return res.status(problemType.status).json({ message: problemType.message });
     }
@@ -447,7 +446,7 @@ async function updateTicket(req, res) {
     }
     if (category) {
       const existingHotelId = getTicketHotelId(existingTicket);
-      const problemType = await ensureProblemTypeName(category, existingHotelId);
+      const problemType = await ensureProblemTypeName(category);
       if (!problemType.ok) {
         return res.status(problemType.status).json({ message: problemType.message });
       }

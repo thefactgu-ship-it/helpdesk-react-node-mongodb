@@ -3,9 +3,9 @@ const ProblemType = require("../models/ProblemType");
 
 require("dotenv").config();
 
-const LEGACY_NAME_INDEX_KEY = { name: 1 };
 const COMPOUND_INDEX_KEY = { hotelId: 1, name: 1 };
-const COMPOUND_INDEX_NAME = "hotelId_1_name_1";
+const MASTER_NAME_INDEX_KEY = { name: 1 };
+const MASTER_NAME_INDEX_NAME = "name_1";
 
 function keysEqual(left, right) {
   return JSON.stringify(left) === JSON.stringify(right);
@@ -15,10 +15,7 @@ async function findDuplicateProblemTypes() {
   return ProblemType.aggregate([
     {
       $group: {
-        _id: {
-          hotelId: "$hotelId",
-          name: "$name",
-        },
+        _id: "$name",
         count: { $sum: 1 },
         ids: { $push: "$_id" },
       },
@@ -30,23 +27,21 @@ async function findDuplicateProblemTypes() {
     },
     {
       $sort: {
-        "_id.hotelId": 1,
-        "_id.name": 1,
+        _id: 1,
       },
     },
   ]);
 }
 
 function printDuplicateReport(duplicates) {
-  console.error("Duplicate problem types found within the same hotel.");
-  console.error("Resolve these records before changing indexes:");
+  console.error("Duplicate problem type names found across the master list.");
+  console.error("Resolve these records before changing the index:");
 
   duplicates.forEach((duplicate) => {
-    const hotelId = duplicate._id.hotelId || "missing hotelId";
-    const name = duplicate._id.name || "missing name";
+    const name = duplicate._id || "missing name";
     const ids = duplicate.ids.map((id) => String(id)).join(", ");
 
-    console.error(`- hotelId=${hotelId} name="${name}" count=${duplicate.count} ids=${ids}`);
+    console.error(`- name="${name}" count=${duplicate.count} ids=${ids}`);
   });
 }
 
@@ -65,24 +60,24 @@ async function ensureProblemTypeIndexes() {
     return;
   }
 
-  await ProblemType.collection.createIndex(COMPOUND_INDEX_KEY, {
+  await ProblemType.collection.createIndex(MASTER_NAME_INDEX_KEY, {
     unique: true,
-    name: COMPOUND_INDEX_NAME,
+    name: MASTER_NAME_INDEX_NAME,
   });
-  console.log(`Ensured unique compound index: ${COMPOUND_INDEX_NAME}`);
+  console.log(`Ensured unique master index: ${MASTER_NAME_INDEX_NAME}`);
 
   const indexes = await ProblemType.collection.indexes();
-  const legacyNameIndexes = indexes.filter(
-    (index) => index.unique && keysEqual(index.key, LEGACY_NAME_INDEX_KEY)
+  const compoundIndexes = indexes.filter(
+    (index) => index.unique && keysEqual(index.key, COMPOUND_INDEX_KEY)
   );
 
-  for (const index of legacyNameIndexes) {
+  for (const index of compoundIndexes) {
     await ProblemType.collection.dropIndex(index.name);
-    console.log(`Dropped legacy unique index: ${index.name}`);
+    console.log(`Dropped legacy compound index: ${index.name}`);
   }
 
-  if (!legacyNameIndexes.length) {
-    console.log("No legacy unique name index found");
+  if (!compoundIndexes.length) {
+    console.log("No legacy unique compound index found");
   }
 
   const finalIndexes = await ProblemType.collection.indexes();

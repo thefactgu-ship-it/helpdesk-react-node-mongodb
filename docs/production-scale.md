@@ -2,7 +2,7 @@
 
 ## Architecture
 
-The app now uses a shared MongoDB database with tenant-scoped records. `Hotel` is the tenant boundary, and operational records such as users, tickets, assets, and problem types carry `hotelId`.
+The app now uses a shared MongoDB database with tenant-scoped records. `Hotel` is the tenant boundary for operational records such as users, tickets, and assets. Problem Types are a shared master list used by every hotel.
 
 Group-level roles can query across hotels. Hotel-level roles are restricted to their own hotel scope by backend query filters.
 
@@ -10,7 +10,7 @@ Group-level roles can query across hotels. Hotel-level roles are restricted to t
 
 - `GroupAdmin`: manages all hotels and sees group dashboards.
 - `RegionalManager`: sees hotels in assigned regions.
-- `HotelAdmin`: manages users, assets, problem types, and tickets for one hotel.
+- `HotelAdmin`: manages users, assets, tickets for one hotel, and shared problem types.
 - `Manager`: manages tickets for one hotel.
 - `Agent`: works assigned tickets.
 - `User`: creates and views allowed tickets.
@@ -40,14 +40,14 @@ The backend defines tenant-friendly indexes for:
 
 - `tickets`: `hotelId + createdAt`, `hotelId + status`, `hotelId + assignedTo`, `hotelId + createdBy`
 - `assets`: `hotelId + serialNumber`
-- `problemtypes`: `hotelId + name`
+- `problemtypes`: `name`
 - `users`: `email + hotelId`
 
 For existing production databases, review old global unique indexes before deploying. Legacy global indexes such as `email_1`, `serialNumber_1`, or `name_1` may need to be dropped after confirming the compound indexes exist.
 
 ## Problem Type Index Repair
 
-Existing Atlas databases may still have a legacy unique `name_1` index on `problemtypes`. That old global index blocks creating the same problem type name for different hotels.
+Problem Types are now a shared master list. Existing Atlas databases may still have the old unique `hotelId_1_name_1` index from hotel-scoped Problem Types, or duplicate names created per hotel.
 
 After deploying the current backend, run this once against the target environment:
 
@@ -60,9 +60,9 @@ On Render, run the same npm script from a one-off shell or job with the producti
 
 The script:
 
-- Stops and reports records if duplicate problem types already exist within the same hotel.
-- Ensures the unique compound index `{ hotelId: 1, name: 1 }`.
-- Drops only the legacy unique `{ name: 1 }` index.
+- Stops and reports records if duplicate problem type names already exist across the master list.
+- Ensures the unique master index `{ name: 1 }`.
+- Drops the legacy unique `{ hotelId: 1, name: 1 }` index.
 - Prints final `problemtypes` indexes for verification.
 
-Confirm Atlas shows no unique `name_1` index on `problemtypes`, and does show `hotelId_1_name_1` as unique.
+Confirm Atlas shows `name_1` as unique on `problemtypes`, and does not keep `hotelId_1_name_1` as a unique index.

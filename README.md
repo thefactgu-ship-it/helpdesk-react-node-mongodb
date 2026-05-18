@@ -6,7 +6,7 @@ The app supports helpdesk ticket workflows, dashboard analytics, reports, asset 
 
 ## Features
 
-- Multi-hotel tenant scoping with hotel-aware users, tickets, assets, problem types, and dashboard filtering
+- Multi-hotel tenant scoping with hotel-aware users, tickets, assets, and dashboard filtering
 - Dashboard KPIs, charts, status summary, severity, category, and open-day analysis from scoped ticket data
 - Permission-limited Helpdesk Tickets table with search, filter, pagination, detail modal, assignment, status updates, comments, activity log, and protected image attachments
 - Add Ticket form with role-aware assignment and issue categories loaded from backend Problem Types
@@ -16,7 +16,7 @@ The app supports helpdesk ticket workflows, dashboard analytics, reports, asset 
 - Admin-only account creation from User Management; login no longer exposes public registration or social-login mockups
 - Self-service Profile page for all users with profile update and current-password-protected password change
 - Sidebar user-card menu for Update Profile, Change Password, and Logout
-- Problem Types page with admin-only create/delete and Add Ticket integration
+- Master Problem Types page with admin-only create/delete and Add Ticket integration for every hotel
 - JWT authentication, role-based access, CORS restrictions, Helmet headers, NoSQL key sanitization, rate limiting, and protected uploads
 - Lazy-loaded pages for smaller production chunks
 
@@ -336,7 +336,7 @@ cd server
 MONGO_URI="your-atlas-uri" npm run db:fix-problem-type-indexes
 ```
 
-The script checks for duplicate problem types within the same hotel, ensures the unique `{ hotelId: 1, name: 1 }` index, and drops only the legacy unique `{ name: 1 }` index if it exists. In Atlas, confirm `problemtypes` no longer has a unique `name_1` index and does have unique `hotelId_1_name_1`.
+The script checks for duplicate problem type names across the master list, ensures the unique `{ name: 1 }` index, and drops the legacy unique `{ hotelId: 1, name: 1 }` index if it exists. In Atlas, confirm `problemtypes` has unique `name_1` and does not keep `hotelId_1_name_1` as a unique index.
 
 ## Validation Status
 

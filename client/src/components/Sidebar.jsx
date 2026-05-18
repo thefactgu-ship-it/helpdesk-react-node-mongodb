@@ -15,7 +15,6 @@ import {
   ShieldCheck,
   User,
   UserCog,
-  Users,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -50,7 +49,6 @@ const menuGroups = [
         groupOnly: true,
       },
       { id: "user-management", text: "User Management", icon: UserCog, enabled: true },
-      { id: "request-users", text: "Request Users", icon: Users, enabled: true },
       { id: "problem-types", text: "Problem Types", icon: Hash, enabled: true },
     ],
   },
