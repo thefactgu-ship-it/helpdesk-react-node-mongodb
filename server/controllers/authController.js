@@ -186,7 +186,7 @@ async function updateCurrentUser(req, res) {
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,
       updateFields,
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     )
       .select(PUBLIC_USER_FIELDS)
       .populate({ path: "departmentId", select: "name code active hotelId" });
@@ -373,7 +373,7 @@ async function updateUser(req, res) {
     const updatedUser = await User.findOneAndUpdate(
       { _id: req.params.id, ...hotelScope },
       updateFields,
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     )
       .select(PUBLIC_USER_FIELDS)
       .populate({ path: "departmentId", select: "name code active hotelId" });

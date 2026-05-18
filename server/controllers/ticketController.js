@@ -588,7 +588,7 @@ async function updateTicket(req, res) {
           ),
         },
       },
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     ).populate(TICKET_POPULATE_CONFIG);
 
     if (!ticket) {
@@ -648,7 +648,7 @@ async function updateTicketStatus(req, res) {
 
     // Update ticket
     const ticket = await Ticket.findOneAndUpdate({ _id: req.params.id, hotelId: getTicketHotelId(existingTicket) }, updateData, {
-      new: true,
+      returnDocument: "after",
       runValidators: true,
     }).populate(TICKET_POPULATE_CONFIG);
 
@@ -702,7 +702,7 @@ async function submitSatisfaction(req, res) {
           activityLog: buildLogEntry("satisfaction", `Satisfaction score submitted: ${score}/5`, req.user.id),
         },
       },
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     ).populate(TICKET_POPULATE_CONFIG);
 
     if (!ticket) {
@@ -754,7 +754,7 @@ async function assignTicket(req, res) {
           activityLog: buildLogEntry("assigned", "Ticket assigned", req.user.id),
         },
       },
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     ).populate(TICKET_POPULATE_CONFIG);
 
     if (!ticket) {
@@ -804,7 +804,7 @@ async function addComment(req, res) {
         },
         updatedBy: req.user.id,
       },
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     ).populate(TICKET_POPULATE_CONFIG);
 
     if (!ticket) {
@@ -871,7 +871,7 @@ async function uploadAttachment(req, res) {
         },
         updatedBy: req.user.id,
       },
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     ).populate(TICKET_POPULATE_CONFIG);
 
     if (!ticket) {

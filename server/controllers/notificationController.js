@@ -27,7 +27,7 @@ async function markNotificationRead(req, res) {
   const notification = await Notification.findOneAndUpdate(
     { _id: req.params.id, userId: getUserId(req) },
     { readAt: new Date() },
-    { new: true }
+    { returnDocument: "after" }
   );
 
   if (!notification) {

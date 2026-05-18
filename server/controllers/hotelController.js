@@ -39,7 +39,7 @@ async function updateHotel(req, res) {
     const hotel = await Hotel.findByIdAndUpdate(
       req.params.id,
       buildHotelPayload(req.body, { partial: true }),
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     );
 
     if (!hotel) return res.status(404).json({ message: "Hotel not found" });
@@ -60,7 +60,7 @@ async function deleteHotel(req, res) {
     const hotel = await Hotel.findByIdAndUpdate(
       req.params.id,
       { active: false },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (!hotel) return res.status(404).json({ message: "Hotel not found" });

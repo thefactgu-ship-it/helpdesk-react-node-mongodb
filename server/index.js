@@ -114,7 +114,7 @@ async function ensureDefaultHotel() {
         active: true,
       },
     },
-    { new: true, upsert: true }
+    { returnDocument: "after", upsert: true }
   );
 }
 
@@ -152,7 +152,7 @@ async function ensureDefaultDepartments() {
               active: true,
             },
           },
-          { upsert: true, new: true }
+          { upsert: true, returnDocument: "after" }
         )
       )
     )

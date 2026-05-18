@@ -61,7 +61,7 @@ async function updateAsset(req, res) {
         ...payload,
         updatedBy: req.user.id,
       },
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     ).populate(ASSET_POPULATE_CONFIG);
 
     if (!asset) {

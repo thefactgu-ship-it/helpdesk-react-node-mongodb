@@ -70,7 +70,7 @@ async function updateDepartment(req, res) {
     const department = await Department.findOneAndUpdate(
       { _id: req.params.id, hotelId: existing.hotelId },
       buildDepartmentPayload(req.body, existing.hotelId, { partial: true }),
-      { new: true, runValidators: true }
+      { returnDocument: "after", runValidators: true }
     );
 
     auditLog("department.updated", req, { departmentId: department._id, hotelId: department.hotelId });
@@ -94,7 +94,7 @@ async function deleteDepartment(req, res) {
     const department = await Department.findOneAndUpdate(
       { _id: req.params.id, ...hotelScope },
       { active: false },
-      { new: true }
+      { returnDocument: "after" }
     );
 
     if (!department) {
