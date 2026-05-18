@@ -98,6 +98,7 @@ function App() {
     department: "IT",
     departmentId: "",
     priority: "medium",
+    criticalRequested: false,
     assignedTo: "",
     dueDate: "",
   });
@@ -244,7 +245,9 @@ function App() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const requesterName = form.requester.trim() || currentUser?.name || "";
-    const requesterUserId = form.requesterUserId || currentUser?._id || currentUser?.id || "";
+    const requesterUserId =
+      form.requesterUserId ||
+      (currentUser?.role === "User" ? currentUser?._id || currentUser?.id || "" : "");
     const userDepartmentId = currentUser?.departmentId?._id || currentUser?.departmentId || "";
     const selectedDepartment = departments.find(
       (department) =>
@@ -260,7 +263,12 @@ function App() {
       currentUser?.departmentName ||
       currentUser?.team ||
       "IT";
-    const priority = form.priority || "medium";
+    const criticalRequested = !canManageTickets && Boolean(form.criticalRequested);
+    const priority = canManageTickets
+      ? form.priority || "medium"
+      : criticalRequested
+        ? "high"
+        : "medium";
 
     if (!form.title.trim()) {
       toast.error("Ticket title is required");
@@ -297,8 +305,9 @@ function App() {
           departmentId: departmentId || undefined,
           department: departmentName,
           priority,
+          criticalRequested,
           assignedTo: canManageTickets ? form.assignedTo || undefined : undefined,
-          dueDate: form.dueDate || undefined,
+          dueDate: canManageTickets ? form.dueDate || undefined : undefined,
           hotelId: selectedHotelId !== "all" ? selectedHotelId : undefined,
         },
         {
@@ -316,6 +325,7 @@ function App() {
         department: "IT",
         departmentId: "",
         priority: "medium",
+        criticalRequested: false,
         assignedTo: "",
         dueDate: "",
       });

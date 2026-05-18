@@ -372,6 +372,7 @@ async function createTicket(req, res) {
       department = "IT",
       departmentId,
       priority = "medium",
+      criticalRequested = false,
       dueDate,
       assignedTo,
     } = req.body;
@@ -406,9 +407,17 @@ async function createTicket(req, res) {
     }
     const selectedDepartment = departmentResult?.ok ? departmentResult.department : null;
 
+    const managerCanTriage = canManageTickets(req.user);
+    const criticalReviewRequested = !managerCanTriage && Boolean(criticalRequested);
+    const effectivePriority = criticalReviewRequested
+      ? "high"
+      : managerCanTriage
+        ? priority
+        : "medium";
+
     let assignedUser = null;
     if (assignedTo) {
-      if (!canManageTickets(req.user)) {
+      if (!managerCanTriage) {
         return res.status(403).json({ message: "Only Admin or Manager can assign tickets" });
       }
 
@@ -421,8 +430,8 @@ async function createTicket(req, res) {
     }
 
     // Calculate SLA and due date
-    const slaHours = getSlaHoursByPriority(priority);
-    const dueDateValue = dueDate
+    const slaHours = getSlaHoursByPriority(effectivePriority);
+    const dueDateValue = managerCanTriage && dueDate
       ? new Date(dueDate)
       : new Date(Date.now() + slaHours * 3600000);
     const status = assignedUser ? "in_progress" : "open";
@@ -439,7 +448,8 @@ async function createTicket(req, res) {
       department: selectedDepartment?.name || department,
       departmentId: selectedDepartment?._id || null,
       departmentName: selectedDepartment?.name || department,
-      priority,
+      priority: effectivePriority,
+      criticalRequested: criticalReviewRequested,
       status,
       assignedTo: assignedUser,
       slaHours,
@@ -447,7 +457,13 @@ async function createTicket(req, res) {
       createdBy: req.user.id,
       updatedBy: req.user.id,
       activityLog: [
-        buildLogEntry("created", "Ticket created", req.user.id),
+        buildLogEntry(
+          "created",
+          criticalReviewRequested
+            ? "Ticket created; critical review requested"
+            : "Ticket created",
+          req.user.id,
+        ),
       ],
     });
 
@@ -492,10 +508,12 @@ async function updateTicket(req, res) {
       department,
       departmentId,
       priority,
+      criticalRequested,
       status,
       assignedTo,
       dueDate,
     } = req.body;
+    const managerCanTriage = canManageTickets(req.user);
 
     // Build update fields and log details
     if (title) {
@@ -544,16 +562,38 @@ async function updateTicket(req, res) {
       logDetails.push("Department updated");
     }
     if (priority) {
+      if (!managerCanTriage) {
+        return res.status(403).json({ message: "Only Admin or Manager can update priority" });
+      }
+
       updateFields.priority = priority;
       updateFields.slaHours = getSlaHoursByPriority(priority);
+      if (priority === "critical") {
+        updateFields.criticalRequested = false;
+      }
       logDetails.push("Priority updated");
     }
     if (dueDate) {
+      if (!managerCanTriage) {
+        return res.status(403).json({ message: "Only Admin or Manager can update due date" });
+      }
+
       updateFields.dueDate = new Date(dueDate);
       logDetails.push("Due date updated");
     }
+    if (criticalRequested !== undefined) {
+      if (!managerCanTriage) {
+        return res.status(403).json({ message: "Only Admin or Manager can update critical review" });
+      }
+
+      const nextCriticalRequested = updateFields.priority === "critical"
+        ? false
+        : Boolean(criticalRequested);
+      updateFields.criticalRequested = nextCriticalRequested;
+      logDetails.push(nextCriticalRequested ? "Critical review requested" : "Critical review cleared");
+    }
     if (assignedTo) {
-      if (!canManageTickets(req.user)) {
+      if (!managerCanTriage) {
         return res.status(403).json({ message: "Only Admin or Manager can assign tickets" });
       }
 

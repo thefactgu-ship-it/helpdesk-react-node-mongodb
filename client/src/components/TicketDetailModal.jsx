@@ -202,6 +202,11 @@ function TicketDetailModalContent({
             <p className="mt-1 text-base font-semibold text-slate-900 dark:text-white">
               {ticket.title}
             </p>
+            {ticket.criticalRequested && (
+              <span className="mt-3 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-amber-200 dark:bg-amber-500/20 dark:text-amber-100 dark:ring-amber-400/20">
+                Critical review requested
+              </span>
+            )}
 
             <div className="mt-3">
               <SectionLabel>Description</SectionLabel>

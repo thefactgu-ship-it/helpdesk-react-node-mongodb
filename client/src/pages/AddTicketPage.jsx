@@ -12,6 +12,8 @@ function AddTicketPage({
   hotelId = "all",
   currentUser,
   departments = [],
+  canAssignTickets = false,
+  users = [],
 }) {
   const [problemTypes, setProblemTypes] = useState([]);
   const [loadingProblemTypes, setLoadingProblemTypes] = useState(Boolean(token));
@@ -28,6 +30,9 @@ function AddTicketPage({
       department.name === currentUser?.departmentName ||
       department.name === currentUser?.team,
   );
+  const selectedPriority = form.criticalRequested && !canAssignTickets
+    ? "High / IT review"
+    : toPriorityLabel(form.priority || "medium");
   const submissionSummary = {
     requester: form.requester || currentUser?.name || "Current user",
     department:
@@ -36,7 +41,7 @@ function AddTicketPage({
       currentUser?.departmentName ||
       currentUser?.team ||
       "IT",
-    priority: "Medium",
+    priority: selectedPriority,
   };
 
   useEffect(() => {
@@ -110,7 +115,15 @@ function AddTicketPage({
 
       setForm((currentForm) => {
         const nextRequester = currentForm.requester || currentUser?.name || "";
-        const nextRequesterUserId = currentForm.requesterUserId || currentUser?.id || currentUser?._id || "";
+        const currentUserId = currentUser?.id || currentUser?._id || "";
+        const defaultRequesterUserId = currentUser?.role === "User" ? currentUserId : "";
+        const requesterIdIsCurrentManager =
+          canAssignTickets &&
+          currentUser?.role !== "User" &&
+          currentForm.requesterUserId === currentUserId;
+        const nextRequesterUserId = requesterIdIsCurrentManager
+          ? ""
+          : currentForm.requesterUserId || defaultRequesterUserId;
         const nextDepartmentId =
           currentForm.departmentId ||
           currentUser?.departmentId?._id ||
@@ -131,14 +144,22 @@ function AddTicketPage({
           currentUser?.team ||
           "IT";
 
+        const nextPriority = canAssignTickets
+          ? currentForm.priority || "medium"
+          : currentForm.criticalRequested
+            ? "high"
+            : "medium";
+        const nextAssignedTo = canAssignTickets ? currentForm.assignedTo || "" : "";
+        const nextDueDate = canAssignTickets ? currentForm.dueDate || "" : "";
+
         if (
           currentForm.requester === nextRequester &&
           currentForm.requesterUserId === nextRequesterUserId &&
           currentForm.departmentId === resolvedDepartmentId &&
           currentForm.department === nextDepartment &&
-          currentForm.priority === "medium" &&
-          currentForm.assignedTo === "" &&
-          currentForm.dueDate === ""
+          currentForm.priority === nextPriority &&
+          currentForm.assignedTo === nextAssignedTo &&
+          currentForm.dueDate === nextDueDate
         ) {
           return currentForm;
         }
@@ -149,9 +170,9 @@ function AddTicketPage({
           requesterUserId: nextRequesterUserId,
           departmentId: resolvedDepartmentId,
           department: nextDepartment,
-          priority: "medium",
-          assignedTo: "",
-          dueDate: "",
+          priority: nextPriority,
+          assignedTo: nextAssignedTo,
+          dueDate: nextDueDate,
         };
       });
     };
@@ -161,7 +182,7 @@ function AddTicketPage({
     return () => {
       ignore = true;
     };
-  }, [activeDepartments, currentUser, setForm]);
+  }, [activeDepartments, canAssignTickets, currentUser, setForm]);
 
   return (
     <AddTicketForm
@@ -172,8 +193,16 @@ function AddTicketPage({
       problemTypes={problemTypes}
       loadingProblemTypes={loadingProblemTypes}
       submissionSummary={submissionSummary}
+      canAssignTickets={canAssignTickets}
+      users={users}
     />
   );
+}
+
+function toPriorityLabel(priority) {
+  return String(priority || "medium")
+    .replace("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 export default AddTicketPage;

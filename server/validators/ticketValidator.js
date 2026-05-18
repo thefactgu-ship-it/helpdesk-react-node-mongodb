@@ -44,6 +44,11 @@ const createTicketValidationRules = () => [
     .optional()
     .isIn(["low", "medium", "high", "critical"])
     .withMessage("Invalid priority level"),
+  body("criticalRequested")
+    .optional()
+    .isBoolean()
+    .withMessage("criticalRequested must be a boolean")
+    .toBoolean(),
   body("dueDate")
     .optional()
     .isISO8601()
@@ -103,6 +108,11 @@ const updateTicketValidationRules = () => [
     .optional()
     .isIn(["low", "medium", "high", "critical"])
     .withMessage("Invalid priority level"),
+  body("criticalRequested")
+    .optional()
+    .isBoolean()
+    .withMessage("criticalRequested must be a boolean")
+    .toBoolean(),
   body("status")
     .optional()
     .isIn(["open", "in_progress", "resolved", "closed"])

@@ -147,7 +147,12 @@ function TicketTable({
                       </div>
                     </td>
                     <td>
-                      <Badge text={ticket.priority} />
+                      <div className="flex flex-wrap gap-2">
+                        <Badge text={ticket.priority} />
+                        {ticket.criticalRequested && (
+                          <Badge text="Critical review requested" />
+                        )}
+                      </div>
                     </td>
                     <td>
                       {canUpdateTicketStatus(ticket) ? (
@@ -264,7 +269,12 @@ function TicketMobileCard({
             {ticket.requester ? ` / ${ticket.requester}` : ""}
           </p>
         </div>
-        <Badge text={ticket.priority} />
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          <Badge text={ticket.priority} />
+          {ticket.criticalRequested && (
+            <Badge text="Critical review requested" />
+          )}
+        </div>
       </div>
 
       <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">

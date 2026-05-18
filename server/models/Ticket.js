@@ -66,6 +66,11 @@ const ticketSchema = new mongoose.Schema(
       default: "medium",
     },
 
+    criticalRequested: {
+      type: Boolean,
+      default: false,
+    },
+
     status: {
       type: String,
       enum: ["open", "in_progress", "resolved", "closed"],

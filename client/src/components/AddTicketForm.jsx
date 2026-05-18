@@ -8,6 +8,8 @@ function AddTicketForm({
   problemTypes = [],
   loadingProblemTypes = false,
   submissionSummary,
+  canAssignTickets = false,
+  users = [],
 }) {
   const fieldClass =
     "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-900";
@@ -15,6 +17,11 @@ function AddTicketForm({
 
   const categoryOptions = problemTypes.filter((type) => type.active !== false);
   const hasProblemTypes = categoryOptions.length > 0;
+  const assignableUsers = users.filter((user) =>
+    ["admin", "manager", "agent", "staff"].includes(
+      String(user.role || "").toLowerCase(),
+    ),
+  );
 
   return (
     <section className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40 md:p-10">
@@ -89,6 +96,82 @@ function AddTicketForm({
             />
           </Field>
 
+          {!canAssignTickets && (
+            <label className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-100">
+              <input
+                type="checkbox"
+                checked={Boolean(form.criticalRequested)}
+                disabled={submitting}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    criticalRequested: e.target.checked,
+                    priority: e.target.checked ? "high" : "medium",
+                  })
+                }
+                className="mt-1 h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
+              />
+              <span>
+                <span className="block font-bold">This is urgent / affects operations</span>
+                <span className="mt-1 block text-xs leading-5 text-amber-800 dark:text-amber-100/80">
+                  We will send this as High priority and ask IT/Admin to review it for Critical.
+                </span>
+              </span>
+            </label>
+          )}
+
+          {canAssignTickets && (
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                Triage controls
+              </p>
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <Field label="Urgency Level" labelClass={labelClass}>
+                  <ThemedSelect
+                    value={form.priority || "medium"}
+                    disabled={submitting}
+                    onChange={(value) =>
+                      setForm({
+                        ...form,
+                        priority: value,
+                        criticalRequested: value === "critical" ? false : form.criticalRequested,
+                      })
+                    }
+                    options={priorityOptions}
+                  />
+                </Field>
+
+                <Field label="Assigned To" labelClass={labelClass}>
+                  <ThemedSelect
+                    value={form.assignedTo || ""}
+                    disabled={submitting || !assignableUsers.length}
+                    emptyLabel="Unassigned"
+                    onChange={(value) => setForm({ ...form, assignedTo: value })}
+                    options={[
+                      { value: "", label: "Unassigned", prefix: "-" },
+                      ...assignableUsers.map((user) => ({
+                        value: user._id || user.id,
+                        label: user.name,
+                        meta: user.role,
+                        prefix: getInitials(user.name),
+                      })),
+                    ]}
+                  />
+                </Field>
+
+                <Field label="Due Date" labelClass={labelClass}>
+                  <input
+                    type="datetime-local"
+                    value={form.dueDate || ""}
+                    disabled={submitting}
+                    onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
+                    className={fieldClass}
+                  />
+                </Field>
+              </div>
+            </div>
+          )}
+
           <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-500/20 dark:bg-blue-500/10">
             <p className="text-xs font-bold uppercase tracking-wide text-blue-700 dark:text-blue-200">
               Ticket details filled automatically
@@ -98,6 +181,11 @@ function AddTicketForm({
               <SummaryItem label="Department" value={submissionSummary?.department} />
               <SummaryItem label="Priority" value={submissionSummary?.priority} />
             </dl>
+            {form.criticalRequested && (
+              <p className="mt-3 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-amber-700 shadow-sm dark:bg-slate-900 dark:text-amber-200">
+                Critical review requested. IT/Admin will confirm whether this becomes Critical.
+              </p>
+            )}
           </div>
 
           <div className="flex justify-center pt-2">
@@ -114,6 +202,13 @@ function AddTicketForm({
     </section>
   );
 }
+
+const priorityOptions = [
+  { value: "low", label: "Low", prefix: "L" },
+  { value: "medium", label: "Medium", prefix: "M" },
+  { value: "high", label: "High", prefix: "H" },
+  { value: "critical", label: "Critical", prefix: "C" },
+];
 
 function Field({ children, label, labelClass }) {
   return (
@@ -142,6 +237,16 @@ function SummaryItem({ label, value }) {
       </dd>
     </div>
   );
+}
+
+function getInitials(name) {
+  return String(name || "U")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
 }
 
 export default AddTicketForm;
