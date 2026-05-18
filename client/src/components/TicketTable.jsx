@@ -44,7 +44,7 @@ function TicketTable({
           value={search}
           disabled={loading}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-purple-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 md:w-80"
+          className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 md:w-80"
         />
 
         <ThemedSelect
@@ -136,7 +136,7 @@ function TicketTable({
                     key={ticket._id}
                     className="border-b last:border-0 dark:border-slate-700"
                   >
-                    <td className="py-4 font-semibold text-purple-700">
+                    <td className="py-4 font-semibold text-blue-700">
                       {ticket.ticketNumber}
                     </td>
                     <td className="py-4">
@@ -253,7 +253,7 @@ function TicketMobileCard({
     <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-bold uppercase tracking-wide text-violet-600 dark:text-violet-300">
+          <p className="text-xs font-bold uppercase tracking-wide text-blue-600 dark:text-blue-300">
             {ticket.ticketNumber}
           </p>
           <h4 className="mt-1 break-words text-base font-black text-slate-950 dark:text-white">

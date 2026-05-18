@@ -35,9 +35,9 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
 
   return (
     <div className="space-y-5">
-      <section className="flex flex-col gap-4 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40 md:flex-row md:items-center md:justify-between">
+      <section className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-violet-600 dark:text-violet-300">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-300">
             Monthly Report
           </p>
           <h3 className="text-2xl font-black text-slate-950 dark:text-white">
@@ -57,7 +57,7 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
               type="month"
               value={selectedMonth}
               onChange={(event) => setSelectedMonth(event.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400 md:w-56"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400 md:w-56"
             />
           </label>
 
@@ -65,7 +65,7 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
             <button
               type="button"
               onClick={() => exportReportPrompt({ ...exportPayload, filename: `${filenameBase}-ai-prompt.txt` })}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-violet-200 hover:text-violet-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-violet-500"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500"
             >
               <FileText size={16} />
               Export Prompt
@@ -94,9 +94,9 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
                 <Line
                   type="monotone"
                   dataKey="total"
-                  stroke="#8b5cf6"
+                  stroke="#2563eb"
                   strokeWidth={3}
-                  dot={{ fill: "#8b5cf6", r: 3 }}
+                  dot={{ fill: "#2563eb", r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -127,7 +127,7 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
                 <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
                 <YAxis hide allowDecimals={false} />
                 <Tooltip content={<ChartTooltip labelSuffix="tickets" />} />
-                <Bar dataKey="value" radius={[12, 12, 0, 0]} fill="#8b5cf6" />
+                <Bar dataKey="value" radius={[12, 12, 0, 0]} fill="#2563eb" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -304,7 +304,7 @@ function ProgressRow({ name, total, value }) {
       </div>
       <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-violet-600 to-purple-400"
+          className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400"
           style={{ width: `${percent}%` }}
         />
       </div>

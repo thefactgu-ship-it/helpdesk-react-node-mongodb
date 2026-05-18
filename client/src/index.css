@@ -23,7 +23,7 @@
   input,
   select,
   textarea {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-violet-300 dark:focus-visible:ring-offset-slate-950;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-blue-300 dark:focus-visible:ring-offset-slate-950;
   }
 
   button,
@@ -33,5 +33,5 @@
 }
 
 .bg-conic-gradient {
-  background: conic-gradient(#2563eb 0 35%, #7c3aed 35% 70%, #10b981 70% 100%);
+  background: conic-gradient(#2563eb 0 35%, #0ea5e9 35% 70%, #10b981 70% 100%);
 }

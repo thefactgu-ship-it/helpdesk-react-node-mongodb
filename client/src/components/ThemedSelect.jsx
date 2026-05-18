@@ -180,7 +180,7 @@ function ThemedSelect({
     <div
       ref={menuRef}
       style={menuPortal ? menuStyle : undefined}
-      className={`${menuPortal ? "fixed" : `absolute mt-2 w-full min-w-48 ${isPill ? "right-0" : "left-0"}`} z-[9999] overflow-hidden rounded-2xl border border-violet-100 bg-white p-1.5 shadow-2xl shadow-slate-200/80 dark:border-slate-700 dark:bg-slate-950 dark:shadow-slate-950/60`}
+      className={`${menuPortal ? "fixed" : `absolute mt-2 w-full min-w-48 ${isPill ? "right-0" : "left-0"}`} z-[9999] overflow-hidden rounded-2xl border border-blue-100 bg-white p-1.5 shadow-xl shadow-slate-200/60 dark:border-slate-700 dark:bg-slate-950 dark:shadow-slate-950/60`}
     >
       <div
         id={`${selectId}-listbox`}
@@ -207,10 +207,10 @@ function ThemedSelect({
                 isSmall ? "px-2.5 py-2" : "px-3 py-2.5"
               } ${
                 selected
-                  ? "bg-violet-600 text-white shadow-md shadow-violet-200 dark:bg-violet-500 dark:shadow-violet-950/40"
+                  ? "bg-blue-600 text-white shadow-sm dark:bg-blue-500 dark:shadow-slate-950/30"
                   : active
-                    ? "bg-violet-50 text-violet-700 dark:bg-slate-900 dark:text-violet-200"
-                  : "text-slate-700 hover:bg-violet-50 hover:text-violet-700 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-violet-200"
+                    ? "bg-blue-50 text-blue-700 dark:bg-slate-900 dark:text-blue-200"
+                  : "text-slate-700 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-blue-200"
               }`}
             >
               {prefix && (
@@ -275,8 +275,8 @@ function ThemedSelect({
             : `${isSmall ? "min-h-11 rounded-xl px-3 py-2 text-xs" : "min-h-12 rounded-2xl px-4 py-3 text-sm"} gap-3`
         } ${
           open
-            ? `${isSmall ? "ring-2" : "ring-4"} border-violet-500 text-violet-700 shadow-lg shadow-violet-100 ring-violet-100 dark:border-violet-400 dark:text-violet-200 dark:shadow-violet-950/30 dark:ring-violet-500/10`
-            : "border-violet-200 text-slate-700 hover:border-violet-400 hover:bg-violet-50/60 dark:border-slate-700 dark:text-slate-200 dark:hover:border-violet-400 dark:hover:bg-slate-900"
+            ? `${isSmall ? "ring-2" : "ring-4"} border-blue-500 text-blue-700 shadow-sm ring-blue-100 dark:border-blue-400 dark:text-blue-200 dark:shadow-slate-950/30 dark:ring-blue-500/10`
+            : "border-blue-200 text-slate-700 hover:border-blue-400 hover:bg-blue-50/60 dark:border-slate-700 dark:text-slate-200 dark:hover:border-blue-400 dark:hover:bg-slate-900"
         }`}
       >
         <span className="min-w-0 flex-1 truncate">{selectedLabel}</span>
@@ -285,8 +285,8 @@ function ThemedSelect({
             isSmall ? "h-5 w-5 text-[10px]" : "h-6 w-6 text-xs"
           } ${
             open
-              ? "bg-violet-600 text-white"
-              : "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-200"
+              ? "bg-blue-600 text-white"
+              : "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200"
           }`}
         >
           {open ? "^" : "v"}

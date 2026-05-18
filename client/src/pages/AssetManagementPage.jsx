@@ -174,7 +174,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
       />
 
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
-        <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-violet-600 dark:text-violet-300">
+        <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-300">
           System
         </p>
         <h3 className="text-2xl font-black text-slate-950 dark:text-white">
@@ -308,7 +308,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
             <button
               type="submit"
               disabled={saving || !isAdmin}
-              className="rounded-2xl bg-violet-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:shadow-violet-950/40 dark:hover:bg-violet-400 md:col-span-2 xl:col-span-1"
+              className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400 md:col-span-2 xl:col-span-1"
             >
               {saving ? "Saving..." : "Create Asset"}
             </button>
@@ -421,7 +421,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
                           {asset.assetType} / {asset.department}
                         </div>
                       </td>
-                      <td className="font-semibold text-violet-700 dark:text-violet-300">
+                      <td className="font-semibold text-blue-700 dark:text-blue-300">
                         {asset.serialNumber}
                       </td>
                       <td className="text-slate-600 dark:text-slate-300">
@@ -480,7 +480,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
 }
 
 const inputClass =
-  "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400";
+  "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400";
 
 function AssetDetailModal({
   asset,
@@ -683,7 +683,7 @@ function AssetDetailModal({
                 <button
                   type="submit"
                   disabled={updating}
-                  className="rounded-2xl bg-violet-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:shadow-violet-950/40 dark:hover:bg-violet-400 sm:col-span-2"
+                  className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400 sm:col-span-2"
                 >
                   {updating ? "Saving..." : "Save Changes"}
                 </button>
@@ -805,7 +805,7 @@ function StatusBadge({ status }) {
     <span
       className={`rounded-full px-3 py-1 text-xs font-bold ${
         isActive
-          ? "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-200"
+          ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200"
           : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
       }`}
     >
@@ -826,7 +826,7 @@ function RecommendationBadge({ value = "Good" }) {
           ? "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200"
           : isMonitor
             ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200"
-            : "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-200"
+            : "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200"
       }`}
     >
       {value}

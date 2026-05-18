@@ -255,7 +255,7 @@ function UserManagement({
                       key={hotelId}
                       className={`flex min-w-0 items-center gap-3 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
                         selected
-                          ? "border-violet-200 bg-white text-violet-700 shadow-sm dark:border-violet-500/40 dark:bg-slate-950 dark:text-violet-200"
+                          ? "border-blue-200 bg-white text-blue-700 shadow-sm dark:border-blue-500/40 dark:bg-slate-950 dark:text-blue-200"
                           : "border-transparent bg-transparent text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-950"
                       }`}
                     >
@@ -272,13 +272,13 @@ function UserManagement({
                             hotelAccess: normalizeHotelAccess(form.hotelId, nextAccess, form.role),
                           });
                         }}
-                        className="h-4 w-4 rounded border-slate-300 text-violet-600 focus:ring-violet-500 disabled:opacity-60"
+                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:opacity-60"
                       />
                       <span className="min-w-0 flex-1 truncate">
                         {getHotelLabel(hotel)}
                       </span>
                       {isPrimary && (
-                        <span className="shrink-0 rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-violet-700 dark:bg-violet-500/20 dark:text-violet-200">
+                        <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-blue-700 dark:bg-blue-500/20 dark:text-blue-200">
                           Primary
                         </span>
                       )}
@@ -298,7 +298,7 @@ function UserManagement({
             <button
               type="submit"
               disabled={savingUser}
-              className="w-full rounded-2xl bg-violet-600 px-5 py-3 font-black text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:shadow-violet-950/40 dark:hover:bg-violet-400"
+              className="w-full rounded-2xl bg-blue-600 px-5 py-3 font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400"
             >
               {savingUser
                 ? "Saving..."
@@ -327,8 +327,8 @@ function UserManagement({
                 onClick={() => setAccountView("staff")}
                 className={`rounded-xl px-4 py-2 transition ${
                   accountView === "staff"
-                    ? "bg-violet-600 text-white shadow-sm"
-                    : "text-slate-600 hover:text-violet-700 dark:text-slate-300"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-600 hover:text-blue-700 dark:text-slate-300"
                 }`}
               >
                 Staff
@@ -338,8 +338,8 @@ function UserManagement({
                 onClick={() => setAccountView("requester")}
                 className={`rounded-xl px-4 py-2 transition ${
                   accountView === "requester"
-                    ? "bg-violet-600 text-white shadow-sm"
-                    : "text-slate-600 hover:text-violet-700 dark:text-slate-300"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "text-slate-600 hover:text-blue-700 dark:text-slate-300"
                 }`}
               >
                 Requesters
@@ -547,7 +547,7 @@ function getAccessSummary(user, hotels) {
 }
 
 const inputClass =
-  "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400";
+  "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400";
 
 function Field({ children, className = "", label }) {
   return (
@@ -567,7 +567,7 @@ function RoleBadge({ role }) {
     <span
       className={`rounded-full px-3 py-1 text-xs font-bold ${
         isAdmin
-          ? "bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-200"
+          ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200"
           : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
       }`}
     >

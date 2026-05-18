@@ -122,7 +122,7 @@ function NotificationBell({ token, onOpenTicket }) {
           }
           setOpen((current) => !current);
         }}
-        className="relative grid h-11 w-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-violet-300 hover:bg-violet-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-violet-400 dark:hover:bg-slate-800"
+        className="relative grid h-11 w-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-blue-400 dark:hover:bg-slate-800"
         aria-label="Open notifications"
         aria-expanded={open}
       >
@@ -136,7 +136,7 @@ function NotificationBell({ token, onOpenTicket }) {
 
       {open && (
         <div
-          className="fixed left-4 right-4 z-50 flex w-auto flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl shadow-slate-200/80 dark:border-slate-700 dark:bg-slate-950 dark:shadow-slate-950/60 sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:z-30 sm:w-[min(22rem,calc(100vw-2rem))] sm:max-h-none"
+          className="fixed left-4 right-4 z-50 flex w-auto flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl shadow-slate-200/60 dark:border-slate-700 dark:bg-slate-950 dark:shadow-slate-950/60 sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:z-30 sm:w-[min(22rem,calc(100vw-2rem))] sm:max-h-none"
           style={mobilePanelStyle}
         >
           <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
@@ -152,7 +152,7 @@ function NotificationBell({ token, onOpenTicket }) {
               type="button"
               onClick={handleMarkAllRead}
               disabled={!unreadCount}
-              className="grid h-9 w-9 place-items-center rounded-full text-slate-500 transition hover:bg-violet-50 hover:text-violet-700 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-violet-200"
+              className="grid h-9 w-9 place-items-center rounded-full text-slate-500 transition hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-blue-200"
               aria-label="Mark all notifications as read"
               title="Mark all as read"
             >
@@ -178,7 +178,7 @@ function NotificationBell({ token, onOpenTicket }) {
                 key={notification._id}
                 type="button"
                 onClick={() => handleOpenNotification(notification)}
-                className="flex w-full gap-3 rounded-md px-3 py-3 text-left transition hover:bg-violet-50 dark:hover:bg-slate-900"
+                className="flex w-full gap-3 rounded-md px-3 py-3 text-left transition hover:bg-blue-50 dark:hover:bg-slate-900"
               >
                 <span
                   className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${

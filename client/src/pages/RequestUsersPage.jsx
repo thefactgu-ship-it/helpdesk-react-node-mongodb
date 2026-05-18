@@ -30,7 +30,7 @@ function RequestUsersPage({ users }) {
   return (
     <div className="space-y-5">
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
-        <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-violet-600 dark:text-violet-300">
+        <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-300">
           System
         </p>
         <h3 className="text-2xl font-black text-slate-950 dark:text-white">
@@ -54,7 +54,7 @@ function RequestUsersPage({ users }) {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search requesters..."
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400 md:w-80"
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400 md:w-80"
           />
           <ThemedSelect
             className="w-full md:w-56"
@@ -79,11 +79,11 @@ function RequestUsersPage({ users }) {
                   <h4 className="break-words text-base font-black text-slate-950 dark:text-white">
                     {user.name}
                   </h4>
-                  <p className="mt-1 break-words text-sm font-semibold text-violet-700 dark:text-violet-300">
+                  <p className="mt-1 break-words text-sm font-semibold text-blue-700 dark:text-blue-300">
                     {user.email}
                   </p>
                 </div>
-                <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700 dark:bg-violet-500/20 dark:text-violet-200">
+                <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/20 dark:text-blue-200">
                   {user.role}
                 </span>
               </div>
@@ -133,14 +133,14 @@ function RequestUsersPage({ users }) {
                       ID: {user._id || user.id}
                     </div>
                   </td>
-                  <td className="font-semibold text-violet-700 dark:text-violet-300">
+                  <td className="font-semibold text-blue-700 dark:text-blue-300">
                     {user.email}
                   </td>
                   <td className="text-slate-600 dark:text-slate-300">
                     {user.departmentId?.name || user.departmentName || user.team || "Support"}
                   </td>
                   <td>
-                    <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700 dark:bg-violet-500/20 dark:text-violet-200">
+                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/20 dark:text-blue-200">
                       {user.role}
                     </span>
                   </td>

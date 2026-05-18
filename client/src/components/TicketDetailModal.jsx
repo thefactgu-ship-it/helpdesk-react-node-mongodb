@@ -235,7 +235,7 @@ function TicketDetailModal({
                     >
                       <button
                         type="button"
-                        className="text-left text-sm font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-300 dark:hover:text-purple-200"
+                        className="text-left text-sm font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-200"
                         onClick={() => handleViewAttachment(attachment)}
                       >
                         {attachment.originalName}
@@ -245,7 +245,7 @@ function TicketDetailModal({
                       </p>
                       <button
                         type="button"
-                        className="mt-2 text-xs font-semibold text-slate-500 hover:text-purple-700 dark:text-slate-400 dark:hover:text-purple-200"
+                        className="mt-2 text-xs font-semibold text-slate-500 hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-200"
                         onClick={() => handleDownloadAttachment(attachment)}
                       >
                         Download
@@ -276,7 +276,7 @@ function TicketDetailModal({
                   )}
                 </div>
                 {hasSatisfaction && (
-                  <div className="rounded-lg bg-white px-3 py-2 text-sm font-black text-violet-700 shadow-sm dark:bg-slate-800 dark:text-violet-200">
+                  <div className="rounded-lg bg-white px-3 py-2 text-sm font-black text-blue-700 shadow-sm dark:bg-slate-800 dark:text-blue-200">
                     {ticket.satisfactionScore}/5
                   </div>
                 )}
@@ -298,8 +298,8 @@ function TicketDetailModal({
                         onClick={() => setSatisfactionScore(String(score))}
                         className={`grid h-10 w-10 place-items-center rounded-full border text-sm font-black transition ${
                           Number(satisfactionScore) === score
-                            ? "border-violet-600 bg-violet-600 text-white"
-                            : "border-slate-200 bg-white text-slate-700 hover:border-violet-400 hover:text-violet-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                            ? "border-blue-600 bg-blue-600 text-white"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-blue-400 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
                         }`}
                         aria-pressed={Number(satisfactionScore) === score}
                       >
@@ -313,12 +313,12 @@ function TicketDetailModal({
                     maxLength={1000}
                     onChange={(e) => setSatisfactionComment(e.target.value)}
                     placeholder="Optional feedback"
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                   />
                   <button
                     type="submit"
                     disabled={!satisfactionScore || savingSatisfaction}
-                    className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-400"
+                    className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
                   >
                     {savingSatisfaction ? "Saving..." : hasSatisfaction ? "Update Rating" : "Submit Rating"}
                   </button>
@@ -360,11 +360,11 @@ function TicketDetailModal({
                 disabled={!onComment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Add a comment"
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               />
               <button
                 type="submit"
-                className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700"
+                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
               >
                 Post Comment
               </button>
@@ -379,7 +379,7 @@ function TicketDetailModal({
                   type="file"
                   accept="image/jpeg,image/png,image/gif,image/webp"
                   onChange={handleFileChange}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                 />
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   JPG, PNG, GIF, or WEBP only. Max 5 MB.
@@ -392,7 +392,7 @@ function TicketDetailModal({
                 <button
                   type="submit"
                   disabled={!file || !!fileError}
-                  className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-400"
+                  className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
                 >
                   Upload File
                 </button>

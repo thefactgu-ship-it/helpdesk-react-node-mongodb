@@ -115,7 +115,7 @@ function ProblemTypesPage({ currentUser, token }) {
         onConfirm={confirmDelete}
       />
 
-      <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-violet-600 dark:text-violet-300">
+      <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-300">
         System
       </p>
       <h3 className="text-2xl font-black text-slate-950 dark:text-white">
@@ -137,7 +137,7 @@ function ProblemTypesPage({ currentUser, token }) {
           disabled={saving || !isAdmin}
           onChange={(event) => setName(event.target.value)}
           placeholder="Add problem type"
-          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400 lg:col-span-2"
+          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400 lg:col-span-2"
         />
         <input
           type="text"
@@ -145,12 +145,12 @@ function ProblemTypesPage({ currentUser, token }) {
           disabled={saving || !isAdmin}
           onChange={(event) => setDescription(event.target.value)}
           placeholder="Description"
-          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-400 lg:col-span-2"
+          className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400 lg:col-span-2"
         />
         <button
           type="submit"
           disabled={saving || !isAdmin}
-          className="rounded-2xl bg-violet-600 px-5 py-3 text-sm font-black text-white shadow-lg shadow-violet-200 transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-violet-500 dark:shadow-violet-950/40 dark:hover:bg-violet-400"
+          className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400"
         >
           {saving ? "Adding..." : "Add"}
         </button>
@@ -168,13 +168,13 @@ function ProblemTypesPage({ currentUser, token }) {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="break-words text-sm font-black text-violet-700 dark:text-violet-200">
+                  <div className="break-words text-sm font-black text-blue-700 dark:text-blue-200">
                     {type.name}
                   </div>
                   <p className="mt-1 break-words text-xs text-slate-500 dark:text-slate-400">
                     {type.description || "No description"}
                   </p>
-                  <p className="mt-2 text-xs font-bold uppercase tracking-wide text-violet-500 dark:text-violet-300">
+                  <p className="mt-2 text-xs font-bold uppercase tracking-wide text-blue-500 dark:text-blue-300">
                     Master Problem Type
                   </p>
                 </div>

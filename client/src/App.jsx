@@ -786,7 +786,7 @@ function App() {
                 )}
                 <button
                   onClick={() => setDarkMode(!darkMode)}
-                  className="rounded-full border border-purple-200 bg-white px-5 py-2 text-sm font-semibold text-purple-700 shadow-sm transition hover:border-purple-400 hover:bg-purple-50 dark:border-slate-700 dark:bg-slate-950 dark:text-purple-200 dark:hover:border-purple-400 dark:hover:bg-slate-800"
+                  className="rounded-full border border-blue-200 bg-white px-5 py-2 text-sm font-semibold text-blue-700 shadow-sm transition hover:border-blue-400 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-950 dark:text-blue-200 dark:hover:border-blue-400 dark:hover:bg-slate-800"
                 >
                   {darkMode ? "Light Mode" : "Dark Mode"}
                 </button>
@@ -927,7 +927,7 @@ function App() {
 function PageLoading() {
   return (
     <div className="flex min-h-[24rem] items-center justify-center">
-      <div className="rounded-2xl border border-purple-100 bg-white px-6 py-4 text-sm font-semibold text-purple-700 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-purple-200">
+      <div className="rounded-2xl border border-blue-100 bg-white px-6 py-4 text-sm font-semibold text-blue-700 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-blue-200">
         Loading page...
       </div>
     </div>

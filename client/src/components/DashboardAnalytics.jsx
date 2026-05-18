@@ -1,4 +1,15 @@
 import {
+  AlertTriangle,
+  BarChart3,
+  CheckCircle2,
+  Clock3,
+  ClipboardList,
+  Gauge,
+  ShieldAlert,
+  TimerReset,
+  UserRoundX,
+} from "lucide-react";
+import {
   Bar,
   BarChart,
   CartesianGrid,
@@ -13,8 +24,8 @@ import {
 import StatCard from "./StatCard";
 import { getCompletionStats, getSuccessDetail, isCompletedTicket } from "../utils/ticketMetrics";
 
-const purple = "#8b5cf6";
-const purpleDark = "#a78bfa";
+const blue = "#2563eb";
+const blueDark = "#60a5fa";
 const gridLight = "#e5e7eb";
 const gridDark = "#334155";
 const textLight = "#64748b";
@@ -224,7 +235,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
   const data = buildDashboardData(tickets);
   const axisColor = darkMode ? textDark : textLight;
   const gridColor = darkMode ? gridDark : gridLight;
-  const accent = darkMode ? purpleDark : purple;
+  const accent = darkMode ? blueDark : blue;
 
   const chartTheme = {
     axisColor,
@@ -240,34 +251,34 @@ function DashboardAnalytics({ darkMode, tickets }) {
         <StatCard
           title="Tickets"
           value={data.total.toLocaleString()}
-          icon="T"
+          icon={ClipboardList}
           bars={[36, 50, 62, 48]}
         />
         <StatCard
           title="Open"
           value={data.open.toLocaleString()}
           detail={`${percent(data.open, data.total)}%`}
-          icon="O"
+          icon={BarChart3}
           bars={[24, 42, 70, 38]}
         />
         <StatCard
           title="Resolved"
           value={data.resolved.toLocaleString()}
           detail={`${percent(data.resolved, data.total)}%`}
-          icon="R"
+          icon={CheckCircle2}
           bars={[30, 45, 58, 35]}
         />
         <StatCard
           title="Avg. Days Open"
           value={data.avgDaysOpen}
-          icon="D"
+          icon={Clock3}
           bars={[20, 28, 56, 44]}
         />
         <StatCard
           title="Success Rate"
           value={`${data.completionStats.successRate}%`}
           detail={getSuccessDetail(data.completionStats)}
-          icon="S"
+          icon={Gauge}
           bars={[26, 40, 75, 36]}
         />
       </section>
@@ -277,28 +288,28 @@ function DashboardAnalytics({ darkMode, tickets }) {
           title="SLA Breached"
           value={data.sla.breached.toLocaleString()}
           detail="active tickets"
-          icon="!"
+          icon={ShieldAlert}
           bars={[72, 48, 66, 32]}
         />
         <StatCard
           title="Due In 4h"
           value={data.sla.dueSoon.toLocaleString()}
           detail="needs follow-up"
-          icon="4"
+          icon={TimerReset}
           bars={[24, 54, 78, 42]}
         />
         <StatCard
           title="Urgent Unassigned"
           value={data.sla.unassignedUrgent.toLocaleString()}
           detail="high or critical"
-          icon="U"
+          icon={UserRoundX}
           bars={[40, 62, 36, 70]}
         />
         <StatCard
           title="Escalation Queue"
           value={data.sla.escalationQueue.length.toLocaleString()}
           detail="L1 / L2 watch"
-          icon="E"
+          icon={AlertTriangle}
           bars={[52, 34, 74, 58]}
         />
       </section>
@@ -379,7 +390,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
                   {data.severityData.map((entry, index) => (
                     <Cell
                       key={entry.name}
-                      fill={index === 0 || index === 1 ? "#ec4899" : accent}
+                      fill={index === 0 || index === 1 ? "#e11d48" : accent}
                     />
                   ))}
                 </Bar>
@@ -414,11 +425,11 @@ function DashboardAnalytics({ darkMode, tickets }) {
             </div>
             <div className="relative h-5 rounded-full bg-slate-100 dark:bg-slate-800">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-violet-600 via-purple-500 to-violet-400"
+                className="h-full rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400"
                 style={{ width: `${data.completionStats.successRate}%` }}
               />
               <div
-                className="absolute top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white bg-violet-500 text-sm font-bold text-white shadow-lg dark:border-slate-950"
+                className="absolute top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white bg-blue-500 text-sm font-bold text-white shadow-lg dark:border-slate-950"
                 style={{ left: `${Math.max(8, data.completionStats.successRate)}%` }}
               >
                 {data.completionStats.successRate}
@@ -527,7 +538,7 @@ function ProgressRow({ label, percent, value }) {
       </div>
       <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-violet-600 to-purple-400"
+          className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400"
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -538,7 +549,7 @@ function ProgressRow({ label, percent, value }) {
 function LegendDot({ label }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <span className="h-2.5 w-2.5 rounded-full bg-violet-500" />
+      <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
       {label}
     </span>
   );

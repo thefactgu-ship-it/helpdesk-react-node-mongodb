@@ -39,9 +39,9 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
 
   return (
     <div className="space-y-5">
-      <section className="flex flex-col gap-4 rounded-[2rem] border border-slate-200 bg-white p-5 shadow-xl shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40 lg:flex-row lg:items-center lg:justify-between">
+      <section className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-violet-600 dark:text-violet-300">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-300">
             Reports
           </p>
           <h3 className="text-2xl font-black text-slate-950 dark:text-white">
@@ -88,7 +88,7 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
             <button
               type="button"
               onClick={() => exportReportPrompt({ ...exportPayload, filename: `${filenameBase}-ai-prompt.txt` })}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-violet-200 hover:text-violet-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-violet-500"
+              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500"
             >
               <FileText size={16} />
               Export Prompt
@@ -117,9 +117,9 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
                 <Line
                   type="monotone"
                   dataKey="total"
-                  stroke="#8b5cf6"
+                  stroke="#2563eb"
                   strokeWidth={3}
-                  dot={{ fill: "#8b5cf6", r: 3 }}
+                  dot={{ fill: "#2563eb", r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -144,16 +144,16 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
                 <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
                 <YAxis allowDecimals={false} tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
                 <Tooltip content={<ChartTooltip />} />
-                <Bar dataKey="open" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="open" fill="#2563eb" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="resolved" fill="#22c55e" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="overdue" fill="#ec4899" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="overdue" fill="#e11d48" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
           <div className="mt-4 flex flex-wrap gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            <LegendDot color="#8b5cf6" label="Open" />
+            <LegendDot color="#2563eb" label="Open" />
             <LegendDot color="#22c55e" label="Resolved" />
-            <LegendDot color="#ec4899" label="Overdue" />
+            <LegendDot color="#e11d48" label="Overdue" />
           </div>
         </ReportPanel>
       </section>

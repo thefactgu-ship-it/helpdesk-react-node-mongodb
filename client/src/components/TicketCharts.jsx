@@ -59,14 +59,14 @@ function TicketCharts({ tickets, averageResolutionHours, overdueCount }) {
 
   const pieData = [
     { name: "Open", value: open, color: "#2563eb" },
-    { name: "In Progress", value: progress, color: "#7c3aed" },
+    { name: "In Progress", value: progress, color: "#0ea5e9" },
     { name: "Resolved", value: resolved, color: "#10b981" },
-    { name: "Closed", value: closed, color: "#0ea5e9" },
+    { name: "Closed", value: closed, color: "#64748b" },
   ];
 
   return (
     <section className="grid grid-cols-1 gap-6 xl:grid-cols-4">
-      <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-800 xl:col-span-2">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 xl:col-span-2">
         <h3 className="mb-4 font-bold">Ticket Status</h3>
 
         <div className="h-64">
@@ -75,13 +75,13 @@ function TicketCharts({ tickets, averageResolutionHours, overdueCount }) {
               <XAxis dataKey="name" />
               <YAxis allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="value" radius={[8, 8, 0, 0]} fill="#7c3aed" />
+              <Bar dataKey="value" radius={[8, 8, 0, 0]} fill="#2563eb" />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-800">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <h3 className="mb-4 font-bold">Status Summary</h3>
 
         <div className="h-44">
@@ -119,19 +119,19 @@ function TicketCharts({ tickets, averageResolutionHours, overdueCount }) {
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-800 xl:col-span-2">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 xl:col-span-2">
         <h3 className="mb-4 font-bold">Business Insights</h3>
 
         <div className="grid gap-3 text-sm">
-          <div className="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+          <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
             <p className="text-slate-500">Avg. Resolution Time</p>
             <p className="mt-2 text-2xl font-semibold">{averageResolutionHours}h</p>
           </div>
-          <div className="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+          <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
             <p className="text-slate-500">Overdue Tickets</p>
             <p className="mt-2 text-2xl font-semibold">{overdueCount}</p>
           </div>
-          <div className="rounded-2xl border border-slate-200 p-4 dark:border-slate-700">
+          <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
             <p className="text-slate-500">Most Common Categories</p>
             <div className="mt-3 space-y-2">
               {topCategories.map((category) => (
@@ -146,7 +146,7 @@ function TicketCharts({ tickets, averageResolutionHours, overdueCount }) {
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-800 xl:col-span-4">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 xl:col-span-4">
         <h3 className="mb-4 font-bold">Ticket Trend</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
@@ -154,7 +154,7 @@ function TicketCharts({ tickets, averageResolutionHours, overdueCount }) {
               <XAxis dataKey="month" />
               <YAxis allowDecimals={false} />
               <Tooltip />
-              <Line type="monotone" dataKey="count" stroke="#7c3aed" strokeWidth={3} />
+              <Line type="monotone" dataKey="count" stroke="#2563eb" strokeWidth={3} />
             </LineChart>
           </ResponsiveContainer>
         </div>

@@ -195,7 +195,7 @@ function Sidebar({
           <button
             type="button"
             onClick={() => setUserMenuOpen((open) => !open)}
-            className="flex w-full items-center gap-3 rounded-xl bg-slate-50 p-3 text-left transition hover:bg-violet-50 dark:bg-slate-900 dark:hover:bg-slate-800"
+            className="flex w-full items-center gap-3 rounded-xl bg-slate-50 p-3 text-left transition hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-slate-800"
             aria-expanded={userMenuOpen}
             aria-haspopup="menu"
             aria-label="Open account menu"
@@ -268,7 +268,7 @@ function MobileChrome({
         <button
           type="button"
           onClick={onOpenProfile}
-          className="grid h-11 w-11 place-items-center rounded-xl bg-violet-600 text-xs font-black text-white"
+          className="grid h-11 w-11 place-items-center rounded-xl bg-blue-600 text-xs font-black text-white"
           aria-label="Open profile"
         >
           {getInitials(userName)}
@@ -335,8 +335,8 @@ function MobileChrome({
               onClick={item.action}
               className={`flex flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[11px] font-bold transition ${
                 active
-                  ? "bg-violet-50 text-violet-700 dark:bg-violet-500/15 dark:text-violet-200"
-                  : "text-slate-500 hover:text-violet-700 dark:text-slate-400"
+                  ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200"
+                  : "text-slate-500 hover:text-blue-700 dark:text-slate-400"
               }`}
               aria-current={active ? "page" : undefined}
             >
@@ -353,7 +353,7 @@ function MobileChrome({
 function BrandHeader({ compact }) {
   return (
     <div className={`${compact ? "flex items-center gap-3" : "border-b border-slate-100 p-5 dark:border-slate-800"}`}>
-      <div className={`${compact ? "" : "mb-5"} flex h-10 w-10 items-center justify-center rounded-xl bg-violet-600 text-sm font-bold text-white`}>
+      <div className={`${compact ? "" : "mb-5"} flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white`}>
         <ShieldCheck className="h-5 w-5" aria-hidden="true" />
       </div>
 
@@ -361,7 +361,7 @@ function BrandHeader({ compact }) {
         <h1 className={`${compact ? "text-base" : "text-2xl"} font-black leading-tight text-slate-950 dark:text-white`}>
           IT Help Desk
         </h1>
-        <p className="text-xs font-medium text-violet-600 dark:text-violet-300">
+        <p className="text-xs font-medium text-blue-600 dark:text-blue-300">
           Multi-Hotel Support
         </p>
       </div>
@@ -398,14 +398,14 @@ function ProfileMenu({ onLogout, onOpenPassword, onOpenProfile }) {
       <button
         type="button"
         onClick={onOpenProfile}
-        className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-violet-50 hover:text-violet-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-violet-200"
+        className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-blue-200"
       >
         Update Profile
       </button>
       <button
         type="button"
         onClick={onOpenPassword}
-        className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-violet-50 hover:text-violet-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-violet-200"
+        className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-blue-200"
       >
         Change Password
       </button>
@@ -423,7 +423,7 @@ function ProfileMenu({ onLogout, onOpenPassword, onOpenProfile }) {
 
 function Avatar({ name }) {
   return (
-    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-600 text-xs font-bold text-white">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
       {getInitials(name)}
     </div>
   );
@@ -437,15 +437,15 @@ function MenuItem({ text, icon: Icon, active, enabled, onClick }) {
       onClick={onClick}
       className={`relative flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition ${
         active
-          ? "bg-violet-600 text-white shadow-sm"
+          ? "bg-blue-600 text-white shadow-sm"
           : enabled
-            ? "text-slate-600 hover:bg-violet-50 hover:text-violet-700 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-violet-200"
+            ? "text-slate-600 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-blue-200"
             : "cursor-not-allowed text-slate-300 dark:text-slate-700"
       }`}
       aria-current={active ? "page" : undefined}
     >
       {active && (
-        <span className="absolute -left-4 top-2 h-[calc(100%-1rem)] w-1 rounded-r bg-violet-600 dark:bg-violet-300" />
+        <span className="absolute -left-4 top-2 h-[calc(100%-1rem)] w-1 rounded-r bg-blue-600 dark:bg-blue-300" />
       )}
       <span
         className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${
