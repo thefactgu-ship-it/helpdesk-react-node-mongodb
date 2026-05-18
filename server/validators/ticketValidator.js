@@ -152,6 +152,20 @@ const addCommentValidationRules = () => [
 ];
 
 /**
+ * Validation rules for submitting requester satisfaction
+ */
+const submitSatisfactionValidationRules = () => [
+  body("score")
+    .isInt({ min: 1, max: 5 })
+    .withMessage("Satisfaction score must be between 1 and 5"),
+  body("comment")
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ max: 1000 })
+    .withMessage("Satisfaction comment must not exceed 1000 characters"),
+];
+
+/**
  * Validation rule for MongoDB ObjectId in URL parameters
  */
 const validateObjectId = (fieldName = "id") =>
@@ -182,6 +196,7 @@ module.exports = {
   updateStatusValidationRules,
   assignTicketValidationRules,
   addCommentValidationRules,
+  submitSatisfactionValidationRules,
   validateObjectId,
   handleValidationErrors,
 };

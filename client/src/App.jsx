@@ -460,6 +460,28 @@ function App() {
     }
   };
 
+  const submitTicketSatisfaction = async (ticketId, payload) => {
+    try {
+      await axios.patch(
+        `${API_URL}/${ticketId}/satisfaction`,
+        payload,
+        {
+          headers: authHeaders,
+          params: scopedParams,
+        },
+      );
+      toast.success("Satisfaction submitted");
+      await fetchTickets();
+      await fetchSummaryTickets();
+      await openTicketDetails(ticketId);
+      return true;
+    } catch (error) {
+      console.error("Failed to submit satisfaction", error);
+      toast.error(getErrorMessage(error, "Failed to submit satisfaction"));
+      return false;
+    }
+  };
+
   const uploadTicketAttachment = async (ticketId, file) => {
     if (!canUploadSelectedTicketAttachment) {
       toast.error("Only assigned agents, managers, or admins can upload attachments");
@@ -758,8 +780,10 @@ function App() {
       <TicketDetailModal
         open={!!selectedTicket}
         ticket={selectedTicket}
+        currentUser={currentUser}
         onClose={closeTicketDetails}
         onComment={addTicketComment}
+        onSatisfaction={submitTicketSatisfaction}
         onUploadAttachment={uploadTicketAttachment}
         canUploadAttachment={canUploadSelectedTicketAttachment}
       />

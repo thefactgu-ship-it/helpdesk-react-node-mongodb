@@ -9,14 +9,19 @@ const API_ORIGIN = API_BASE_URL.replace(/\/api$/, "");
 function TicketDetailModal({
   open,
   ticket,
+  currentUser,
   onClose,
   onComment,
+  onSatisfaction,
   onUploadAttachment,
   canUploadAttachment = false,
 }) {
   const [comment, setComment] = useState("");
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState("");
+  const [satisfactionScore, setSatisfactionScore] = useState("");
+  const [satisfactionComment, setSatisfactionComment] = useState("");
+  const [savingSatisfaction, setSavingSatisfaction] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -24,8 +29,18 @@ function TicketDetailModal({
       setComment("");
       setFile(null);
       setFileError("");
+      setSatisfactionScore("");
+      setSatisfactionComment("");
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open || !ticket) return;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSatisfactionScore(ticket.satisfactionScore ? String(ticket.satisfactionScore) : "");
+    setSatisfactionComment(ticket.satisfactionComment || "");
+  }, [open, ticket]);
 
   useEffect(() => {
     if (!open) return;
@@ -62,6 +77,25 @@ function TicketDetailModal({
     setFile(null);
     setFileError("");
     e.target.reset();
+  };
+
+  const handleSubmitSatisfaction = async (e) => {
+    e.preventDefault();
+    if (!onSatisfaction || !satisfactionScore) return;
+
+    try {
+      setSavingSatisfaction(true);
+      const success = await onSatisfaction(ticket._id, {
+        score: Number(satisfactionScore),
+        comment: satisfactionComment.trim(),
+      });
+
+      if (success) {
+        setSatisfactionComment("");
+      }
+    } finally {
+      setSavingSatisfaction(false);
+    }
   };
 
   const handleViewAttachment = async (attachment) => {
@@ -116,6 +150,11 @@ function TicketDetailModal({
 
     setFile(selectedFile);
   };
+
+  const isCompleted = ["resolved", "closed"].includes(ticket.status);
+  const canSubmitSatisfaction = isCompleted && canCurrentUserSubmitSatisfaction(currentUser, ticket);
+  const hasSatisfaction = Number(ticket.satisfactionScore) > 0;
+  const showSatisfactionPanel = isCompleted && (hasSatisfaction || canSubmitSatisfaction);
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-0 pt-10 backdrop-blur-sm sm:items-center sm:px-3 sm:py-4">
@@ -218,6 +257,76 @@ function TicketDetailModal({
             </CompactPanel>
           ) : null}
         </div>
+
+        {showSatisfactionPanel && (
+          <div className="mt-3">
+            <CompactPanel>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <SectionLabel>Satisfaction</SectionLabel>
+                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                    {hasSatisfaction
+                      ? `Rated ${ticket.satisfactionScore}/5 by ${ticket.satisfactionSubmittedBy?.name || "requester"}`
+                      : "Please rate the completed support experience."}
+                  </p>
+                  {ticket.satisfactionSubmittedAt && (
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      {new Date(ticket.satisfactionSubmittedAt).toLocaleString()}
+                    </p>
+                  )}
+                </div>
+                {hasSatisfaction && (
+                  <div className="rounded-lg bg-white px-3 py-2 text-sm font-black text-violet-700 shadow-sm dark:bg-slate-800 dark:text-violet-200">
+                    {ticket.satisfactionScore}/5
+                  </div>
+                )}
+              </div>
+
+              {hasSatisfaction && ticket.satisfactionComment && (
+                <p className="mt-3 rounded-xl bg-white p-3 text-sm text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200">
+                  {ticket.satisfactionComment}
+                </p>
+              )}
+
+              {canSubmitSatisfaction && (
+                <form onSubmit={handleSubmitSatisfaction} className="mt-3 space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {[1, 2, 3, 4, 5].map((score) => (
+                      <button
+                        key={score}
+                        type="button"
+                        onClick={() => setSatisfactionScore(String(score))}
+                        className={`grid h-10 w-10 place-items-center rounded-full border text-sm font-black transition ${
+                          Number(satisfactionScore) === score
+                            ? "border-violet-600 bg-violet-600 text-white"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-violet-400 hover:text-violet-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                        }`}
+                        aria-pressed={Number(satisfactionScore) === score}
+                      >
+                        {score}
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    rows="2"
+                    value={satisfactionComment}
+                    maxLength={1000}
+                    onChange={(e) => setSatisfactionComment(e.target.value)}
+                    placeholder="Optional feedback"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!satisfactionScore || savingSatisfaction}
+                    className="rounded-xl bg-purple-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-purple-400"
+                  >
+                    {savingSatisfaction ? "Saving..." : hasSatisfaction ? "Update Rating" : "Submit Rating"}
+                  </button>
+                </form>
+              )}
+            </CompactPanel>
+          </div>
+        )}
 
         <div className={`mt-3 grid gap-3 ${canUploadAttachment ? "lg:grid-cols-2" : ""}`}>
           <CompactPanel>
@@ -349,6 +458,18 @@ function InfoItem({ label, value }) {
       </p>
     </div>
   );
+}
+
+function getEntityId(entity) {
+  return String(entity?._id || entity?.id || entity || "");
+}
+
+function canCurrentUserSubmitSatisfaction(user, ticket) {
+  const userId = getEntityId(user);
+  const requesterUserId = getEntityId(ticket.requesterUserId);
+  const creatorId = getEntityId(ticket.createdBy);
+
+  return requesterUserId ? requesterUserId === userId : creatorId === userId;
 }
 
 function getAttachmentUrl(ticketId, attachment) {

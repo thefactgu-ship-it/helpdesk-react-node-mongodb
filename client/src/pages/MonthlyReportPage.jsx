@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { useState } from "react";
 import StatCard from "../components/StatCard";
+import { getCompletionStats, getSuccessDetail, isCompletedTicket } from "../utils/ticketMetrics";
 
 function MonthlyReportPage({ tickets }) {
   const [selectedMonth, setSelectedMonth] = useState(getMonthInputValue(new Date()));
@@ -46,10 +47,10 @@ function MonthlyReportPage({ tickets }) {
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
         <StatCard title={report.shortMonthLabel} value={report.total} detail="tickets" icon="M" />
-        <StatCard title="Resolved" value={report.resolved} detail={`${report.resolvedRate}%`} icon="R" />
+        <StatCard title="Completion" value={`${report.completionRate}%`} detail={`${report.completedCount} done`} icon="C" />
+        <StatCard title="Success Rate" value={`${report.successRate}%`} detail={report.successDetail} icon="S" />
         <StatCard title="Open" value={report.open} detail="active" icon="O" />
-        <StatCard title="Overdue" value={report.overdue} detail="SLA risk" icon="!" />
-        <StatCard title="Avg. Resolve" value={`${report.avgResolutionHours}h`} detail="time" icon="A" />
+        <StatCard title="Avg. Rating" value={report.avgSatisfactionLabel} detail={`${report.satisfactionCount} ratings`} icon="*" />
       </section>
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
@@ -108,6 +109,8 @@ function MonthlyReportPage({ tickets }) {
             <SnapshotRow label="Most common category" value={report.topCategoryName} />
             <SnapshotRow label="Critical tickets" value={report.critical} />
             <SnapshotRow label="Closed tickets" value={report.closed} />
+            <SnapshotRow label="Overdue tickets" value={report.overdue} />
+            <SnapshotRow label="Avg. resolve time" value={`${report.avgResolutionHours}h`} />
             <SnapshotRow label="Active tickets" value={report.active} />
           </div>
         </ReportPanel>
@@ -130,9 +133,7 @@ function buildMonthlyReport(tickets, selectedMonth) {
   const resolved = monthTickets.filter((ticket) => ticket.status === "resolved").length;
   const closed = monthTickets.filter((ticket) => ticket.status === "closed").length;
   const open = monthTickets.filter((ticket) => ticket.status === "open").length;
-  const active = monthTickets.filter(
-    (ticket) => !["resolved", "closed"].includes(ticket.status),
-  ).length;
+  const active = monthTickets.filter((ticket) => !isCompletedTicket(ticket)).length;
   const overdue = monthTickets.filter((ticket) => isOverdue(ticket)).length;
   const critical = monthTickets.filter((ticket) => ticket.priority === "critical").length;
 
@@ -148,11 +149,17 @@ function buildMonthlyReport(tickets, selectedMonth) {
   const topCategories = countBy(monthTickets, "category")
     .slice(0, 5)
     .map(([name, value]) => ({ name, value }));
+  const completionStats = getCompletionStats(monthTickets);
 
   return {
     active,
     avgResolutionHours,
+    avgSatisfactionLabel: completionStats.satisfactionCount
+      ? `${completionStats.avgSatisfactionScore}/5`
+      : "-",
     closed,
+    completedCount: completionStats.completedCount,
+    completionRate: completionStats.completionRate,
     critical,
     monthLabel: selectedDate.toLocaleDateString("en-US", {
       month: "long",
@@ -165,11 +172,13 @@ function buildMonthlyReport(tickets, selectedMonth) {
       value: monthTickets.filter((ticket) => ticket.priority === priority).length,
     })),
     resolved,
-    resolvedRate: total ? Math.round(((resolved + closed) / total) * 100) : 0,
+    satisfactionCount: completionStats.satisfactionCount,
     shortMonthLabel: selectedDate.toLocaleDateString("en-US", {
       month: "short",
       year: "numeric",
     }),
+    successDetail: getSuccessDetail(completionStats),
+    successRate: completionStats.successRate,
     statusSummary: ["open", "in_progress", "resolved", "closed"].map((status) => ({
       name: formatStatus(status),
       value: monthTickets.filter((ticket) => ticket.status === status).length,

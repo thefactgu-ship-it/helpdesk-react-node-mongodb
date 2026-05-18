@@ -11,6 +11,7 @@ import {
   YAxis,
 } from "recharts";
 import StatCard from "./StatCard";
+import { getCompletionStats, getSuccessDetail, isCompletedTicket } from "../utils/ticketMetrics";
 
 const purple = "#8b5cf6";
 const purpleDark = "#a78bfa";
@@ -39,8 +40,9 @@ function buildDashboardData(tickets) {
   const closed = tickets.filter((ticket) => ticket.status === "closed").length;
   const overdue = tickets.filter((ticket) => ticket.isOverdue).length;
   const activeTickets = tickets.filter(
-    (ticket) => !["resolved", "closed"].includes(ticket.status),
+    (ticket) => !isCompletedTicket(ticket),
   );
+  const completionStats = getCompletionStats(tickets);
 
   const avgDaysOpen = activeTickets.length
     ? Math.round(
@@ -49,12 +51,6 @@ function buildDashboardData(tickets) {
           0,
         ) / activeTickets.length,
       )
-    : 0;
-
-  const completedRate = total ? ((resolved + closed) / total) * 100 : 0;
-  const overduePenalty = total ? (overdue / total) * 35 : 0;
-  const satisfactionScore = total
-    ? Math.max(0, Math.min(100, Math.round(completedRate - overduePenalty)))
     : 0;
 
   const statusLabels = ["open", "in_progress", "resolved", "closed"];
@@ -148,7 +144,7 @@ function buildDashboardData(tickets) {
     openDayBuckets,
     overdue,
     resolved,
-    satisfactionScore,
+    completionStats,
     severityData,
     statusData,
     total,
@@ -200,9 +196,9 @@ function DashboardAnalytics({ darkMode, tickets }) {
           bars={[20, 28, 56, 44]}
         />
         <StatCard
-          title="% Satisfied"
-          value={`${data.satisfactionScore}%`}
-          detail="derived"
+          title="Success Rate"
+          value={`${data.completionStats.successRate}%`}
+          detail={getSuccessDetail(data.completionStats)}
           icon="S"
           bars={[26, 40, 75, 36]}
         />
@@ -297,23 +293,24 @@ function DashboardAnalytics({ darkMode, tickets }) {
           </div>
         </DashboardPanel>
 
-        <DashboardPanel className="xl:col-span-6" title="By Satisfaction Score">
+        <DashboardPanel className="xl:col-span-6" title="By Success Rate">
           <div className="flex h-full min-h-40 flex-col justify-center">
             <div className="mb-5 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>0%</span>
+              <span>{getSuccessDetail(data.completionStats)}</span>
               <span>50%</span>
               <span>100%</span>
             </div>
             <div className="relative h-5 rounded-full bg-slate-100 dark:bg-slate-800">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-violet-600 via-purple-500 to-violet-400"
-                style={{ width: `${data.satisfactionScore}%` }}
+                style={{ width: `${data.completionStats.successRate}%` }}
               />
               <div
                 className="absolute top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white bg-violet-500 text-sm font-bold text-white shadow-lg dark:border-slate-950"
-                style={{ left: `${Math.max(8, data.satisfactionScore)}%` }}
+                style={{ left: `${Math.max(8, data.completionStats.successRate)}%` }}
               >
-                {data.satisfactionScore}
+                {data.completionStats.successRate}
               </div>
             </div>
           </div>

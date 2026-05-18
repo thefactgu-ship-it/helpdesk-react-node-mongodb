@@ -43,6 +43,7 @@ const TICKET_POPULATE_CONFIG = [
   { path: "createdBy", select: "name email role team departmentId departmentName hotelId" },
   { path: "assignedTo", select: "name email role team departmentId departmentName hotelId" },
   { path: "updatedBy", select: "name email role team departmentId departmentName hotelId" },
+  { path: "satisfactionSubmittedBy", select: "name email role team departmentId departmentName hotelId" },
   { path: "comments.author", select: "name email role team departmentId departmentName hotelId" },
   { path: "activityLog.user", select: "name email role team departmentId departmentName hotelId" },
   { path: "attachments.uploadedBy", select: "name email role team departmentId departmentName hotelId" },

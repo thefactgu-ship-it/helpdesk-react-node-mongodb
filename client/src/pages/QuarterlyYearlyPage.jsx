@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import StatCard from "../components/StatCard";
 import ThemedSelect from "../components/ThemedSelect";
+import { getCompletionStats, getSuccessDetail, isCompletedTicket } from "../utils/ticketMetrics";
 
 function QuarterlyYearlyPage({ tickets }) {
   const [mode, setMode] = useState("quarterly");
@@ -70,10 +71,10 @@ function QuarterlyYearlyPage({ tickets }) {
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
         <StatCard title="Tickets" value={report.total} detail={year} icon="T" />
+        <StatCard title="Completion" value={`${report.completionRate}%`} detail={`${report.completedCount} done`} icon="C" />
+        <StatCard title="Success Rate" value={`${report.successRate}%`} detail={report.successDetail} icon="S" />
         <StatCard title="Open" value={report.open} detail="active" icon="O" />
-        <StatCard title="Resolved" value={report.resolved} detail={`${report.resolvedRate}%`} icon="R" />
-        <StatCard title="Overdue" value={report.overdue} detail="SLA risk" icon="!" />
-        <StatCard title="Avg. Resolve" value={`${report.avgResolutionHours}h`} detail="time" icon="A" />
+        <StatCard title="Avg. Rating" value={report.avgSatisfactionLabel} detail={`${report.satisfactionCount} ratings`} icon="*" />
       </section>
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
@@ -102,6 +103,7 @@ function QuarterlyYearlyPage({ tickets }) {
             <SnapshotRow label="Best period" value={report.bestPeriod} />
             <SnapshotRow label="Most overdue period" value={report.mostOverduePeriod} />
             <SnapshotRow label="Closed tickets" value={report.closed} />
+            <SnapshotRow label="Avg. resolve time" value={`${report.avgResolutionHours}h`} />
             <SnapshotRow label="Active tickets" value={report.active} />
           </div>
         </ReportPanel>
@@ -142,9 +144,7 @@ function buildPeriodReport(tickets, year, mode) {
   const resolved = yearTickets.filter((ticket) => ticket.status === "resolved").length;
   const closed = yearTickets.filter((ticket) => ticket.status === "closed").length;
   const open = yearTickets.filter((ticket) => ticket.status === "open").length;
-  const active = yearTickets.filter(
-    (ticket) => !["resolved", "closed"].includes(ticket.status),
-  ).length;
+  const active = yearTickets.filter((ticket) => !isCompletedTicket(ticket)).length;
   const overdue = yearTickets.filter((ticket) => isOverdue(ticket)).length;
   const resolvedWithTime = yearTickets.filter((ticket) => ticket.resolvedAt);
   const avgResolutionHours = resolvedWithTime.length
@@ -155,18 +155,27 @@ function buildPeriodReport(tickets, year, mode) {
       )
     : 0;
 
+  const completionStats = getCompletionStats(yearTickets);
+
   return {
     active,
     avgResolutionHours,
+    avgSatisfactionLabel: completionStats.satisfactionCount
+      ? `${completionStats.avgSatisfactionScore}/5`
+      : "-",
     bestPeriod: getTopPeriod(periods, "total"),
     closed,
+    completedCount: completionStats.completedCount,
+    completionRate: completionStats.completionRate,
     label: mode === "quarterly" ? "Quarterly" : "Yearly",
     mostOverduePeriod: getTopPeriod(periods, "overdue"),
     open,
     overdue,
     periods,
     resolved,
-    resolvedRate: total ? Math.round(((resolved + closed) / total) * 100) : 0,
+    satisfactionCount: completionStats.satisfactionCount,
+    successDetail: getSuccessDetail(completionStats),
+    successRate: completionStats.successRate,
     total,
   };
 }

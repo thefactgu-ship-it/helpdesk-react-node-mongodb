@@ -10,6 +10,7 @@ const {
   updateStatusValidationRules,
   assignTicketValidationRules,
   addCommentValidationRules,
+  submitSatisfactionValidationRules,
   handleValidationErrors,
 } = require("../validators/ticketValidator");
 
@@ -88,6 +89,16 @@ router.patch(
   updateStatusValidationRules(),
   handleValidationErrors,
   asyncHandler(ticketController.updateTicketStatus)
+);
+
+// PATCH submit requester satisfaction
+router.patch(
+  "/:id/satisfaction",
+  authMiddleware,
+  mongoIdValidator,
+  submitSatisfactionValidationRules(),
+  handleValidationErrors,
+  asyncHandler(ticketController.submitSatisfaction)
 );
 
 // PATCH assign ticket with validation

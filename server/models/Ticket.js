@@ -98,6 +98,31 @@ const ticketSchema = new mongoose.Schema(
       default: null,
     },
 
+    satisfactionScore: {
+      type: Number,
+      min: 1,
+      max: 5,
+      default: null,
+    },
+
+    satisfactionComment: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+      default: "",
+    },
+
+    satisfactionSubmittedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    satisfactionSubmittedAt: {
+      type: Date,
+      default: null,
+    },
+
     updatedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

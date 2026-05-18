@@ -56,15 +56,80 @@ function isCreatedByUser(user, ticket) {
   return String(ticket.createdBy?._id || ticket.createdBy || "") === getUserId(user);
 }
 
+function isRequesterUser(user, ticket) {
+  return String(ticket.requesterUserId?._id || ticket.requesterUserId || "") === getUserId(user);
+}
+
+function isCompletedStatus(status) {
+  return ["resolved", "closed"].includes(status);
+}
+
 function canAccessTicket(user, ticket) {
   if (canManageTickets(user)) return true;
   if (getTicketHotelId(ticket) !== getUserHotelId(user)) return false;
-  return isAssignedToUser(user, ticket) || isCreatedByUser(user, ticket);
+  return isAssignedToUser(user, ticket) || isCreatedByUser(user, ticket) || isRequesterUser(user, ticket);
 }
 
 function canWorkOnTicket(user, ticket) {
   if (canManageTickets(user)) return true;
   return user?.role === "Agent" && isAssignedToUser(user, ticket);
+}
+
+function buildTicketVisibilityQuery(user) {
+  if (canManageTickets(user)) return {};
+
+  return {
+    $or: [
+      { createdBy: getUserId(user) },
+      { requesterUserId: getUserId(user) },
+      { assignedTo: getUserId(user) },
+    ],
+  };
+}
+
+function canSubmitSatisfaction(user, ticket) {
+  const userId = getUserId(user);
+  const requesterUserId = String(ticket.requesterUserId?._id || ticket.requesterUserId || "");
+  const fallbackCreatorId = String(ticket.createdBy?._id || ticket.createdBy || "");
+
+  return requesterUserId ? requesterUserId === userId : fallbackCreatorId === userId;
+}
+
+function applyResolvedAtForStatus(updateFields, existingTicket, status) {
+  if (!status) return;
+
+  if (isCompletedStatus(status)) {
+    updateFields.resolvedAt = existingTicket.resolvedAt || new Date();
+    return;
+  }
+
+  updateFields.resolvedAt = null;
+}
+
+function getCompletionStats(tickets) {
+  const completedTickets = tickets.filter((ticket) => isCompletedStatus(ticket.status));
+  const successEligibleTickets = completedTickets.filter(
+    (ticket) => ticket.resolvedAt && ticket.dueDate
+  );
+  const successfulTickets = successEligibleTickets.filter(
+    (ticket) => new Date(ticket.resolvedAt) <= new Date(ticket.dueDate)
+  );
+  const ratedTickets = tickets.filter((ticket) => Number(ticket.satisfactionScore) > 0);
+  const avgSatisfactionScore = ratedTickets.length
+    ? ratedTickets.reduce((sum, ticket) => sum + Number(ticket.satisfactionScore), 0) / ratedTickets.length
+    : 0;
+
+  return {
+    completedCount: completedTickets.length,
+    completionRate: tickets.length ? Math.round((completedTickets.length / tickets.length) * 100) : 0,
+    successfulCount: successfulTickets.length,
+    successEligibleCount: successEligibleTickets.length,
+    successRate: successEligibleTickets.length
+      ? Math.round((successfulTickets.length / successEligibleTickets.length) * 100)
+      : 0,
+    satisfactionCount: ratedTickets.length,
+    avgSatisfactionScore: Number(avgSatisfactionScore.toFixed(1)),
+  };
 }
 
 async function ensureProblemTypeName(name) {
@@ -159,9 +224,7 @@ async function resolveTicketHotelId(req) {
 async function getAllTickets(req, res) {
   try {
     const hotelScope = await buildHotelScopeQuery(req.user, req.query);
-    const visibilityQuery = canManageTickets(req.user)
-      ? {}
-      : { $or: [{ createdBy: getUserId(req.user) }, { assignedTo: getUserId(req.user) }] };
+    const visibilityQuery = buildTicketVisibilityQuery(req.user);
     const query = {
       ...hotelScope,
       ...visibilityQuery,
@@ -208,6 +271,7 @@ async function getInsights(req, res) {
     const hotelScope = await buildHotelScopeQuery(req.user, req.query);
     const tickets = await Ticket.find({
       ...hotelScope,
+      ...buildTicketVisibilityQuery(req.user),
       ...buildDateRangeQuery(req.query),
       ...(req.query.departmentId ? { departmentId: req.query.departmentId } : {}),
       ...(req.query.status ? { status: req.query.status } : {}),
@@ -257,6 +321,7 @@ async function getInsights(req, res) {
       },
       { open: 0, in_progress: 0, resolved: 0, closed: 0 }
     );
+    const completionStats = getCompletionStats(tickets);
 
     res.json({
       total,
@@ -265,6 +330,7 @@ async function getInsights(req, res) {
       topCategories,
       monthlyTrend,
       statusCounts,
+      ...completionStats,
     });
   } catch (error) {
     sendError(res, 500, "Failed to load insights", error);
@@ -454,7 +520,6 @@ async function updateTicket(req, res) {
       logDetails.push("Requester account updated");
     }
     if (category) {
-      const existingHotelId = getTicketHotelId(existingTicket);
       const problemType = await ensureProblemTypeName(category);
       if (!problemType.ok) {
         return res.status(problemType.status).json({ message: problemType.message });
@@ -499,14 +564,13 @@ async function updateTicket(req, res) {
 
       updateFields.assignedTo = assignedTo;
       updateFields.status = "in_progress";
+      applyResolvedAtForStatus(updateFields, existingTicket, "in_progress");
       logDetails.push("Assigned to user");
     }
     if (status) {
       updateFields.status = status;
       logDetails.push(`Status changed to ${status}`);
-      if (["resolved", "closed"].includes(status)) {
-        updateFields.resolvedAt = new Date();
-      }
+      applyResolvedAtForStatus(updateFields, existingTicket, status);
     }
 
     updateFields.updatedBy = req.user.id;
@@ -580,10 +644,7 @@ async function updateTicketStatus(req, res) {
       },
     };
 
-    // Set resolved timestamp if closing ticket
-    if (["resolved", "closed"].includes(status)) {
-      updateData.resolvedAt = new Date();
-    }
+    applyResolvedAtForStatus(updateData, existingTicket, status);
 
     // Update ticket
     const ticket = await Ticket.findOneAndUpdate({ _id: req.params.id, hotelId: getTicketHotelId(existingTicket) }, updateData, {
@@ -599,6 +660,59 @@ async function updateTicketStatus(req, res) {
     res.json(ticket);
   } catch (error) {
     sendError(res, 400, "Failed to update status", error);
+  }
+}
+
+/**
+ * Submit requester satisfaction
+ * PATCH /api/tickets/:id/satisfaction
+ */
+async function submitSatisfaction(req, res) {
+  try {
+    const { score, comment = "" } = req.body;
+    const existingTicket = await findScopedTicketById(req, req.params.id);
+    if (!existingTicket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+    if (!canAccessTicket(req.user, existingTicket)) {
+      return res.status(403).json({ message: "Ticket access denied" });
+    }
+    if (!isCompletedStatus(existingTicket.status)) {
+      return res.status(400).json({ message: "Satisfaction can only be submitted after the ticket is resolved or closed" });
+    }
+    if (!canSubmitSatisfaction(req.user, existingTicket)) {
+      return res.status(403).json({ message: "Only the ticket requester can submit satisfaction feedback" });
+    }
+    if (
+      existingTicket.satisfactionSubmittedBy &&
+      String(existingTicket.satisfactionSubmittedBy?._id || existingTicket.satisfactionSubmittedBy) !== getUserId(req.user)
+    ) {
+      return res.status(403).json({ message: "Satisfaction feedback was already submitted by another user" });
+    }
+
+    const ticket = await Ticket.findOneAndUpdate(
+      { _id: req.params.id, hotelId: getTicketHotelId(existingTicket) },
+      {
+        satisfactionScore: Number(score),
+        satisfactionComment: String(comment || "").trim(),
+        satisfactionSubmittedBy: req.user.id,
+        satisfactionSubmittedAt: new Date(),
+        updatedBy: req.user.id,
+        $push: {
+          activityLog: buildLogEntry("satisfaction", `Satisfaction score submitted: ${score}/5`, req.user.id),
+        },
+      },
+      { new: true, runValidators: true }
+    ).populate(TICKET_POPULATE_CONFIG);
+
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    auditLog("ticket.satisfaction_submitted", req, { ticketId: ticket._id, hotelId: ticket.hotelId, score });
+    res.json(ticket);
+  } catch (error) {
+    sendError(res, 400, "Failed to submit satisfaction", error);
   }
 }
 
@@ -634,6 +748,7 @@ async function assignTicket(req, res) {
       {
         assignedTo,
         status: "in_progress",
+        resolvedAt: null,
         updatedBy: req.user.id,
         $push: {
           activityLog: buildLogEntry("assigned", "Ticket assigned", req.user.id),
@@ -778,6 +893,7 @@ async function getSummaryTickets(req, res) {
     const hotelScope = await buildHotelScopeQuery(req.user, req.query);
     const query = {
       ...hotelScope,
+      ...buildTicketVisibilityQuery(req.user),
       ...buildDateRangeQuery(req.query),
     };
     if (req.query.status) query.status = req.query.status;
@@ -877,6 +993,7 @@ module.exports = {
   createTicket,
   updateTicket,
   updateTicketStatus,
+  submitSatisfaction,
   assignTicket,
   addComment,
   uploadAttachment,
