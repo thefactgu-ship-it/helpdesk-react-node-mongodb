@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "db:fix-problem-type-indexes": "node scripts/ensureProblemTypeIndexes.js",
     "dev": "nodemon index.js",
     "start": "node index.js"
   },

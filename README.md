@@ -13,6 +13,7 @@ The app supports helpdesk ticket workflows, dashboard analytics, reports, asset 
 - Monthly, quarterly, and yearly reports using all ticket data for authenticated users
 - Asset Management with lifecycle fields, age calculation, recommendation status, detail modal, and admin-only create/edit/delete
 - User Management with admin-only create/edit/delete and password-safe user listing
+- Admin-only account creation from User Management; login no longer exposes public registration or social-login mockups
 - Self-service Profile page for all users with profile update and current-password-protected password change
 - Sidebar user-card menu for Update Profile, Change Password, and Logout
 - Problem Types page with admin-only create/delete and Add Ticket integration
@@ -215,6 +216,7 @@ Tickets can only be assigned by Admin or Manager. Assignment targets must be sta
 - User API responses exclude password fields.
 - `JWT_SECRET` must be strong; production should use at least 32 random characters.
 - `ADMIN_PASSWORD` must be set to at least 12 characters in production.
+- Forgotten passwords are reset by an administrator from User Management. The login screen shows a reset hint instead of public self-service registration.
 - Production 500 errors avoid returning internal error details.
 - Every hotel-scoped API filters by authorized hotel access on the backend; frontend filters are convenience controls only.
 - User, hotel, ticket, and asset changes emit structured `[AUDIT]` logs with request IDs.
@@ -304,6 +306,7 @@ Server:
 ```bash
 npm run dev
 npm start
+npm run db:fix-problem-type-indexes
 ```
 
 Backend syntax check examples:
@@ -323,6 +326,17 @@ npm audit --audit-level=low
 cd ../server
 npm audit --audit-level=low
 ```
+
+## Production Database Maintenance
+
+For existing MongoDB Atlas databases, run the Problem Type index repair script once after deploying the current backend:
+
+```bash
+cd server
+MONGO_URI="your-atlas-uri" npm run db:fix-problem-type-indexes
+```
+
+The script checks for duplicate problem types within the same hotel, ensures the unique `{ hotelId: 1, name: 1 }` index, and drops only the legacy unique `{ name: 1 }` index if it exists. In Atlas, confirm `problemtypes` no longer has a unique `name_1` index and does have unique `hotelId_1_name_1`.
 
 ## Validation Status
 

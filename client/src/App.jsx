@@ -271,18 +271,6 @@ function App() {
     }
   };
 
-  const handleRegister = async (registerForm) => {
-    try {
-      await axios.post(`${AUTH_URL}/register`, registerForm);
-      toast.success("Account created. Please log in.");
-      return true;
-    } catch (error) {
-      console.error("Register failed", error);
-      toast.error(getErrorMessage(error, "Register failed"));
-      return false;
-    }
-  };
-
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -732,7 +720,7 @@ function App() {
     return (
       <>
         <Toaster position="top-right" />
-        <LoginPage onLogin={handleLogin} onRegister={handleRegister} />
+        <LoginPage onLogin={handleLogin} />
       </>
     );
   }

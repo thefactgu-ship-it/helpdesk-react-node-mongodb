@@ -40,6 +40,10 @@ async function createProblemType(req, res) {
     await problemType.populate({ path: "createdBy", select: "name email role team hotelId" });
     res.status(201).json(problemType);
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(400).json({ message: "Problem type already exists for this hotel" });
+    }
+
     sendError(res, 400, "Failed to create problem type", error);
   }
 }
