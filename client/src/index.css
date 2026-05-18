@@ -2,6 +2,36 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background: #f8fafc;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button,
+  [role="button"],
+  input,
+  select,
+  textarea {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-violet-300 dark:focus-visible:ring-offset-slate-950;
+  }
+
+  button,
+  [role="button"] {
+    @apply min-h-11;
+  }
+}
+
 .bg-conic-gradient {
   background: conic-gradient(#2563eb 0 35%, #7c3aed 35% 70%, #10b981 70% 100%);
 }

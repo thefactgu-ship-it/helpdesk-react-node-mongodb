@@ -90,7 +90,7 @@ function UserManagement({
 
   return (
     <div className="space-y-6">
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40">
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
         <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
             <h3 className="text-xl font-black text-slate-950 dark:text-white">
@@ -226,7 +226,7 @@ function UserManagement({
         </form>
       </section>
 
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40">
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
         <div className="mb-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -264,7 +264,67 @@ function UserManagement({
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="grid gap-3 md:hidden">
+          {visibleUsers.map((user) => {
+            const userId = user._id || user.id;
+            const isSelf = userId === currentUser?.id || userId === currentUser?._id;
+
+            return (
+              <article
+                key={userId}
+                className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h4 className="break-words text-base font-black text-slate-950 dark:text-white">
+                      {user.name}
+                    </h4>
+                    <p className="mt-1 break-words text-sm text-slate-500 dark:text-slate-400">
+                      {user.email}
+                    </p>
+                  </div>
+                  <RoleBadge role={user.role} />
+                </div>
+
+                <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                  <MobileMeta label="Team" value={user.departmentId?.name || user.departmentName || user.team || "-"} />
+                  <MobileMeta label="Hotel" value={user.hotelId?.code || user.hotelId?.name || "-"} />
+                  <MobileMeta
+                    label="Created"
+                    value={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}
+                  />
+                  <MobileMeta label="Account" value={isSelf ? "Current user" : "Managed"} />
+                </dl>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => startEdit(user)}
+                    className="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSelf || deletingUserId === userId}
+                    onClick={() => onDeleteUser(userId)}
+                    className="rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
+                  >
+                    {deletingUserId === userId ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </article>
+            );
+          })}
+
+          {!visibleUsers.length && (
+            <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500 dark:border-slate-700">
+              No users found
+            </div>
+          )}
+        </div>
+
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
@@ -373,6 +433,19 @@ function RoleBadge({ role }) {
     >
       {role}
     </span>
+  );
+}
+
+function MobileMeta({ label, value }) {
+  return (
+    <div className="rounded-lg bg-white p-3 dark:bg-slate-950">
+      <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+        {label}
+      </dt>
+      <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
+        {value}
+      </dd>
+    </div>
   );
 }
 

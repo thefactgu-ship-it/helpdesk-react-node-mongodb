@@ -125,7 +125,7 @@ function DepartmentManagementPage({
         onConfirm={confirmDeactivate}
       />
 
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40">
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
         <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-violet-600 dark:text-violet-300">
           System
         </p>
@@ -138,7 +138,7 @@ function DepartmentManagementPage({
       </section>
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40 xl:col-span-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6 xl:col-span-5">
           <div className="mb-5 flex items-start justify-between gap-4">
             <div>
               <h4 className="text-lg font-black text-slate-950 dark:text-white">
@@ -230,7 +230,7 @@ function DepartmentManagementPage({
           </form>
         </div>
 
-        <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40 xl:col-span-7">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6 xl:col-span-7">
           <div className="mb-5">
             <h4 className="text-lg font-black text-slate-950 dark:text-white">
               Departments
@@ -240,7 +240,64 @@ function DepartmentManagementPage({
             </p>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className="grid gap-3 md:hidden">
+            {departments.map((department) => {
+              const departmentId = department._id || department.id;
+              const isActive = department.active !== false;
+
+              return (
+                <article
+                  key={departmentId}
+                  className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h4 className="break-words text-base font-black text-slate-950 dark:text-white">
+                        {department.name}
+                      </h4>
+                      <p className="mt-1 text-sm font-bold text-violet-700 dark:text-violet-300">
+                        {department.code}
+                      </p>
+                    </div>
+                    <StatusBadge active={isActive} />
+                  </div>
+
+                  <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                    <MobileMeta label="Hotel" value={department.hotelId?.code || department.hotelId?.name || "-"} />
+                    <MobileMeta label="Sort" value={department.sortOrder ?? 100} />
+                  </dl>
+
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => startEdit(department)}
+                      className="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                    >
+                      Edit
+                    </button>
+                    {isActive && (
+                      <button
+                        type="button"
+                        disabled={deletingId === departmentId}
+                        onClick={() => setPendingDeleteId(departmentId)}
+                        className="rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
+                      >
+                        {deletingId === departmentId ? "Saving..." : "Deactivate"}
+                      </button>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
+
+            {!departments.length && (
+              <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500 dark:border-slate-700">
+                No departments found
+              </div>
+            )}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
@@ -344,6 +401,19 @@ function StatusBadge({ active }) {
     >
       {active ? "Active" : "Inactive"}
     </span>
+  );
+}
+
+function MobileMeta({ label, value }) {
+  return (
+    <div className="rounded-lg bg-white p-3 dark:bg-slate-950">
+      <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+        {label}
+      </dt>
+      <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
+        {value}
+      </dd>
+    </div>
   );
 }
 

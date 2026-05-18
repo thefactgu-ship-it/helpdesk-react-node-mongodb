@@ -114,7 +114,7 @@ function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
   );
 
   return (
-    <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40">
+    <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
       <ConfirmModal
         open={!!deleteTypeId}
         title="Delete Problem Type"
@@ -180,7 +180,7 @@ function ProblemTypesPage({ currentUser, hotelId = "all", token }) {
           return (
             <div
               key={typeId || type.name}
-              className="rounded-2xl border border-violet-100 bg-violet-50/60 p-4 dark:border-violet-500/20 dark:bg-violet-500/10"
+              className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">

@@ -752,8 +752,8 @@ function App() {
         onUploadAttachment={uploadTicketAttachment}
         canUploadAttachment={canUploadSelectedTicketAttachment}
       />
-      <div className="min-h-screen bg-gradient-to-br from-violet-100 via-white to-purple-100 p-4 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 dark:text-white md:p-6">
-        <div className="mx-auto flex max-w-7xl flex-col overflow-hidden rounded-[2rem] border border-white/70 bg-white/90 shadow-2xl backdrop-blur dark:border-slate-800 dark:bg-slate-900/90 md:flex-row">
+      <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-white md:p-6">
+        <div className="mx-auto flex min-h-screen max-w-7xl flex-col bg-white dark:bg-slate-900 md:min-h-[calc(100vh-3rem)] md:overflow-hidden md:rounded-2xl md:border md:border-slate-200 md:shadow-xl md:dark:border-slate-800 md:flex-row">
           <Sidebar
             activePage={activePage}
             currentUser={currentUser}
@@ -762,7 +762,7 @@ function App() {
             onOpenPassword={() => openProfilePage("password")}
             onOpenProfile={() => openProfilePage("profile")}
           />
-          <main className="min-h-[calc(100vh-3rem)] flex-1 bg-slate-50/90 p-5 dark:bg-slate-900 md:p-6">
+          <main className="min-h-[calc(100vh-3rem)] flex-1 bg-slate-50/90 p-4 pb-28 dark:bg-slate-900 md:p-6">
             <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{currentPageMeta.title}</h2>
@@ -771,7 +771,7 @@ function App() {
                 </p>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col gap-3 sm:flex-row">
                 {canSelectHotel && (
                   <ThemedSelect
                     className="w-full min-w-[15rem] sm:w-72"

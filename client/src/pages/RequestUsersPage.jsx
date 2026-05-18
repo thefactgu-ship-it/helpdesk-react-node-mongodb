@@ -29,7 +29,7 @@ function RequestUsersPage({ users }) {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40">
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
         <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-violet-600 dark:text-violet-300">
           System
         </p>
@@ -47,7 +47,7 @@ function RequestUsersPage({ users }) {
         <SummaryCard label="Visible" value={filteredRequesters.length} />
       </section>
 
-      <section className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40">
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
         <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <input
             type="text"
@@ -68,7 +68,47 @@ function RequestUsersPage({ users }) {
           />
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="grid gap-3 md:hidden">
+          {filteredRequesters.map((user) => (
+            <article
+              key={user._id || user.id}
+              className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h4 className="break-words text-base font-black text-slate-950 dark:text-white">
+                    {user.name}
+                  </h4>
+                  <p className="mt-1 break-words text-sm font-semibold text-violet-700 dark:text-violet-300">
+                    {user.email}
+                  </p>
+                </div>
+                <span className="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold text-violet-700 dark:bg-violet-500/20 dark:text-violet-200">
+                  {user.role}
+                </span>
+              </div>
+
+              <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                <MobileMeta
+                  label="Department"
+                  value={user.departmentId?.name || user.departmentName || user.team || "Support"}
+                />
+                <MobileMeta
+                  label="Created"
+                  value={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}
+                />
+              </dl>
+            </article>
+          ))}
+
+          {!filteredRequesters.length && (
+            <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500 dark:border-slate-700">
+              No requesters found
+            </div>
+          )}
+        </div>
+
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
@@ -134,6 +174,19 @@ function SummaryCard({ label, value }) {
       <h3 className="mt-4 text-2xl font-black text-slate-900 dark:text-white">
         {value}
       </h3>
+    </div>
+  );
+}
+
+function MobileMeta({ label, value }) {
+  return (
+    <div className="rounded-lg bg-white p-3 dark:bg-slate-950">
+      <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+        {label}
+      </dt>
+      <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
+        {value}
+      </dd>
     </div>
   );
 }

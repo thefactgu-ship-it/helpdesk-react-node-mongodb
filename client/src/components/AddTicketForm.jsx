@@ -36,6 +36,7 @@ function AddTicketForm({
             <Field label="Title" labelClass={labelClass}>
               <input
                 type="text"
+                required
                 placeholder="Ticket title"
                 value={form.title}
                 minLength={5}
@@ -52,6 +53,7 @@ function AddTicketForm({
             <Field label="Requester" labelClass={labelClass}>
               <input
                 type="text"
+                required
                 placeholder="Requester name"
                 value={form.requester}
                 minLength={2}
@@ -106,6 +108,11 @@ function AddTicketForm({
               {!loadingProblemTypes && !hasProblemTypes && (
                 <p className="text-xs font-semibold text-rose-600 dark:text-rose-300">
                   Ask an admin to add a problem type before creating tickets.
+                </p>
+              )}
+              {hasProblemTypes && !form.category && (
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Required. Choose the category that best matches the issue.
                 </p>
               )}
             </Field>
@@ -169,6 +176,7 @@ function AddTicketForm({
 
           <Field label="Brief Description of the Issue" labelClass={labelClass}>
             <textarea
+              required
               rows="4"
               placeholder="Add a short description"
               value={form.description}
@@ -198,7 +206,14 @@ function AddTicketForm({
 function Field({ children, label, labelClass }) {
   return (
     <div className="space-y-2">
-      <label className={labelClass}>{label}</label>
+      <label className={labelClass}>
+        {label}
+        {["Title", "Requester", "Issue Category", "Brief Description of the Issue"].includes(label) && (
+          <span className="ml-1 text-rose-500" aria-label="required">
+            *
+          </span>
+        )}
+      </label>
       {children}
     </div>
   );
