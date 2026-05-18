@@ -1,70 +1,3 @@
-import * as XLSX from "xlsx";
-
-export function exportReportExcel({
-  filename,
-  periodLabel,
-  report,
-  reportTitle,
-  scopeLabel,
-  tickets = [],
-}) {
-  const workbook = XLSX.utils.book_new();
-  const generatedAt = new Date().toLocaleString();
-  const statusSummary = report.statusSummary || countBy(tickets, "status").map(toNameValue);
-  const prioritySummary = report.prioritySummary || countBy(tickets, "priority").map(toNameValue);
-  const topCategories = report.topCategories || countBy(tickets, "category").slice(0, 10).map(toNameValue);
-
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.aoa_to_sheet([
-      ["Metric", "Value"],
-      ["Report", reportTitle],
-      ["Period", periodLabel],
-      ["Hotel Scope", scopeLabel],
-      ["Generated At", generatedAt],
-      ["Total Tickets", report.total ?? tickets.length],
-      ["Completion Rate", `${report.completionRate ?? 0}%`],
-      ["Completed Tickets", report.completedCount ?? report.resolved ?? 0],
-      ["Success Rate", `${report.successRate ?? 0}%`],
-      ["Success Detail", report.successDetail || "-"],
-      ["Open Tickets", report.open ?? 0],
-      ["Active Tickets", report.active ?? 0],
-      ["Overdue Tickets", report.overdue ?? 0],
-      ["Closed Tickets", report.closed ?? 0],
-      ["Avg. Resolve Hours", report.avgResolutionHours ?? 0],
-      ["Avg. Satisfaction", report.avgSatisfactionLabel || "-"],
-      ["Satisfaction Count", report.satisfactionCount ?? 0],
-    ]),
-    "Summary",
-  );
-
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.json_to_sheet(statusSummary.map((item) => ({ Status: item.name, Tickets: item.value }))),
-    "Status",
-  );
-
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.json_to_sheet(prioritySummary.map((item) => ({ Priority: item.name, Tickets: item.value }))),
-    "Priority",
-  );
-
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.json_to_sheet(topCategories.map((item) => ({ Category: item.name, Tickets: item.value }))),
-    "Top Categories",
-  );
-
-  XLSX.utils.book_append_sheet(
-    workbook,
-    XLSX.utils.json_to_sheet(tickets.map(toRawTicketRow)),
-    "Raw Tickets",
-  );
-
-  XLSX.writeFile(workbook, ensureExtension(filename, "xlsx"));
-}
-
 export function exportReportPrompt({
   filename,
   periodLabel,
@@ -110,7 +43,7 @@ function buildExecutivePrompt({
   statusSummary,
   topCategories,
 }) {
-  return `คุณคือที่ปรึกษา IT Operations สำหรับกลุ่มโรงแรม ช่วยเขียนรายงานผู้บริหารจากไฟล์ Excel/CSV ที่แนบเท่านั้น ห้ามแต่งข้อมูลเพิ่มเอง และถ้าข้อมูลไม่พอให้ระบุว่า "ข้อมูลไม่เพียงพอ"
+  return `คุณคือที่ปรึกษา IT Operations สำหรับกลุ่มโรงแรม ช่วยเขียนรายงานผู้บริหารจากข้อมูล report และ ticket ที่แนบหรือ paste ไปพร้อม prompt นี้เท่านั้น ห้ามแต่งข้อมูลเพิ่มเอง และถ้าข้อมูลไม่พอให้ระบุว่า "ข้อมูลไม่เพียงพอ"
 
 บริบทของรายงาน
 - ชื่อรายงาน: ${reportTitle}
@@ -125,7 +58,7 @@ function buildExecutivePrompt({
 - Avg. Resolve Hours: ${report.avgResolutionHours ?? 0}
 - Avg. Satisfaction: ${report.avgSatisfactionLabel || "-"} จาก ${report.satisfactionCount ?? 0} ratings
 
-ภาพรวมข้อมูลในไฟล์
+ภาพรวมข้อมูลใน report
 - Status Summary: ${formatNameValueList(statusSummary)}
 - Priority Summary: ${formatNameValueList(prioritySummary)}
 - Top Categories: ${formatNameValueList(topCategories)}
@@ -134,35 +67,16 @@ function buildExecutivePrompt({
 1. Executive Summary แบบกระชับ 3-5 bullet
 2. KPI Highlights: Completion Rate, Success Rate, SLA/on-time context, Satisfaction Score
 3. Risks & Attention Points: ประเด็นที่ควรระวังจาก overdue, priority, category, hotel/department
-4. Root-cause Themes: วิเคราะห์แนวโน้มจาก category/comment/title ใน Raw Tickets
+4. Root-cause Themes: วิเคราะห์แนวโน้มจาก category/comment/title ในข้อมูล ticket
 5. Hotel / Department Focus: ชี้จุดที่ควรโฟกัสตามข้อมูลจริง
 6. Recommendations: ข้อเสนอเชิงปฏิบัติสำหรับ IT/helpdesk
 7. Next Actions: งานต่อไปแบบ 30/60/90 วัน
 
 ข้อกำชับ
-- อ้างอิงเฉพาะตัวเลขและรายการในไฟล์ที่แนบ
+- อ้างอิงเฉพาะตัวเลขและรายการในข้อมูล report/ticket ที่ให้มา
 - อย่าสรุปเกินข้อมูลจริง
 - ถ้าต้องตั้งสมมติฐานให้แยกหัวข้อ "Assumptions" ชัดเจน
 - ใช้น้ำเสียงมืออาชีพ เหมาะสำหรับส่งต่อผู้บริหารโรงแรม`;
-}
-
-function toRawTicketRow(ticket) {
-  return {
-    Ticket: ticket.ticketNumber || ticket._id || ticket.id || "",
-    Title: ticket.title || "",
-    Hotel: getEntityLabel(ticket.hotelId) || ticket.hotelCode || "",
-    Department: getEntityLabel(ticket.departmentId) || ticket.departmentName || ticket.department || "",
-    Category: ticket.category || "",
-    Priority: ticket.priority || "",
-    Status: ticket.status || "",
-    Requester: getEntityLabel(ticket.requesterUserId) || ticket.requesterName || ticket.createdByName || "",
-    AssignedTo: getEntityLabel(ticket.assignedTo) || "",
-    CreatedAt: formatDateTime(ticket.createdAt),
-    DueDate: formatDateTime(ticket.dueDate),
-    ResolvedAt: formatDateTime(ticket.resolvedAt),
-    SatisfactionScore: ticket.satisfactionScore || "",
-    SatisfactionComment: ticket.satisfactionComment || "",
-  };
 }
 
 function countBy(items, key) {
@@ -183,15 +97,6 @@ function formatNameValueList(items) {
   return items.length
     ? items.map((item) => `${item.name}: ${item.value}`).join(", ")
     : "-";
-}
-
-function getEntityLabel(entity) {
-  if (!entity || typeof entity === "string") return "";
-  return [entity.code, entity.name, entity.email].filter(Boolean).join(" / ");
-}
-
-function formatDateTime(value) {
-  return value ? new Date(value).toLocaleString() : "";
 }
 
 function capitalize(value) {
