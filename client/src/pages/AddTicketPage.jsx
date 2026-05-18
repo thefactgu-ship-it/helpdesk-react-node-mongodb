@@ -1,104 +1,177 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 import AddTicketForm from "../components/AddTicketForm";
 import { getProblemTypes } from "../services/problemTypeService";
 
 function AddTicketPage({
-  canAssignTickets,
   form,
   handleSubmit,
   setForm,
   submitting,
-  users,
   token,
   hotelId = "all",
   currentUser,
   departments = [],
 }) {
   const [problemTypes, setProblemTypes] = useState([]);
-  const [loadingProblemTypes, setLoadingProblemTypes] = useState(false);
-  const [problemTypesLoaded, setProblemTypesLoaded] = useState(false);
+  const [loadingProblemTypes, setLoadingProblemTypes] = useState(Boolean(token));
+
+  const activeDepartments = useMemo(
+    () => departments.filter((department) => department.active !== false),
+    [departments],
+  );
+  const userDepartmentId = currentUser?.departmentId?._id || currentUser?.departmentId || "";
+  const summaryDepartment = activeDepartments.find(
+    (department) =>
+      (department._id || department.id) === (form.departmentId || userDepartmentId) ||
+      department.name === form.department ||
+      department.name === currentUser?.departmentName ||
+      department.name === currentUser?.team,
+  );
+  const submissionSummary = {
+    requester: form.requester || currentUser?.name || "Current user",
+    department:
+      form.department ||
+      summaryDepartment?.name ||
+      currentUser?.departmentName ||
+      currentUser?.team ||
+      "IT",
+    priority: "Medium",
+  };
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) return undefined;
+
+    let ignore = false;
 
     const loadProblemTypes = async () => {
       try {
-        setLoadingProblemTypes(true);
         const types = await getProblemTypes(
           token,
           hotelId && hotelId !== "all" ? { hotelId } : undefined,
         );
-        setProblemTypes(types || []);
+        if (!ignore) setProblemTypes(types || []);
       } catch (error) {
         console.error("Failed to load problem types", error);
-        setProblemTypes([]);
-        toast.error("Unable to load issue categories");
+        if (!ignore) {
+          setProblemTypes([]);
+          toast.error("Unable to load issue categories");
+        }
       } finally {
-        setProblemTypesLoaded(true);
-        setLoadingProblemTypes(false);
+        if (!ignore) setLoadingProblemTypes(false);
       }
     };
 
     loadProblemTypes();
+
+    return () => {
+      ignore = true;
+    };
   }, [hotelId, token]);
 
   useEffect(() => {
-    if (!problemTypesLoaded) return;
+    if (!token) return undefined;
 
-    const activeTypes = problemTypes.filter((type) => type.active !== false);
-    const currentCategoryExists = activeTypes.some(
-      (type) => type.name === form.category,
-    );
-    const nextCategory = currentCategoryExists ? form.category : activeTypes[0]?.name || "";
+    let ignore = false;
 
-    if (nextCategory !== form.category) {
-      setForm((currentForm) => ({
-        ...currentForm,
-        category: nextCategory,
-      }));
-    }
-  }, [form.category, problemTypes, problemTypesLoaded, setForm]);
+    const setDefaultCategory = async () => {
+      const activeTypes = problemTypes.filter((type) => type.active !== false);
+      const currentCategoryExists = activeTypes.some((type) => type.name === form.category);
+
+      await Promise.resolve();
+
+      if (ignore || form.category || currentCategoryExists) return;
+
+      const nextCategory = activeTypes[0]?.name || "";
+      if (nextCategory) {
+        setForm((currentForm) => ({
+          ...currentForm,
+          category: currentForm.category || nextCategory,
+        }));
+      }
+    };
+
+    setDefaultCategory();
+
+    return () => {
+      ignore = true;
+    };
+  }, [form.category, problemTypes, setForm, token]);
 
   useEffect(() => {
-    setForm((currentForm) => {
-      const nextRequester = currentForm.requester || currentUser?.name || "";
-      const nextRequesterUserId = currentForm.requesterUserId || currentUser?.id || currentUser?._id || "";
-      const nextDepartmentId =
-        currentForm.departmentId ||
-        currentUser?.departmentId?._id ||
-        currentUser?.departmentId ||
-        "";
-      const department = departments.find(
-        (item) =>
-          (item._id || item.id) === nextDepartmentId ||
-          item.name === currentForm.department ||
-          item.name === currentUser?.departmentName ||
-          item.name === currentUser?.team,
-      );
-      const resolvedDepartmentId = department?._id || department?.id || nextDepartmentId;
+    if (!currentUser) return undefined;
 
-      return {
-        ...currentForm,
-        requester: nextRequester,
-        requesterUserId: nextRequesterUserId,
-        departmentId: resolvedDepartmentId,
-        department: currentForm.department || department?.name || currentUser?.departmentName || currentUser?.team || "IT",
-      };
-    });
-  }, [currentUser, departments, setForm]);
+    let ignore = false;
+
+    const syncHiddenDefaults = async () => {
+      await Promise.resolve();
+
+      if (ignore) return;
+
+      setForm((currentForm) => {
+        const nextRequester = currentForm.requester || currentUser?.name || "";
+        const nextRequesterUserId = currentForm.requesterUserId || currentUser?.id || currentUser?._id || "";
+        const nextDepartmentId =
+          currentForm.departmentId ||
+          currentUser?.departmentId?._id ||
+          currentUser?.departmentId ||
+          "";
+        const department = activeDepartments.find(
+          (item) =>
+            (item._id || item.id) === nextDepartmentId ||
+            item.name === currentForm.department ||
+            item.name === currentUser?.departmentName ||
+            item.name === currentUser?.team,
+        );
+        const resolvedDepartmentId = department?._id || department?.id || nextDepartmentId;
+        const nextDepartment =
+          currentForm.department ||
+          department?.name ||
+          currentUser?.departmentName ||
+          currentUser?.team ||
+          "IT";
+
+        if (
+          currentForm.requester === nextRequester &&
+          currentForm.requesterUserId === nextRequesterUserId &&
+          currentForm.departmentId === resolvedDepartmentId &&
+          currentForm.department === nextDepartment &&
+          currentForm.priority === "medium" &&
+          currentForm.assignedTo === "" &&
+          currentForm.dueDate === ""
+        ) {
+          return currentForm;
+        }
+
+        return {
+          ...currentForm,
+          requester: nextRequester,
+          requesterUserId: nextRequesterUserId,
+          departmentId: resolvedDepartmentId,
+          department: nextDepartment,
+          priority: "medium",
+          assignedTo: "",
+          dueDate: "",
+        };
+      });
+    };
+
+    syncHiddenDefaults();
+
+    return () => {
+      ignore = true;
+    };
+  }, [activeDepartments, currentUser, setForm]);
 
   return (
     <AddTicketForm
-      canAssignTickets={canAssignTickets}
       form={form}
       setForm={setForm}
       handleSubmit={handleSubmit}
       submitting={submitting}
-      users={users}
       problemTypes={problemTypes}
       loadingProblemTypes={loadingProblemTypes}
-      departments={departments}
+      submissionSummary={submissionSummary}
     />
   );
 }

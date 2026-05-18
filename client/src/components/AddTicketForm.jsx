@@ -1,22 +1,19 @@
 import ThemedSelect from "./ThemedSelect";
 
 function AddTicketForm({
-  canAssignTickets = false,
   form,
   setForm,
   handleSubmit,
   submitting,
-  users,
   problemTypes = [],
   loadingProblemTypes = false,
-  departments = [],
+  submissionSummary,
 }) {
   const fieldClass =
     "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-900";
   const labelClass = "text-sm font-semibold text-slate-700 dark:text-slate-300";
 
   const categoryOptions = problemTypes.filter((type) => type.active !== false);
-  const departmentOptions = departments.filter((department) => department.active !== false);
   const hasProblemTypes = categoryOptions.length > 0;
 
   return (
@@ -32,7 +29,7 @@ function AddTicketForm({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-5">
             <Field label="Title" labelClass={labelClass}>
               <input
                 type="text"
@@ -49,46 +46,6 @@ function AddTicketForm({
                 Minimum 5 characters.
               </p>
             </Field>
-
-            <Field label="Requester" labelClass={labelClass}>
-              <input
-                type="text"
-                required
-                placeholder="Requester name"
-                value={form.requester}
-                minLength={2}
-                maxLength={100}
-                disabled={submitting}
-                onChange={(e) =>
-                  setForm({ ...form, requester: e.target.value, requesterUserId: "" })
-                }
-                className={fieldClass}
-              />
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Minimum 2 characters.
-              </p>
-            </Field>
-
-            {canAssignTickets && (
-              <Field label="Assigned To" labelClass={labelClass}>
-                <ThemedSelect
-                  value={form.assignedTo}
-                  disabled={submitting}
-                  onChange={(value) => setForm({ ...form, assignedTo: value })}
-                  options={[
-                    { value: "", label: "Unassigned", prefix: "-" },
-                    ...users
-                      .filter((user) => user.role !== "User")
-                      .map((user) => ({
-                        value: user._id,
-                        label: user.name,
-                        meta: user.role,
-                        prefix: getInitials(user.name),
-                      })),
-                  ]}
-                />
-              </Field>
-            )}
 
             <Field label="Issue Category" labelClass={labelClass}>
               <ThemedSelect
@@ -116,62 +73,6 @@ function AddTicketForm({
                 </p>
               )}
             </Field>
-
-            <Field label="Urgency Level" labelClass={labelClass}>
-              <ThemedSelect
-                value={form.priority}
-                disabled={submitting}
-                onChange={(value) => setForm({ ...form, priority: value })}
-                options={[
-                  { value: "low", label: "Low", meta: "72 hour SLA", prefix: "L" },
-                  { value: "medium", label: "Medium", meta: "24 hour SLA", prefix: "M" },
-                  { value: "high", label: "High", meta: "8 hour SLA", prefix: "H" },
-                  { value: "critical", label: "Critical", meta: "4 hour SLA", prefix: "C" },
-                ]}
-              />
-            </Field>
-
-            <Field label="Department" labelClass={labelClass}>
-              <ThemedSelect
-                value={form.departmentId || form.department}
-                disabled={submitting}
-                onChange={(value) => {
-                  const department = departmentOptions.find(
-                    (item) => (item._id || item.id) === value,
-                  );
-                  setForm({
-                    ...form,
-                    departmentId: department ? value : "",
-                    department: department?.name || value,
-                  });
-                }}
-                options={[
-                  ...departmentOptions.map((department) => ({
-                    value: department._id || department.id,
-                    label: department.name,
-                    meta: department.code,
-                    prefix: department.code || department.name.slice(0, 2).toUpperCase(),
-                  })),
-                  ...(!departmentOptions.length
-                    ? ["IT", "HR", "Finance", "Operations"].map((department) => ({
-                        value: department,
-                        label: department,
-                        prefix: department.slice(0, 2).toUpperCase(),
-                      }))
-                    : []),
-                ]}
-              />
-            </Field>
-
-            <Field label="Due Date" labelClass={labelClass}>
-              <input
-                type="datetime-local"
-                value={form.dueDate}
-                disabled={submitting}
-                onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-                className={fieldClass}
-              />
-            </Field>
           </div>
 
           <Field label="Brief Description of the Issue" labelClass={labelClass}>
@@ -187,6 +88,17 @@ function AddTicketForm({
               className={`${fieldClass} min-h-28 resize-y`}
             />
           </Field>
+
+          <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-500/20 dark:bg-blue-500/10">
+            <p className="text-xs font-bold uppercase tracking-wide text-blue-700 dark:text-blue-200">
+              Ticket details filled automatically
+            </p>
+            <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+              <SummaryItem label="Requester" value={submissionSummary?.requester} />
+              <SummaryItem label="Department" value={submissionSummary?.department} />
+              <SummaryItem label="Priority" value={submissionSummary?.priority} />
+            </dl>
+          </div>
 
           <div className="flex justify-center pt-2">
             <button
@@ -208,7 +120,7 @@ function Field({ children, label, labelClass }) {
     <div className="space-y-2">
       <label className={labelClass}>
         {label}
-        {["Title", "Requester", "Issue Category", "Brief Description of the Issue"].includes(label) && (
+        {["Title", "Issue Category", "Brief Description of the Issue"].includes(label) && (
           <span className="ml-1 text-rose-500" aria-label="required">
             *
           </span>
@@ -219,14 +131,17 @@ function Field({ children, label, labelClass }) {
   );
 }
 
-function getInitials(name) {
-  return String(name || "U")
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
+function SummaryItem({ label, value }) {
+  return (
+    <div className="rounded-xl bg-white px-3 py-2 shadow-sm dark:bg-slate-900">
+      <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+        {label}
+      </dt>
+      <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
+        {value || "-"}
+      </dd>
+    </div>
+  );
 }
 
 export default AddTicketForm;

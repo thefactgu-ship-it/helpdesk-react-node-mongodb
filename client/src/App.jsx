@@ -243,6 +243,24 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const requesterName = form.requester.trim() || currentUser?.name || "";
+    const requesterUserId = form.requesterUserId || currentUser?._id || currentUser?.id || "";
+    const userDepartmentId = currentUser?.departmentId?._id || currentUser?.departmentId || "";
+    const selectedDepartment = departments.find(
+      (department) =>
+        (department._id || department.id) === (form.departmentId || userDepartmentId) ||
+        department.name === form.department ||
+        department.name === currentUser?.departmentName ||
+        department.name === currentUser?.team,
+    );
+    const departmentId = form.departmentId || selectedDepartment?._id || selectedDepartment?.id || "";
+    const departmentName =
+      form.department.trim() ||
+      selectedDepartment?.name ||
+      currentUser?.departmentName ||
+      currentUser?.team ||
+      "IT";
+    const priority = form.priority || "medium";
 
     if (!form.title.trim()) {
       toast.error("Ticket title is required");
@@ -252,11 +270,11 @@ function App() {
       toast.error("Title must be at least 5 characters");
       return;
     }
-    if (!form.requester.trim()) {
+    if (!requesterUserId && !requesterName) {
       toast.error("Requester is required");
       return;
     }
-    if (form.requester.trim().length < 2) {
+    if (!requesterUserId && requesterName.length < 2) {
       toast.error("Requester must be at least 2 characters");
       return;
     }
@@ -273,11 +291,12 @@ function App() {
           ...form,
           title: form.title.trim(),
           description: form.description.trim(),
-          requester: form.requester.trim(),
-          requesterUserId: form.requesterUserId || undefined,
+          requester: requesterName,
+          requesterUserId: requesterUserId || undefined,
           category: form.category.trim(),
-          departmentId: form.departmentId || undefined,
-          department: form.department.trim(),
+          departmentId: departmentId || undefined,
+          department: departmentName,
+          priority,
           assignedTo: canManageTickets ? form.assignedTo || undefined : undefined,
           dueDate: form.dueDate || undefined,
           hotelId: selectedHotelId !== "all" ? selectedHotelId : undefined,
