@@ -65,8 +65,28 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
   }, [scopedParams, token]);
 
   useEffect(() => {
-    fetchAssets();
-  }, [fetchAssets]);
+    if (!token) return undefined;
+
+    let ignore = false;
+
+    const loadAssets = async () => {
+      try {
+        const data = await getAssets(token, scopedParams);
+        if (!ignore) setAssets(data);
+      } catch (error) {
+        console.error("Failed to load assets", error);
+        toast.error(getErrorMessage(error, "Failed to load assets"));
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    loadAssets();
+
+    return () => {
+      ignore = true;
+    };
+  }, [scopedParams, token]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();

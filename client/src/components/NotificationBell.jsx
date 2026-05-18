@@ -10,7 +10,7 @@ function NotificationBell({ token, onOpenTicket }) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(Boolean(token));
   const [mobilePanelStyle, setMobilePanelStyle] = useState({});
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
@@ -45,9 +45,30 @@ function NotificationBell({ token, onOpenTicket }) {
   }, []);
 
   useEffect(() => {
+    if (!token) return undefined;
 
-    fetchNotifications();
-  }, [fetchNotifications]);
+    let ignore = false;
+
+    const loadNotifications = async () => {
+      try {
+        const body = await getNotifications(token, { limit: 20 });
+        if (ignore) return;
+
+        setNotifications(body.data || []);
+        setUnreadCount(body.unreadCount || 0);
+      } catch (error) {
+        console.error("Failed to load notifications", error);
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    loadNotifications();
+
+    return () => {
+      ignore = true;
+    };
+  }, [token]);
 
   useEffect(() => {
     if (!token) return undefined;

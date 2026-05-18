@@ -41,8 +41,28 @@ function ProblemTypesPage({ currentUser, token }) {
   }, [token]);
 
   useEffect(() => {
-    fetchProblemTypes();
-  }, [fetchProblemTypes]);
+    if (!token) return undefined;
+
+    let ignore = false;
+
+    const loadProblemTypes = async () => {
+      try {
+        const data = await getProblemTypes(token);
+        if (!ignore) setProblemTypes(data);
+      } catch (error) {
+        console.error("Failed to load problem types", error);
+        toast.error(getErrorMessage(error, "Failed to load problem types"));
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    loadProblemTypes();
+
+    return () => {
+      ignore = true;
+    };
+  }, [token]);
 
   const addProblemType = async (event) => {
     event.preventDefault();

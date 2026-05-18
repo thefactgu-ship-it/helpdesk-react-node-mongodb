@@ -16,35 +16,45 @@ function TicketDetailModal({
   onUploadAttachment,
   canUploadAttachment = false,
 }) {
+  if (!open || !ticket) {
+    return null;
+  }
+
+  return (
+    <TicketDetailModalContent
+      key={ticket._id || ticket.id}
+      ticket={ticket}
+      currentUser={currentUser}
+      onClose={onClose}
+      onComment={onComment}
+      onSatisfaction={onSatisfaction}
+      onUploadAttachment={onUploadAttachment}
+      canUploadAttachment={canUploadAttachment}
+    />
+  );
+}
+
+function TicketDetailModalContent({
+  ticket,
+  currentUser,
+  onClose,
+  onComment,
+  onSatisfaction,
+  onUploadAttachment,
+  canUploadAttachment,
+}) {
   const [comment, setComment] = useState("");
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState("");
-  const [satisfactionScore, setSatisfactionScore] = useState("");
-  const [satisfactionComment, setSatisfactionComment] = useState("");
+  const [satisfactionScore, setSatisfactionScore] = useState(
+    ticket.satisfactionScore ? String(ticket.satisfactionScore) : "",
+  );
+  const [satisfactionComment, setSatisfactionComment] = useState(
+    ticket.satisfactionComment || "",
+  );
   const [savingSatisfaction, setSavingSatisfaction] = useState(false);
 
   useEffect(() => {
-    if (!open) {
-
-      setComment("");
-      setFile(null);
-      setFileError("");
-      setSatisfactionScore("");
-      setSatisfactionComment("");
-    }
-  }, [open]);
-
-  useEffect(() => {
-    if (!open || !ticket) return;
-
-
-    setSatisfactionScore(ticket.satisfactionScore ? String(ticket.satisfactionScore) : "");
-    setSatisfactionComment(ticket.satisfactionComment || "");
-  }, [open, ticket]);
-
-  useEffect(() => {
-    if (!open) return;
-
     const closeOnEscape = (event) => {
       if (event.key === "Escape") onClose();
     };
@@ -56,11 +66,7 @@ function TicketDetailModal({
       document.removeEventListener("keydown", closeOnEscape);
       document.body.style.overflow = "";
     };
-  }, [onClose, open]);
-
-  if (!open || !ticket) {
-    return null;
-  }
+  }, [onClose]);
 
   const handleSubmitComment = async (e) => {
     e.preventDefault();

@@ -76,7 +76,7 @@ function App() {
   const [activePage, setActivePage] = useState("dashboard");
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(Boolean(token));
   const [submitting, setSubmitting] = useState(false);
   const [savingUser, setSavingUser] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -197,20 +197,6 @@ function App() {
       console.error("Failed to fetch departments", error);
     }
   }, [scopedParams, token]);
-
-  const fetchCurrentUser = useCallback(async () => {
-    if (!token || currentUser) return;
-
-    try {
-      const res = await axios.get(`${AUTH_URL}/me`, {
-        headers: authHeaders,
-      });
-      setCurrentUser(res.data);
-      localStorage.setItem("user", JSON.stringify(res.data));
-    } catch (error) {
-      console.error("Failed to fetch current user", error);
-    }
-  }, [authHeaders, currentUser, token]);
 
   const handleLogin = async (loginForm) => {
     try {
@@ -640,17 +626,6 @@ function App() {
     }
   };
 
-  useEffect(() => {
-    if (!token) return;
-
-    fetchCurrentUser();
-    fetchUsers();
-    fetchHotels();
-    fetchDepartments();
-    fetchTickets();
-    fetchSummaryTickets();
-  }, [fetchCurrentUser, fetchDepartments, fetchHotels, fetchUsers, fetchTickets, fetchSummaryTickets, token]);
-
   const isAdmin = adminRoles.includes(currentUser?.role);
   const canManageTickets = ticketManagerRoles.includes(currentUser?.role);
   const accessibleHotelIds = [...new Set(getUserHotelAccessIds(currentUser))];
@@ -663,26 +638,24 @@ function App() {
       (currentUser?.role === "Agent" &&
         getEntityId(selectedTicket?.assignedTo) === getEntityId(currentUser)));
 
-  useEffect(() => {
+  const visibleActivePage = useMemo(() => {
     if (
       (activePage === "user-management" && !isAdmin) ||
       (activePage === "request-users" && !isAdmin) ||
       (activePage === "hotels" && !["GroupAdmin", "Admin"].includes(currentUser?.role)) ||
       (activePage === "departments" && !ticketManagerRoles.includes(currentUser?.role))
     ) {
-
-      setActivePage("dashboard");
+      return "dashboard";
     }
+
+    if (activePage === "request-users" && isAdmin) {
+      return "user-management";
+    }
+
+    return activePage;
   }, [activePage, currentUser?.role, isAdmin]);
 
-  useEffect(() => {
-    if (activePage === "request-users" && isAdmin) {
-
-      setActivePage("user-management");
-    }
-  }, [activePage, isAdmin]);
-
-  const currentPageMeta = pageTitles[activePage] || pageTitles.dashboard;
+  const currentPageMeta = pageTitles[visibleActivePage] || pageTitles.dashboard;
   const pendingDeleteUser = users.find(
     (user) => user._id === deleteUserId || user.id === deleteUserId,
   );
@@ -693,10 +666,92 @@ function App() {
     tickets,
   });
 
-  useEffect(() => {
-
+  const handleSearchChange = useCallback((value) => {
+    setSearch(value);
     setCurrentPage(1);
-  }, [search, filterStatus]);
+  }, []);
+
+  const handleFilterStatusChange = useCallback((value) => {
+    setFilterStatus(value);
+    setCurrentPage(1);
+  }, []);
+
+  useEffect(() => {
+    if (!token) return undefined;
+
+    let ignore = false;
+
+    const loadInitialData = async () => {
+      const [
+        currentUserResult,
+        usersResult,
+        hotelsResult,
+        departmentsResult,
+        ticketsResult,
+        summaryTicketsResult,
+      ] = await Promise.all([
+        currentUser
+          ? Promise.resolve(null)
+          : axios
+              .get(`${AUTH_URL}/me`, { headers: authHeaders })
+              .then((res) => res.data)
+              .catch((error) => {
+                console.error("Failed to fetch current user", error);
+                return null;
+              }),
+        axios
+          .get(`${AUTH_URL}/users`, { headers: authHeaders, params: scopedParams })
+          .then((res) => res.data)
+          .catch((error) => {
+            console.error("Failed to fetch users", error);
+            return null;
+          }),
+        getHotels(token).catch((error) => {
+          console.error("Failed to fetch hotels", error);
+          return null;
+        }),
+        getDepartments(token, scopedParams).catch((error) => {
+          console.error("Failed to fetch departments", error);
+          return null;
+        }),
+        axios
+          .get(API_URL, { headers: authHeaders, params: scopedParams })
+          .then((res) => (Array.isArray(res.data) ? res.data : res.data.data || []))
+          .catch((error) => {
+            console.error("Failed to fetch tickets", error);
+            toast.error(getErrorMessage(error, "Failed to fetch tickets"));
+            return null;
+          }),
+        axios
+          .get(`${API_URL}/summary`, { headers: authHeaders, params: scopedParams })
+          .then((res) => res.data)
+          .catch((error) => {
+            console.error("Failed to fetch ticket summary", error);
+            toast.error(getErrorMessage(error, "Failed to fetch ticket summary"));
+            return null;
+          }),
+      ]);
+
+      if (ignore) return;
+
+      if (currentUserResult) {
+        setCurrentUser(currentUserResult);
+        localStorage.setItem("user", JSON.stringify(currentUserResult));
+      }
+      if (usersResult) setUsers(usersResult);
+      if (hotelsResult) setHotels(hotelsResult);
+      if (departmentsResult) setDepartments(departmentsResult);
+      if (ticketsResult) setTickets(ticketsResult);
+      if (summaryTicketsResult) setSummaryTickets(summaryTicketsResult);
+      setLoading(false);
+    };
+
+    loadInitialData();
+
+    return () => {
+      ignore = true;
+    };
+  }, [authHeaders, currentUser, scopedParams, token]);
 
   useEffect(() => {
     if (!selectedHotelId) return;
@@ -744,7 +799,7 @@ function App() {
       <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-white md:p-6">
         <div className="mx-auto flex min-h-screen max-w-7xl flex-col bg-white dark:bg-slate-900 md:min-h-[calc(100vh-3rem)] md:overflow-hidden md:rounded-2xl md:border md:border-slate-200 md:shadow-xl md:dark:border-slate-800 md:flex-row">
           <Sidebar
-            activePage={activePage}
+            activePage={visibleActivePage}
             currentUser={currentUser}
             onNavigate={setActivePage}
             onLogout={handleLogout}
@@ -794,7 +849,7 @@ function App() {
             </header>
 
             <Suspense fallback={<PageLoading />}>
-              {activePage === "dashboard" && (
+              {visibleActivePage === "dashboard" && (
                 <DashboardPage
                   darkMode={darkMode}
                   loading={loading}
@@ -802,16 +857,16 @@ function App() {
                 />
               )}
 
-              {activePage === "tickets" && (
+              {visibleActivePage === "tickets" && (
                 <TicketsPage
                   assigningTicketId={assigningTicketId}
                   assignTicket={assignTicket}
                   tickets={paginatedTickets}
                   loading={loading}
                   search={search}
-                  setSearch={setSearch}
+                  setSearch={handleSearchChange}
                   filterStatus={filterStatus}
-                  setFilterStatus={setFilterStatus}
+                  setFilterStatus={handleFilterStatusChange}
                   updatingTicketId={updatingTicketId}
                   deletingTicketId={deletingTicketId}
                   updateStatus={updateStatus}
@@ -825,7 +880,7 @@ function App() {
                 />
               )}
 
-              {activePage === "add-ticket" && (
+              {visibleActivePage === "add-ticket" && (
                 <AddTicketPage
                   canAssignTickets={canManageTickets}
                   form={form}
@@ -840,7 +895,7 @@ function App() {
                 />
               )}
 
-              {activePage === "monthly-report" && (
+              {visibleActivePage === "monthly-report" && (
                 <MonthlyReportPage
                   hotels={hotels}
                   selectedHotelId={selectedHotelId}
@@ -848,7 +903,7 @@ function App() {
                 />
               )}
 
-              {activePage === "quarterly-report" && (
+              {visibleActivePage === "quarterly-report" && (
                 <QuarterlyYearlyPage
                   hotels={hotels}
                   selectedHotelId={selectedHotelId}
@@ -856,7 +911,7 @@ function App() {
                 />
               )}
 
-              {activePage === "assets" && (
+              {visibleActivePage === "assets" && (
                 <AssetManagementPage
                   currentUser={currentUser}
                   hotelId={selectedHotelId}
@@ -864,7 +919,7 @@ function App() {
                 />
               )}
 
-              {activePage === "departments" && ticketManagerRoles.includes(currentUser?.role) && (
+              {visibleActivePage === "departments" && ticketManagerRoles.includes(currentUser?.role) && (
                 <DepartmentManagementPage
                   departments={departments}
                   hotels={hotels}
@@ -874,7 +929,7 @@ function App() {
                 />
               )}
 
-              {activePage === "hotels" && ["GroupAdmin", "Admin"].includes(currentUser?.role) && (
+              {visibleActivePage === "hotels" && ["GroupAdmin", "Admin"].includes(currentUser?.role) && (
                 <HotelManagementPage
                   hotels={hotels}
                   onHotelsChange={fetchHotels}
@@ -882,7 +937,7 @@ function App() {
                 />
               )}
 
-              {activePage === "user-management" && isAdmin && (
+              {visibleActivePage === "user-management" && isAdmin && (
                 <UserManagementPage
                   currentUser={currentUser}
                   deletingUserId={deletingUserId}
@@ -897,7 +952,7 @@ function App() {
                 />
               )}
 
-              {activePage === "problem-types" && (
+              {visibleActivePage === "problem-types" && (
                 <ProblemTypesPage
                   currentUser={currentUser}
                   hotelId={selectedHotelId}
@@ -905,7 +960,7 @@ function App() {
                 />
               )}
 
-              {activePage === "profile" && (
+              {visibleActivePage === "profile" && (
                 <ProfilePage
                   changingPassword={changingPassword}
                   currentUser={currentUser}
