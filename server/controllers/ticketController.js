@@ -797,7 +797,9 @@ async function viewAttachment(req, res) {
       return res.status(404).json({ message: "Attachment file not found" });
     }
 
-    const originalName = attachment.originalName || safeFilename;
+    const originalName =
+      attachment.originalName ||
+      path.basename(attachment.objectKey || attachment.filename || "attachment");
     const extension = path.extname(originalName).toLowerCase();
     const contentType = IMAGE_CONTENT_TYPES[extension] || "application/octet-stream";
 

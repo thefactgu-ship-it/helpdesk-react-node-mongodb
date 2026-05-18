@@ -15,9 +15,34 @@ const {
 
 const router = express.Router();
 
+function publicRegistrationGuard(req, res, next) {
+  const flag = String(process.env.ALLOW_PUBLIC_REGISTRATION || "").toLowerCase();
+  const publicRegistrationAllowed = flag === "true";
+  const publicRegistrationDisabled = flag === "false";
+  const localDevelopment =
+    !process.env.NODE_ENV ||
+    process.env.NODE_ENV === "development" ||
+    process.env.NODE_ENV === "test";
+
+  if (publicRegistrationDisabled) {
+    return res.status(403).json({
+      message: "Public registration is disabled. Please contact an administrator to create an account.",
+    });
+  }
+
+  if (publicRegistrationAllowed || localDevelopment) {
+    return next();
+  }
+
+  return res.status(403).json({
+    message: "Public registration is disabled. Please contact an administrator to create an account.",
+  });
+}
+
 // Public auth routes with validation
 router.post(
   "/register",
+  publicRegistrationGuard,
   registerValidationRules(),
   handleValidationErrors,
   asyncHandler(authController.register)

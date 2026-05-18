@@ -41,7 +41,7 @@ app.use(helmet()); // Set security headers
 
 // CORS configuration - restrict to allowed origins
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || "http://localhost:5173", // Vite default port
+  origin: process.env.CORS_ORIGIN || "http://localhost:5173", // Vite default port for local development
   credentials: true,
   optionsSuccessStatus: 200,
   methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
@@ -209,6 +209,49 @@ mongoose
 // Health check endpoint
 app.get("/", (req, res) => {
   res.json({ message: "HelpDesk API Running", status: "ok" });
+});
+
+app.get("/healthz", (req, res) => {
+  res.json({
+    status: "ok",
+    service: "helpdesk-api",
+    timestamp: new Date().toISOString(),
+  });
+});
+
+app.get("/readyz", (req, res) => {
+  const storageProvider = String(
+    process.env.ATTACHMENT_STORAGE_PROVIDER || "local"
+  ).toLowerCase();
+  const missingS3Envs =
+    storageProvider === "s3"
+      ? [
+          "S3_ENDPOINT",
+          "S3_BUCKET",
+          "S3_REGION",
+          "S3_ACCESS_KEY_ID",
+          "S3_SECRET_ACCESS_KEY",
+        ].filter((env) => !process.env[env])
+      : [];
+  const checks = {
+    database: mongoose.connection.readyState === 1 ? "connected" : "not_connected",
+    storage:
+      storageProvider === "s3" && missingS3Envs.length === 0
+        ? "configured"
+        : storageProvider === "local" && process.env.NODE_ENV !== "production"
+          ? "local_development"
+          : "not_configured",
+  };
+  const ready =
+    checks.database === "connected" &&
+    (checks.storage === "configured" || checks.storage === "local_development");
+
+  res.status(ready ? 200 : 503).json({
+    status: ready ? "ready" : "not_ready",
+    checks,
+    missingS3Envs,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // API routes with rate limiting

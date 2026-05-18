@@ -99,6 +99,7 @@ MONGO_URI=mongodb://127.0.0.1:27017/helpdesk_db
 JWT_SECRET=replace_with_at_least_32_random_characters
 CORS_ORIGIN=http://localhost:5173
 ATTACHMENT_STORAGE_PROVIDER=local
+ALLOW_PUBLIC_REGISTRATION=true
 
 ADMIN_EMAIL=admin@test.com
 ADMIN_PASSWORD=replace_with_a_strong_password
@@ -115,6 +116,8 @@ API health check:
 
 ```txt
 http://localhost:5000
+http://localhost:5000/healthz
+http://localhost:5000/readyz
 ```
 
 Expected response:
@@ -152,6 +155,7 @@ Backend service:
 - Root directory: `server`
 - Build command: `npm install` or `npm ci`
 - Start command: `npm start`
+- Health check path: `/healthz`
 - Required environment variables:
   - `NODE_ENV=production`
   - `PORT`
@@ -159,15 +163,16 @@ Backend service:
   - `JWT_SECRET`
   - `CORS_ORIGIN=https://your-frontend.onrender.com`
   - `ADMIN_PASSWORD` with at least 12 characters
-  - `ATTACHMENT_STORAGE_PROVIDER=local` for development-style disk storage or `s3` for object storage
-- Optional admin seed variables:
-  - `ADMIN_EMAIL`
-  - `ADMIN_NAME`
+  - `ATTACHMENT_STORAGE_PROVIDER=s3`
   - `S3_ENDPOINT`
   - `S3_BUCKET`
   - `S3_REGION`
   - `S3_ACCESS_KEY_ID`
   - `S3_SECRET_ACCESS_KEY`
+- Optional admin seed variables:
+  - `ADMIN_EMAIL`
+  - `ADMIN_NAME`
+  - `ALLOW_PUBLIC_REGISTRATION=true` only if you intentionally want public signup enabled in that environment
 
 Frontend static site:
 
@@ -209,6 +214,7 @@ Tickets can only be assigned by Admin or Manager. Assignment targets must be sta
 
 - All API feature routes are JWT protected.
 - Login, register, and password change routes are rate-limited.
+- Public registration is disabled by default in production. Use Admin User Management for account creation.
 - Helmet is enabled for common HTTP security headers.
 - CORS is restricted by `CORS_ORIGIN`.
 - Request body, params, and query keys are sanitized against MongoDB operator-style input.
@@ -222,6 +228,7 @@ Tickets can only be assigned by Admin or Manager. Assignment targets must be sta
 - User, hotel, ticket, and asset changes emit structured `[AUDIT]` logs with request IDs.
 - Ticket attachments are limited to JPG, PNG, GIF, or WEBP images and a maximum size of 5 MB.
 - Uploaded files are not served through public static hosting; they are viewed through protected ticket attachment routes.
+- Production attachments require S3-compatible object storage because Render local disk is not durable across normal deployments unless a persistent disk is explicitly configured.
 - `server/uploads/*` is ignored by Git to avoid committing user-uploaded files.
 - Delete actions use confirmation modals before destructive requests.
 
@@ -236,7 +243,7 @@ Authorization: Bearer YOUR_JWT_TOKEN
 ### Auth
 
 ```txt
-POST   /api/auth/register
+POST   /api/auth/register      Disabled by default in production unless ALLOW_PUBLIC_REGISTRATION=true
 POST   /api/auth/login
 GET    /api/auth/me
 PATCH  /api/auth/me
@@ -306,12 +313,14 @@ Server:
 ```bash
 npm run dev
 npm start
+npm run check:syntax
 npm run db:fix-problem-type-indexes
 ```
 
 Backend syntax check examples:
 
 ```bash
+npm run check:syntax
 node --check index.js
 node --check controllers/authController.js
 node --check controllers/ticketController.js
@@ -337,6 +346,18 @@ MONGO_URI="your-atlas-uri" npm run db:fix-problem-type-indexes
 ```
 
 The script checks for duplicate problem type names across the master list, ensures the unique `{ name: 1 }` index, and drops the legacy unique `{ hotelId: 1, name: 1 }` index if it exists. In Atlas, confirm `problemtypes` has unique `name_1` and does not keep `hotelId_1_name_1` as a unique index.
+
+## Production Smoke Test
+
+After each Render deployment:
+
+1. Open `https://your-backend.onrender.com/healthz` and confirm HTTP 200.
+2. Open `https://your-backend.onrender.com/readyz` and confirm HTTP 200 with MongoDB connected and storage configured.
+3. Log in with the seeded admin account.
+4. Create or verify at least one hotel, department, user, and problem type.
+5. Create a ticket, assign it, update status, add a comment, and upload/view one image attachment.
+6. Confirm Dashboard, Monthly Report, and Quarterly / Yearly views show scoped data.
+7. Log in as a lower-privilege role and confirm admin-only pages and APIs are denied.
 
 ## Validation Status
 

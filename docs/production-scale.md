@@ -19,7 +19,7 @@ Group-level roles can query across hotels. Hotel-level roles are restricted to t
 ## Cloud Managed Baseline
 
 - Frontend: static hosting with CDN.
-- Backend: managed Node.js service.
+- Backend: managed Node.js service on Render. Set the health check path to `/healthz`.
 - Database: MongoDB Atlas with automated backups and alerts.
 - Files: set `ATTACHMENT_STORAGE_PROVIDER=s3` and configure `S3_ENDPOINT`, `S3_BUCKET`, `S3_REGION`, `S3_ACCESS_KEY_ID`, and `S3_SECRET_ACCESS_KEY` for production attachments. Keep `local` only for development.
 - Environments: use separate `development`, `staging`, and `production` services and databases.
@@ -29,10 +29,40 @@ Group-level roles can query across hotels. Hotel-level roles are restricted to t
 - Rotate `JWT_SECRET` with a managed secret store.
 - Restrict `CORS_ORIGIN` per environment.
 - Keep rate limits enabled for login, register, and password changes.
+- Keep public registration disabled in production. Only set `ALLOW_PUBLIC_REGISTRATION=true` for a controlled staging environment or a deliberate signup launch.
 - User accounts should be created and reset by administrators from User Management. The login screen does not expose public registration or social login.
 - Monitor API error rate, latency, request volume, and MongoDB query performance.
 - Review `[AUDIT]` logs for login, user, hotel, ticket, and asset changes.
 - Run CI on every pull request before deployment.
+
+## Render Environment Checklist
+
+Backend required variables:
+
+```env
+NODE_ENV=production
+PORT=5000
+MONGO_URI=mongodb+srv://...
+JWT_SECRET=replace_with_at_least_32_random_characters
+CORS_ORIGIN=https://your-frontend.onrender.com
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=replace_with_a_strong_password
+ADMIN_NAME=System Admin
+ATTACHMENT_STORAGE_PROVIDER=s3
+S3_ENDPOINT=https://your-object-storage-endpoint
+S3_BUCKET=your-bucket
+S3_REGION=your-region
+S3_ACCESS_KEY_ID=your-access-key
+S3_SECRET_ACCESS_KEY=your-secret-key
+```
+
+Frontend required variable:
+
+```env
+VITE_API_URL=https://your-backend.onrender.com/api
+```
+
+Do not set `CORS_ORIGIN` to localhost in production. Do not use local attachment storage on Render production unless you have intentionally provisioned and accepted the limitations of a persistent disk.
 
 ## Important Indexes
 
@@ -66,3 +96,28 @@ The script:
 - Prints final `problemtypes` indexes for verification.
 
 Confirm Atlas shows `name_1` as unique on `problemtypes`, and does not keep `hotelId_1_name_1` as a unique index.
+
+## Post-Deploy Smoke Test
+
+Run this after every Render production deployment:
+
+1. `GET /healthz` returns 200.
+2. `GET /readyz` returns 200 and reports MongoDB connected with storage configured.
+3. Admin login succeeds.
+4. Admin can create or verify hotel, department, user, and problem type records.
+5. Ticket workflow works: create, assign, update status, comment, upload attachment, view attachment.
+6. Dashboard and reports show hotel-scoped data.
+7. Non-admin roles cannot access admin-only pages or APIs.
+
+Useful commands before deploying:
+
+```bash
+cd server
+npm run check:syntax
+npm audit --audit-level=low
+
+cd ../client
+npm run lint
+npm run build
+npm audit --audit-level=low
+```

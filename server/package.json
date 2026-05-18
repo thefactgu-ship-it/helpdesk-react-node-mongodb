@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "check:syntax": "node scripts/checkSyntax.js",
     "db:fix-problem-type-indexes": "node scripts/ensureProblemTypeIndexes.js",
     "dev": "nodemon index.js",
     "start": "node index.js"
