@@ -1,7 +1,14 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 
-function ConfirmModal({ open, title, message, onCancel, onConfirm }) {
+function ConfirmModal({
+  confirmLabel = "Delete",
+  open,
+  title,
+  message,
+  onCancel,
+  onConfirm,
+}) {
   useEffect(() => {
     if (!open) return undefined;
 
@@ -59,7 +66,7 @@ function ConfirmModal({ open, title, message, onCancel, onConfirm }) {
             onClick={onConfirm}
             className="rounded-xl bg-red-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-600"
           >
-            Delete
+            {confirmLabel}
           </button>
         </div>
       </div>

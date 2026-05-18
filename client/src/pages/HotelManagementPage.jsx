@@ -107,6 +107,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
   return (
     <div className="space-y-5">
       <ConfirmModal
+        confirmLabel="Deactivate"
         open={!!pendingDeleteId}
         title="Deactivate Hotel"
         message={`Deactivate ${

@@ -116,6 +116,7 @@ function DepartmentManagementPage({
   return (
     <div className="space-y-5">
       <ConfirmModal
+        confirmLabel="Deactivate"
         open={!!pendingDeleteId}
         title="Deactivate Department"
         message={`Deactivate ${
