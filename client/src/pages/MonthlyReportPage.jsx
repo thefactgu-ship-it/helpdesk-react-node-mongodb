@@ -10,7 +10,14 @@ import {
   YAxis,
 } from "recharts";
 import { useState } from "react";
-import { FileText } from "lucide-react";
+import {
+  Activity,
+  CalendarDays,
+  CheckCircle2,
+  FileText,
+  Gauge,
+  Star,
+} from "lucide-react";
 import StatCard from "../components/StatCard";
 import { getCompletionStats, getSuccessDetail, isCompletedTicket } from "../utils/ticketMetrics";
 import {
@@ -75,11 +82,11 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
       </section>
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
-        <StatCard title={report.shortMonthLabel} value={report.total} detail="tickets" icon="M" />
-        <StatCard title="Completion" value={`${report.completionRate}%`} detail={`${report.completedCount} done`} icon="C" />
-        <StatCard title="Success Rate" value={`${report.successRate}%`} detail={report.successDetail} icon="S" />
-        <StatCard title="Open" value={report.open} detail="active" icon="O" />
-        <StatCard title="Avg. Rating" value={report.avgSatisfactionLabel} detail={`${report.satisfactionCount} ratings`} icon="*" />
+        <StatCard title={report.shortMonthLabel} value={report.total} detail="tickets" icon={CalendarDays} />
+        <StatCard title="Completion" value={`${report.completionRate}%`} detail={`${report.completedCount} done`} icon={CheckCircle2} />
+        <StatCard title="Success Rate" value={`${report.successRate}%`} detail={report.successDetail} icon={Gauge} />
+        <StatCard title="Open" value={report.open} detail="active" icon={Activity} />
+        <StatCard title="Avg. Rating" value={report.avgSatisfactionLabel} detail={`${report.satisfactionCount} ratings`} icon={Star} />
       </section>
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">

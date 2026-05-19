@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { FileText } from "lucide-react";
+import {
+  Activity,
+  CheckCircle2,
+  ClipboardList,
+  FileText,
+  Gauge,
+  Star,
+} from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -98,11 +105,11 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
       </section>
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
-        <StatCard title="Tickets" value={report.total} detail={year} icon="T" />
-        <StatCard title="Completion" value={`${report.completionRate}%`} detail={`${report.completedCount} done`} icon="C" />
-        <StatCard title="Success Rate" value={`${report.successRate}%`} detail={report.successDetail} icon="S" />
-        <StatCard title="Open" value={report.open} detail="active" icon="O" />
-        <StatCard title="Avg. Rating" value={report.avgSatisfactionLabel} detail={`${report.satisfactionCount} ratings`} icon="*" />
+        <StatCard title="Tickets" value={report.total} detail={year} icon={ClipboardList} />
+        <StatCard title="Completion" value={`${report.completionRate}%`} detail={`${report.completedCount} done`} icon={CheckCircle2} />
+        <StatCard title="Success Rate" value={`${report.successRate}%`} detail={report.successDetail} icon={Gauge} />
+        <StatCard title="Open" value={report.open} detail="active" icon={Activity} />
+        <StatCard title="Avg. Rating" value={report.avgSatisfactionLabel} detail={`${report.satisfactionCount} ratings`} icon={Star} />
       </section>
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
