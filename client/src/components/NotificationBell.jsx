@@ -29,6 +29,7 @@ function NotificationBell({ token, onOpenTicket }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(Boolean(token));
   const [mobilePanelStyle, setMobilePanelStyle] = useState({});
+  const [recentNotificationId, setRecentNotificationId] = useState("");
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
@@ -62,6 +63,7 @@ function NotificationBell({ token, onOpenTicket }) {
       if (!notification?._id) return;
 
       setNotifications((current) => upsertNotification(current, notification));
+      setRecentNotificationId(String(notification._id));
       if (!notification.readAt) {
         setUnreadCount((current) => current + 1);
       }
@@ -118,6 +120,16 @@ function NotificationBell({ token, onOpenTicket }) {
     }, POLLING_FALLBACK_MS);
     return () => window.clearInterval(intervalId);
   }, [fetchNotifications, token]);
+
+  useEffect(() => {
+    if (!recentNotificationId) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      setRecentNotificationId("");
+    }, 3500);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [recentNotificationId]);
 
   useEffect(() => {
     if (!token) return undefined;
@@ -322,7 +334,11 @@ function NotificationBell({ token, onOpenTicket }) {
                 key={notification._id}
                 type="button"
                 onClick={() => handleOpenNotification(notification)}
-                className="flex w-full gap-3 rounded-md px-3 py-3 text-left transition hover:bg-blue-50 dark:hover:bg-slate-900"
+                className={`flex w-full gap-3 rounded-md px-3 py-3 text-left transition ${
+                  String(notification._id) === recentNotificationId
+                    ? "bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/20"
+                    : "hover:bg-blue-50 dark:hover:bg-slate-900"
+                }`}
               >
                 <span
                   className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${

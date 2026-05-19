@@ -51,6 +51,7 @@ function TicketDetailModalContent({
   onUpdatePriority,
 }) {
   const [comment, setComment] = useState("");
+  const [submittingComment, setSubmittingComment] = useState(false);
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState("");
   const [satisfactionScore, setSatisfactionScore] = useState(
@@ -78,8 +79,13 @@ function TicketDetailModalContent({
   const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!comment.trim()) return;
-    await onComment(ticket._id, comment.trim());
-    setComment("");
+    try {
+      setSubmittingComment(true);
+      await onComment(ticket._id, comment.trim());
+      setComment("");
+    } finally {
+      setSubmittingComment(false);
+    }
   };
 
   const handleUpload = async (e) => {
@@ -363,7 +369,7 @@ function TicketDetailModalContent({
 
         <div className={`mt-3 grid gap-3 ${canUploadAttachment ? "lg:grid-cols-2" : ""}`}>
           <CompactPanel>
-            <SectionLabel>Comments</SectionLabel>
+            <SectionLabel>ความคิดเห็น / Comments</SectionLabel>
             <div className="mt-2 max-h-28 space-y-2 overflow-y-auto">
               {ticket.comments?.length ? (
                 ticket.comments.map((item) => (
@@ -381,7 +387,7 @@ function TicketDetailModalContent({
                 ))
               ) : (
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  No comments yet.
+                  ยังไม่มี comment. เพิ่มข้อมูลอัปเดตเพื่อให้ทีมตามงานต่อได้ง่ายขึ้น
                 </p>
               )}
             </div>
@@ -390,16 +396,17 @@ function TicketDetailModalContent({
               <textarea
                 rows="2"
                 value={comment}
-                disabled={!onComment}
+                disabled={!onComment || submittingComment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Add a comment"
+                placeholder="เพิ่ม comment หรืออัปเดตสถานะงาน"
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               />
               <button
                 type="submit"
-                className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                disabled={!comment.trim() || submittingComment}
+                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Post Comment
+                {submittingComment ? "กำลังส่ง..." : "ส่ง Comment"}
               </button>
             </form>
           </CompactPanel>

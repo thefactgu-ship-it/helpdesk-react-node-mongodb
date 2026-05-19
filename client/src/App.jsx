@@ -718,7 +718,7 @@ function App() {
   const pendingDeleteUser = users.find(
     (user) => user._id === deleteUserId || user.id === deleteUserId,
   );
-  const { paginatedTickets, totalPages } = useTicketFilters({
+  const { filteredTickets, ticketsPerPage } = useTicketFilters({
     currentPage,
     filterStatus,
     search,
@@ -922,7 +922,8 @@ function App() {
                 <TicketsPage
                   assigningTicketId={assigningTicketId}
                   assignTicket={assignTicket}
-                  tickets={paginatedTickets}
+                  tickets={filteredTickets}
+                  ticketsPerPage={ticketsPerPage}
                   loading={loading}
                   search={search}
                   setSearch={handleSearchChange}
@@ -935,7 +936,6 @@ function App() {
                   deleteTicket={deleteTicket}
                   currentPage={currentPage}
                   setCurrentPage={setCurrentPage}
-                  totalPages={totalPages}
                   onViewTicket={openTicketDetails}
                   currentUser={currentUser}
                   users={users}
