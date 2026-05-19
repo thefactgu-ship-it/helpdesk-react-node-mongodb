@@ -107,6 +107,7 @@ function App() {
   const [activePage, setActivePage] = useState("dashboard");
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [filterPriority, setFilterPriority] = useState("all");
   const [loading, setLoading] = useState(Boolean(token));
   const [submitting, setSubmitting] = useState(false);
   const [savingUser, setSavingUser] = useState(false);
@@ -148,6 +149,15 @@ function App() {
     if (!selectedHotelId || selectedHotelId === "all") return {};
     return { hotelId: selectedHotelId };
   }, [selectedHotelId]);
+  const ticketListParams = useMemo(() => {
+    const params = { ...scopedParams };
+    if (currentUser?.role === "GroupAdmin") {
+      params.limit = 200;
+      if (filterStatus !== "all") params.status = filterStatus;
+      if (filterPriority !== "all") params.priority = filterPriority;
+    }
+    return params;
+  }, [currentUser?.role, filterPriority, filterStatus, scopedParams]);
   const t = useMemo(() => createTranslator(language), [language]);
 
   const fetchTickets = useCallback(async (options = {}) => {
@@ -162,7 +172,7 @@ function App() {
       if (!silent) setLoading(true);
       const res = await axios.get(API_URL, {
         headers: authHeaders,
-        params: scopedParams,
+        params: ticketListParams,
       });
       setTickets(Array.isArray(res.data) ? res.data : res.data.data || []);
     } catch (error) {
@@ -171,7 +181,7 @@ function App() {
     } finally {
       if (!silent) setLoading(false);
     }
-  }, [authHeaders, scopedParams, token]);
+  }, [authHeaders, ticketListParams, token]);
 
   const fetchSummaryTickets = useCallback(async () => {
     if (!token) {
@@ -269,6 +279,7 @@ function App() {
     setSelectedHotelId("all");
     setSearch("");
     setFilterStatus("all");
+    setFilterPriority("all");
     setCurrentPage(1);
     setActivePage("dashboard");
     toast.success("Logged out");
@@ -798,6 +809,16 @@ function App() {
     setCurrentPage(1);
   }, []);
 
+  const handleFilterPriorityChange = useCallback((value) => {
+    setFilterPriority(value);
+    setCurrentPage(1);
+  }, []);
+
+  const handleSelectedHotelChange = useCallback((value) => {
+    setSelectedHotelId(value);
+    setCurrentPage(1);
+  }, []);
+
   useEffect(() => {
     if (!token) return undefined;
 
@@ -839,7 +860,7 @@ function App() {
           return null;
         }),
         axios
-          .get(API_URL, { headers: authHeaders, params: scopedParams })
+          .get(API_URL, { headers: authHeaders, params: ticketListParams })
           .then((res) => (Array.isArray(res.data) ? res.data : res.data.data || []))
           .catch((error) => {
             console.error("Failed to fetch tickets", error);
@@ -875,7 +896,7 @@ function App() {
     return () => {
       ignore = true;
     };
-  }, [authHeaders, currentUser, scopedParams, token]);
+  }, [authHeaders, currentUser, scopedParams, ticketListParams, token]);
 
   useEffect(() => {
     if (!selectedHotelId) return;
@@ -965,7 +986,7 @@ function App() {
                   <ThemedSelect
                     className="w-full min-w-[15rem] sm:w-72"
                     value={selectedHotelId}
-                    onChange={setSelectedHotelId}
+                    onChange={handleSelectedHotelChange}
                     variant="pill"
                     options={[
                       { value: "all", label: t("common.allHotels"), meta: t("common.groupDashboard"), prefix: "ALL" },
@@ -1015,6 +1036,8 @@ function App() {
                 <TicketsPage
                   assigningTicketId={assigningTicketId}
                   assignTicket={assignTicket}
+                  filterPriority={filterPriority}
+                  hotels={hotels}
                   tickets={filteredTickets}
                   ticketsPerPage={ticketsPerPage}
                   loading={loading}
@@ -1022,6 +1045,9 @@ function App() {
                   setSearch={handleSearchChange}
                   filterStatus={filterStatus}
                   setFilterStatus={handleFilterStatusChange}
+                  setFilterPriority={handleFilterPriorityChange}
+                  selectedHotelId={selectedHotelId}
+                  setSelectedHotelId={handleSelectedHotelChange}
                   updatingTicketId={updatingTicketId}
                   deletingTicketId={deletingTicketId}
                   updateStatus={updateStatus}

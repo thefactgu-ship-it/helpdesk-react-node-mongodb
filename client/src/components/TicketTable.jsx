@@ -14,21 +14,29 @@ function TicketTable({
   setFilterStatus,
   updatingTicketId,
   deletingTicketId,
+  filterPriority = "all",
   updatePriority,
   updateStatus,
   deleteTicket,
+  hotels = [],
   currentPage,
   setCurrentPage,
+  selectedHotelId = "all",
+  setFilterPriority,
   ticketsPerPage = 5,
   onViewTicket,
+  setSelectedHotelId,
   currentUser,
   users = [],
   t,
 }) {
   const [activeQueue, setActiveQueue] = useState("now");
+  const [groupAdminOwnerFilter, setGroupAdminOwnerFilter] = useState("all");
   const canManageTickets = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"].includes(currentUser?.role);
+  const isGroupAdmin = currentUser?.role === "GroupAdmin";
   const isRequester = currentUser?.role === "User";
   const requesterText = getRequesterQueueText(t);
+  const groupAdminText = getGroupAdminQueueText(t);
   const assignableUsers = users.filter((user) =>
     ["admin", "manager", "agent", "staff"].includes(
       String(user.role || "").toLowerCase(),
@@ -36,8 +44,8 @@ function TicketTable({
   );
   const currentUserId = getEntityId(currentUser);
   const queueOptions = useMemo(
-    () => buildQueueOptions(tickets, currentUserId, t, isRequester),
-    [currentUserId, isRequester, tickets, t],
+    () => buildQueueOptions(tickets, currentUserId, t, isRequester, isGroupAdmin),
+    [currentUserId, isGroupAdmin, isRequester, tickets, t],
   );
   const validQueueIds = useMemo(
     () => queueOptions.map((queue) => queue.id),
@@ -46,16 +54,40 @@ function TicketTable({
   const preferredQueue = isRequester ? "mine" : "now";
   const activeQueueId = validQueueIds.includes(activeQueue) ? activeQueue : preferredQueue;
   const queueTickets = useMemo(
-    () => tickets.filter((ticket) => matchesQueue(ticket, activeQueueId, currentUserId, isRequester)),
-    [activeQueueId, currentUserId, isRequester, tickets],
+    () => tickets.filter((ticket) => matchesQueue(ticket, activeQueueId, currentUserId, isRequester, isGroupAdmin)),
+    [activeQueueId, currentUserId, isGroupAdmin, isRequester, tickets],
   );
-  const totalPages = Math.max(1, Math.ceil(queueTickets.length / ticketsPerPage));
-  const visibleTickets = queueTickets.slice(
+  const displayTickets = useMemo(
+    () =>
+      isGroupAdmin
+        ? queueTickets.filter((ticket) => matchesGroupAdminOwnerFilter(ticket, groupAdminOwnerFilter))
+        : queueTickets,
+    [groupAdminOwnerFilter, isGroupAdmin, queueTickets],
+  );
+  const totalPages = Math.max(1, Math.ceil(displayTickets.length / ticketsPerPage));
+  const visibleTickets = displayTickets.slice(
     (currentPage - 1) * ticketsPerPage,
     currentPage * ticketsPerPage,
   );
   const statusOptions = buildStatusOptions(t);
   const priorityOptions = buildPriorityOptions(t);
+  const groupAdminKpis = useMemo(() => buildGroupAdminQueueKpis(tickets), [tickets]);
+  const groupAdminOwnerOptions = useMemo(
+    () => buildGroupAdminOwnerOptions(tickets, users, groupAdminText),
+    [groupAdminText, tickets, users],
+  );
+  const hotelOptions = useMemo(
+    () => [
+      { value: "all", label: t("common.allHotels"), meta: t("common.groupDashboard"), prefix: "ALL" },
+      ...hotels.map((hotel) => ({
+        value: getEntityId(hotel),
+        label: [hotel.code, hotel.name].filter(Boolean).join(" / ") || getEntityId(hotel),
+        meta: hotel.region || "Hotel",
+        prefix: String(hotel.code || hotel.name || "HT").slice(0, 2),
+      })),
+    ],
+    [hotels, t],
+  );
   const canUpdateTicketStatus = (ticket) =>
     canManageTickets ||
     (currentUser?.role === "Agent" && getEntityId(ticket.assignedTo) === currentUserId);
@@ -76,14 +108,14 @@ function TicketTable({
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-sm font-black text-slate-900 dark:text-white">
-            {isRequester ? requesterText.heading : t("queue.heading")}
+            {isGroupAdmin ? groupAdminText.heading : isRequester ? requesterText.heading : t("queue.heading")}
           </p>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {isRequester ? requesterText.description : t("queue.description")}
+            {isGroupAdmin ? groupAdminText.description : isRequester ? requesterText.description : t("queue.description")}
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:justify-end">
           <input
             type="text"
             placeholder={t("queue.searchPlaceholder")}
@@ -101,8 +133,60 @@ function TicketTable({
             onChange={setFilterStatus}
             options={statusOptions}
           />
+          {isGroupAdmin && setFilterPriority && (
+            <ThemedSelect
+              className="w-full md:w-44"
+              size="sm"
+              value={filterPriority}
+              disabled={loading}
+              onChange={setFilterPriority}
+              options={[{ value: "all", label: groupAdminText.allPriorities, prefix: "A" }, ...priorityOptions]}
+            />
+          )}
+          {isGroupAdmin && setSelectedHotelId && (
+            <ThemedSelect
+              className="w-full md:w-56"
+              size="sm"
+              value={selectedHotelId}
+              disabled={loading}
+              onChange={setSelectedHotelId}
+              options={hotelOptions}
+            />
+          )}
+          {isGroupAdmin && (
+            <ThemedSelect
+              className="w-full md:w-48"
+              size="sm"
+              value={activeQueueId}
+              disabled={loading}
+              onChange={handleQueueChange}
+              options={queueOptions.map((queue) => ({
+                value: queue.id,
+                label: queue.label,
+                meta: `${queue.count}`,
+                prefix: String(queue.label || "Q").slice(0, 2),
+              }))}
+            />
+          )}
+          {isGroupAdmin && (
+            <ThemedSelect
+              className="w-full md:w-52"
+              size="sm"
+              value={groupAdminOwnerFilter}
+              disabled={loading}
+              onChange={(value) => {
+                setGroupAdminOwnerFilter(value);
+                setCurrentPage(1);
+              }}
+              options={groupAdminOwnerOptions}
+            />
+          )}
         </div>
       </div>
+
+      {isGroupAdmin && (
+        <GroupAdminQueueKpis kpis={groupAdminKpis} text={groupAdminText} />
+      )}
 
       <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
         {queueOptions.map((queue) => {
@@ -127,7 +211,30 @@ function TicketTable({
         })}
       </div>
 
-      {isRequester ? (
+      {isGroupAdmin ? (
+        <GroupAdminControlView
+          activeQueue={activeQueueId}
+          assignTicket={assignTicket}
+          assignableUsers={assignableUsers}
+          assigningTicketId={assigningTicketId}
+          currentPage={currentPage}
+          deleteTicket={deleteTicket}
+          deletingTicketId={deletingTicketId}
+          loading={loading}
+          onViewTicket={onViewTicket}
+          priorityOptions={priorityOptions}
+          queueTickets={displayTickets}
+          setCurrentPage={setCurrentPage}
+          statusOptions={statusOptions}
+          t={t}
+          text={groupAdminText}
+          ticketsPerPage={ticketsPerPage}
+          updatePriority={updatePriority}
+          updateStatus={updateStatus}
+          updatingTicketId={updatingTicketId}
+          visibleTickets={visibleTickets}
+        />
+      ) : isRequester ? (
         <RequesterQueueCards
           activeQueue={activeQueueId}
           currentPage={currentPage}
@@ -354,6 +461,342 @@ function TicketTable({
         </>
       )}
     </section>
+  );
+}
+
+function GroupAdminControlView({
+  activeQueue,
+  assignTicket,
+  assignableUsers,
+  assigningTicketId,
+  currentPage,
+  deleteTicket,
+  deletingTicketId,
+  loading,
+  onViewTicket,
+  priorityOptions,
+  queueTickets,
+  setCurrentPage,
+  statusOptions,
+  t,
+  text,
+  ticketsPerPage,
+  updatePriority,
+  updateStatus,
+  updatingTicketId,
+  visibleTickets,
+}) {
+  const totalPages = Math.max(1, Math.ceil(queueTickets.length / ticketsPerPage));
+
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        <SkeletonRow />
+        <SkeletonRow />
+        <SkeletonRow />
+      </div>
+    );
+  }
+
+  if (!queueTickets.length) {
+    return <QueueEmptyState activeQueue={activeQueue} groupAdminText={text} t={t} />;
+  }
+
+  return (
+    <>
+      <div className="space-y-3 xl:hidden">
+        {visibleTickets.map((ticket) => (
+          <GroupAdminMobileControlCard
+            key={ticket._id || ticket.id}
+            assignTicket={assignTicket}
+            assignableUsers={assignableUsers}
+            assigningTicketId={assigningTicketId}
+            deleteTicket={deleteTicket}
+            deletingTicketId={deletingTicketId}
+            onViewTicket={onViewTicket}
+            priorityOptions={priorityOptions}
+            statusOptions={statusOptions}
+            t={t}
+            text={text}
+            ticket={ticket}
+            updatePriority={updatePriority}
+            updateStatus={updateStatus}
+            updatingTicketId={updatingTicketId}
+          />
+        ))}
+      </div>
+
+      <div className="hidden overflow-x-auto xl:block">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-slate-200 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+              <th className="py-3 font-black">{text.ticketColumn}</th>
+              <th className="font-black">{text.hotelColumn}</th>
+              <th className="font-black">{text.riskColumn}</th>
+              <th className="font-black">{t("queue.priority")}</th>
+              <th className="font-black">{t("queue.statusLabel")}</th>
+              <th className="font-black">{text.ownerColumn}</th>
+              <th className="font-black">{t("queue.due")}</th>
+              <th className="font-black">{t("queue.action")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visibleTickets.map((ticket) => (
+              <GroupAdminControlRow
+                key={ticket._id || ticket.id}
+                assignTicket={assignTicket}
+                assignableUsers={assignableUsers}
+                assigningTicketId={assigningTicketId}
+                deleteTicket={deleteTicket}
+                deletingTicketId={deletingTicketId}
+                onViewTicket={onViewTicket}
+                priorityOptions={priorityOptions}
+                statusOptions={statusOptions}
+                t={t}
+                text={text}
+                ticket={ticket}
+                updatePriority={updatePriority}
+                updateStatus={updateStatus}
+                updatingTicketId={updatingTicketId}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <PaginationControls
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        t={t}
+        totalPages={totalPages}
+      />
+    </>
+  );
+}
+
+function GroupAdminControlRow({
+  assignTicket,
+  assignableUsers,
+  assigningTicketId,
+  deleteTicket,
+  deletingTicketId,
+  onViewTicket,
+  priorityOptions,
+  statusOptions,
+  t,
+  text,
+  ticket,
+  updatePriority,
+  updateStatus,
+  updatingTicketId,
+}) {
+  const ticketId = ticket._id || ticket.id;
+  const isUpdating = updatingTicketId === ticketId;
+  const isAssigning = assigningTicketId === ticketId;
+  const isDeleting = deletingTicketId === ticketId;
+  const isBusy = isUpdating || isAssigning || isDeleting;
+
+  return (
+    <tr className="border-b last:border-0 dark:border-slate-700">
+      <td className="max-w-xs py-4">
+        <p className="text-xs font-black text-blue-700 dark:text-blue-300">{ticket.ticketNumber}</p>
+        <p className="mt-1 line-clamp-2 font-black text-slate-900 dark:text-white">{ticket.title}</p>
+        <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
+          {ticket.category || "-"}
+        </p>
+      </td>
+      <td className="min-w-44 text-xs text-slate-500 dark:text-slate-400">
+        <p className="font-black text-slate-700 dark:text-slate-200">{getTicketHotelLabel(ticket, text.unknownHotel)}</p>
+        <p className="mt-1">{ticket.departmentName || ticket.department || "-"}</p>
+      </td>
+      <td className="min-w-40">
+        <div className="flex flex-wrap gap-2">
+          {getGroupAdminRiskBadges(ticket, text, t).map((badge) => (
+            <StatusPill key={badge.label} {...badge} />
+          ))}
+        </div>
+      </td>
+      <td>
+        <ThemedSelect
+          className="w-32"
+          compactOptions
+          menuWidth={150}
+          size="sm"
+          value={ticket.priority}
+          disabled={isBusy}
+          onChange={(value) => updatePriority(ticketId, value)}
+          options={priorityOptions}
+        />
+      </td>
+      <td>
+        <ThemedSelect
+          className="w-36"
+          compactOptions
+          menuWidth={160}
+          size="sm"
+          value={ticket.status}
+          disabled={isBusy}
+          onChange={(value) => updateStatus(ticketId, value)}
+          options={statusOptions.filter((option) => option.value !== "all")}
+        />
+      </td>
+      <td>
+        <ThemedSelect
+          className="w-40"
+          compactOptions
+          menuWidth={180}
+          size="sm"
+          value={getEntityId(ticket.assignedTo)}
+          disabled={isBusy || !assignableUsers.length}
+          emptyLabel={isAssigning ? t("addTicket.assigning") : t("common.unassigned")}
+          onChange={(value) => assignTicket(ticketId, value)}
+          options={buildAssignableOptions(assignableUsers, isAssigning, t)}
+        />
+      </td>
+      <td className="min-w-28 text-slate-500 dark:text-slate-400">
+        <DueLabel ticket={ticket} />
+      </td>
+      <td className="space-x-2 whitespace-nowrap">
+        <button
+          type="button"
+          onClick={() => onViewTicket(ticketId)}
+          className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+        >
+          {t("common.view")}
+        </button>
+        <button
+          type="button"
+          onClick={() => deleteTicket(ticketId)}
+          disabled={isBusy}
+          className="rounded-lg bg-rose-500 px-3 py-2 text-xs font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
+        >
+          {isDeleting ? t("common.deleting") : t("common.delete")}
+        </button>
+      </td>
+    </tr>
+  );
+}
+
+function GroupAdminMobileControlCard(props) {
+  const {
+    assignTicket,
+    assignableUsers,
+    assigningTicketId,
+    deleteTicket,
+    deletingTicketId,
+    onViewTicket,
+    priorityOptions,
+    statusOptions,
+    t,
+    text,
+    ticket,
+    updatePriority,
+    updateStatus,
+    updatingTicketId,
+  } = props;
+  const ticketId = ticket._id || ticket.id;
+  const isUpdating = updatingTicketId === ticketId;
+  const isAssigning = assigningTicketId === ticketId;
+  const isDeleting = deletingTicketId === ticketId;
+  const isBusy = isUpdating || isAssigning || isDeleting;
+
+  return (
+    <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-black text-blue-700 dark:text-blue-300">{ticket.ticketNumber}</p>
+          <h4 className="mt-1 line-clamp-2 break-words text-base font-black text-slate-950 dark:text-white">
+            {ticket.title}
+          </h4>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            {getTicketHotelLabel(ticket, text.unknownHotel)} / {ticket.departmentName || ticket.department || "-"}
+          </p>
+        </div>
+        <div className="flex max-w-full flex-wrap gap-2">
+          {getGroupAdminRiskBadges(ticket, text, t).map((badge) => (
+            <StatusPill key={badge.label} {...badge} />
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+        <ThemedSelect
+          compactOptions
+          size="sm"
+          value={ticket.priority}
+          disabled={isBusy}
+          onChange={(value) => updatePriority(ticketId, value)}
+          options={priorityOptions}
+        />
+        <ThemedSelect
+          compactOptions
+          size="sm"
+          value={ticket.status}
+          disabled={isBusy}
+          onChange={(value) => updateStatus(ticketId, value)}
+          options={statusOptions.filter((option) => option.value !== "all")}
+        />
+        <ThemedSelect
+          compactOptions
+          size="sm"
+          value={getEntityId(ticket.assignedTo)}
+          disabled={isBusy || !assignableUsers.length}
+          emptyLabel={isAssigning ? t("addTicket.assigning") : t("common.unassigned")}
+          onChange={(value) => assignTicket(ticketId, value)}
+          options={buildAssignableOptions(assignableUsers, isAssigning, t)}
+        />
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {text.dueLabel}: <DueLabel ticket={ticket} />
+        </p>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => onViewTicket(ticketId)}
+            className="rounded-lg bg-slate-200 px-3 py-2 text-xs font-bold text-slate-800 transition hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-100"
+          >
+            {t("common.view")}
+          </button>
+          <button
+            type="button"
+            onClick={() => deleteTicket(ticketId)}
+            disabled={isBusy}
+            className="rounded-lg bg-rose-500 px-3 py-2 text-xs font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
+          >
+            {isDeleting ? t("common.deleting") : t("common.delete")}
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function GroupAdminQueueKpis({ kpis, text }) {
+  const items = [
+    { label: text.kpiNow, value: kpis.now, tone: kpis.now ? "text-blue-700 dark:text-blue-200" : "" },
+    { label: text.kpiOverdue, value: kpis.overdue, tone: kpis.overdue ? "text-rose-700 dark:text-rose-200" : "" },
+    { label: text.kpiUnassignedUrgent, value: kpis.unassignedUrgent, tone: kpis.unassignedUrgent ? "text-amber-700 dark:text-amber-200" : "" },
+    { label: text.kpiDueSoon, value: kpis.dueSoon, tone: kpis.dueSoon ? "text-amber-700 dark:text-amber-200" : "" },
+  ];
+
+  return (
+    <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {items.map((item) => (
+        <div
+          key={item.label}
+          className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900"
+        >
+          <p className={`text-2xl font-black text-slate-950 dark:text-white ${item.tone}`}>
+            {item.value.toLocaleString()}
+          </p>
+          <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">
+            {item.label}
+          </p>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -648,10 +1091,12 @@ function MobileMeta({ label, value }) {
   );
 }
 
-function QueueEmptyState({ activeQueue, requesterText, t }) {
+function QueueEmptyState({ activeQueue, groupAdminText, requesterText, t }) {
   const message = requesterText
     ? getRequesterEmptyQueueMessage(activeQueue, requesterText)
-    : getEmptyQueueMessage(activeQueue, t);
+    : groupAdminText
+      ? getGroupAdminEmptyQueueMessage(activeQueue, groupAdminText)
+      : getEmptyQueueMessage(activeQueue, t);
 
   return (
     <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900">
@@ -737,9 +1182,9 @@ function StatusPill({ label, tone = "info" }) {
   );
 }
 
-function buildQueueOptions(tickets, currentUserId, t, isRequester) {
+function buildQueueOptions(tickets, currentUserId, t, isRequester, isGroupAdmin = false) {
   const count = (queueId) =>
-    tickets.filter((ticket) => matchesQueue(ticket, queueId, currentUserId, isRequester)).length;
+    tickets.filter((ticket) => matchesQueue(ticket, queueId, currentUserId, isRequester, isGroupAdmin)).length;
 
   if (isRequester) {
     const requesterText = getRequesterQueueText(t);
@@ -748,6 +1193,18 @@ function buildQueueOptions(tickets, currentUserId, t, isRequester) {
       { id: "department", label: requesterText.tabs.department, count: count("department"), activeClass: "border-sky-600 bg-sky-600 text-white" },
       { id: "feedback", label: requesterText.tabs.feedback, count: count("feedback"), activeClass: "border-amber-500 bg-amber-500 text-white" },
       { id: "all", label: requesterText.tabs.all, count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+    ];
+  }
+
+  if (isGroupAdmin) {
+    const text = getGroupAdminQueueText(t);
+    return [
+      { id: "now", label: text.tabs.now, count: count("now"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+      { id: "overdue", label: text.tabs.overdue, count: count("overdue"), activeClass: "border-rose-600 bg-rose-600 text-white" },
+      { id: "urgent", label: text.tabs.urgent, count: count("urgent"), activeClass: "border-amber-500 bg-amber-500 text-white" },
+      { id: "unassigned", label: text.tabs.unassigned, count: count("unassigned"), activeClass: "border-sky-600 bg-sky-600 text-white" },
+      { id: "waitingRequester", label: text.tabs.waitingRequester, count: count("waitingRequester"), activeClass: "border-slate-700 bg-slate-700 text-white" },
+      { id: "all", label: text.tabs.all, count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
     ];
   }
 
@@ -762,12 +1219,21 @@ function buildQueueOptions(tickets, currentUserId, t, isRequester) {
   ];
 }
 
-function matchesQueue(ticket, queueId, currentUserId, isRequester = false) {
+function matchesQueue(ticket, queueId, currentUserId, isRequester = false, isGroupAdmin = false) {
   if (isRequester) {
     if (queueId === "department") return !canViewTicketDetails(ticket, currentUserId) && !isCompleted(ticket);
     if (queueId === "feedback") return canViewTicketDetails(ticket, currentUserId) && isWaitingRequester(ticket);
     if (queueId === "all") return true;
     return canViewTicketDetails(ticket, currentUserId);
+  }
+
+  if (isGroupAdmin) {
+    if (queueId === "all") return true;
+    if (queueId === "overdue") return isOverdue(ticket);
+    if (queueId === "urgent") return !isCompleted(ticket) && ["critical", "high"].includes(ticket.priority);
+    if (queueId === "unassigned") return !isCompleted(ticket) && !ticket.assignedTo;
+    if (queueId === "waitingRequester") return isWaitingRequester(ticket);
+    return isGroupAdminRiskTicket(ticket);
   }
 
   if (queueId === "all") return true;
@@ -793,6 +1259,82 @@ function getQueueBadges(ticket, t) {
   if (!isCompleted(ticket) && !ticket.assignedTo) badges.push({ label: t("queue.badges.unassigned"), tone: "info" });
   if (isWaitingRequester(ticket)) badges.push({ label: t("queue.badges.waitingRequester"), tone: "neutral" });
   return badges;
+}
+
+function getGroupAdminRiskBadges(ticket, text, t) {
+  const badges = [];
+  if (isOverdue(ticket)) badges.push({ label: text.risk.overdue, tone: "danger" });
+  else if (isDueSoon(ticket)) badges.push({ label: text.risk.dueSoon, tone: "warning" });
+  if (!isCompleted(ticket) && !ticket.assignedTo && ["critical", "high"].includes(ticket.priority)) {
+    badges.push({ label: text.risk.urgentUnassigned, tone: "warning" });
+  } else if (!isCompleted(ticket) && !ticket.assignedTo) {
+    badges.push({ label: text.risk.unassigned, tone: "info" });
+  }
+  if (!isCompleted(ticket) && ["critical", "high"].includes(ticket.priority)) {
+    badges.push({ label: text.risk.urgent, tone: "warning" });
+  }
+  if (isWaitingRequester(ticket)) badges.push({ label: t("queue.badges.waitingRequester"), tone: "neutral" });
+  if (ticket.criticalRequested) badges.push({ label: t("queue.criticalReview"), tone: "warning" });
+  if (!badges.length) badges.push({ label: text.risk.normal, tone: "neutral" });
+  return badges;
+}
+
+function buildGroupAdminQueueKpis(tickets) {
+  return {
+    dueSoon: tickets.filter(isDueSoon).length,
+    now: tickets.filter(isGroupAdminRiskTicket).length,
+    overdue: tickets.filter(isOverdue).length,
+    unassignedUrgent: tickets.filter(
+      (ticket) => !isCompleted(ticket) && !ticket.assignedTo && ["critical", "high"].includes(ticket.priority),
+    ).length,
+  };
+}
+
+function isGroupAdminRiskTicket(ticket) {
+  return (
+    isOverdue(ticket) ||
+    isDueSoon(ticket) ||
+    (!isCompleted(ticket) && !ticket.assignedTo && ["critical", "high"].includes(ticket.priority)) ||
+    (!isCompleted(ticket) && ticket.priority === "critical")
+  );
+}
+
+function matchesGroupAdminOwnerFilter(ticket, ownerFilter) {
+  if (!ownerFilter || ownerFilter === "all") return true;
+  if (ownerFilter === "unassigned") return !ticket.assignedTo;
+  return getEntityId(ticket.assignedTo) === ownerFilter;
+}
+
+function buildGroupAdminOwnerOptions(tickets, users, text) {
+  const ownerIds = new Set(
+    tickets.map((ticket) => getEntityId(ticket.assignedTo)).filter(Boolean),
+  );
+  const owners = users
+    .filter((user) => ownerIds.has(getEntityId(user)))
+    .map((user) => ({
+      value: getEntityId(user),
+      label: user.name || user.email || getEntityId(user),
+      meta: user.role,
+      prefix: getInitials(user.name || user.email),
+    }));
+
+  return [
+    { value: "all", label: text.allOwners, prefix: "A" },
+    { value: "unassigned", label: text.unassignedOwner, prefix: "-" },
+    ...owners,
+  ];
+}
+
+function buildAssignableOptions(assignableUsers, isAssigning, t) {
+  return [
+    { value: "", label: isAssigning ? t("addTicket.assigning") : t("common.unassigned"), prefix: "-" },
+    ...assignableUsers.map((user) => ({
+      value: user._id || user.id,
+      label: user.name,
+      meta: user.role,
+      prefix: getInitials(user.name),
+    })),
+  ];
 }
 
 function getEmptyQueueMessage(activeQueue, t) {
@@ -862,8 +1404,81 @@ function getEntityId(entity) {
   return String(entity?._id || entity?.id || entity || "");
 }
 
+function getTicketHotelLabel(ticket, fallback) {
+  const hotel = ticket?.hotelId;
+  if (!hotel) return fallback;
+  if (typeof hotel === "string") return hotel;
+  return [hotel.code, hotel.name].filter(Boolean).join(" / ") || getEntityId(hotel) || fallback;
+}
+
 function getRequesterEmptyQueueMessage(activeQueue, requesterText) {
   return requesterText.empty[activeQueue] || requesterText.empty.all;
+}
+
+function getGroupAdminEmptyQueueMessage(activeQueue, groupAdminText) {
+  return groupAdminText.empty[activeQueue] || groupAdminText.empty.all;
+}
+
+function getGroupAdminQueueText(t) {
+  return {
+    allOwners: pickText(t, "groupAdminQueue.filters.allOwners", "ทุกผู้รับผิดชอบ"),
+    allPriorities: pickText(t, "groupAdminQueue.filters.allPriorities", "ทุกความเร่งด่วน"),
+    description: pickText(t, "groupAdminQueue.description", "ควบคุมงานหลายโรงแรม จับงานเสี่ยง และจัดลำดับคิวได้เร็วขึ้น"),
+    dueLabel: pickText(t, "groupAdminQueue.dueLabel", "กำหนด"),
+    heading: pickText(t, "groupAdminQueue.heading", "คิวควบคุมหลายโรงแรม"),
+    hotelColumn: pickText(t, "groupAdminQueue.columns.hotel", "โรงแรม / แผนก"),
+    kpiDueSoon: pickText(t, "groupAdminQueue.kpis.dueSoon", "ใกล้ครบกำหนด"),
+    kpiNow: pickText(t, "groupAdminQueue.kpis.now", "ต้องดูตอนนี้"),
+    kpiOverdue: pickText(t, "groupAdminQueue.kpis.overdue", "เกินกำหนด"),
+    kpiUnassignedUrgent: pickText(t, "groupAdminQueue.kpis.unassignedUrgent", "ด่วนยังไม่มอบหมาย"),
+    ownerColumn: pickText(t, "groupAdminQueue.columns.owner", "ผู้รับผิดชอบ"),
+    riskColumn: pickText(t, "groupAdminQueue.columns.risk", "ความเสี่ยง"),
+    ticketColumn: pickText(t, "groupAdminQueue.columns.ticket", "Ticket"),
+    unassignedOwner: pickText(t, "groupAdminQueue.filters.unassignedOwner", "ยังไม่มอบหมาย"),
+    unknownHotel: pickText(t, "groupAdminQueue.unknownHotel", "ไม่ระบุโรงแรม"),
+    empty: {
+      all: {
+        title: pickText(t, "groupAdminQueue.empty.allTitle", "ไม่พบ ticket ในคิวนี้"),
+        description: pickText(t, "groupAdminQueue.empty.allDescription", "ลองล้าง filter หรือเลือกโรงแรมอื่นเพื่อตรวจสอบงานเพิ่มเติม"),
+      },
+      now: {
+        title: pickText(t, "groupAdminQueue.empty.nowTitle", "ตอนนี้ไม่มีงานเสี่ยงที่ต้องรีบดู"),
+        description: pickText(t, "groupAdminQueue.empty.nowDescription", "คิวควบคุมยังนิ่งอยู่ ลองดูทั้งหมดเพื่อ review งานทั่วไปได้"),
+      },
+      overdue: {
+        title: pickText(t, "groupAdminQueue.empty.overdueTitle", "ไม่มีงานเกินกำหนด"),
+        description: pickText(t, "groupAdminQueue.empty.overdueDescription", "สถานะดี ลองดูงานใกล้ครบกำหนดเพื่อป้องกันหลุด SLA"),
+      },
+      urgent: {
+        title: pickText(t, "groupAdminQueue.empty.urgentTitle", "ไม่มีงานด่วนหรือวิกฤต"),
+        description: pickText(t, "groupAdminQueue.empty.urgentDescription", "ยังไม่มี ticket high/critical ใน scope นี้"),
+      },
+      unassigned: {
+        title: pickText(t, "groupAdminQueue.empty.unassignedTitle", "ไม่มีงานที่ยังไม่มอบหมาย"),
+        description: pickText(t, "groupAdminQueue.empty.unassignedDescription", "งานใหม่ถูกมอบหมายเรียบร้อยแล้ว"),
+      },
+      waitingRequester: {
+        title: pickText(t, "groupAdminQueue.empty.waitingRequesterTitle", "ไม่มีงานรอผู้แจ้ง"),
+        description: pickText(t, "groupAdminQueue.empty.waitingRequesterDescription", "เมื่องานแก้เสร็จแต่ยังรอ feedback จะมาอยู่ตรงนี้"),
+      },
+    },
+    risk: {
+      dueSoon: pickText(t, "groupAdminQueue.risk.dueSoon", "ใกล้ครบกำหนด"),
+      normal: pickText(t, "groupAdminQueue.risk.normal", "ปกติ"),
+      overdue: pickText(t, "groupAdminQueue.risk.overdue", "เกินกำหนด"),
+      unassigned: pickText(t, "groupAdminQueue.risk.unassigned", "ยังไม่มอบหมาย"),
+      urgent: pickText(t, "groupAdminQueue.risk.urgent", "ด่วน/วิกฤต"),
+      urgentUnassigned: pickText(t, "groupAdminQueue.risk.urgentUnassigned", "ด่วนยังไม่มอบหมาย"),
+    },
+    tabs: {
+      all: pickText(t, "groupAdminQueue.tabs.all", "ทั้งหมด"),
+      now: pickText(t, "groupAdminQueue.tabs.now", "ต้องดูตอนนี้"),
+      overdue: pickText(t, "groupAdminQueue.tabs.overdue", "เกินกำหนด"),
+      urgent: pickText(t, "groupAdminQueue.tabs.urgent", "ด่วน/วิกฤต"),
+      unassigned: pickText(t, "groupAdminQueue.tabs.unassigned", "ยังไม่มอบหมาย"),
+      waitingRequester: pickText(t, "groupAdminQueue.tabs.waitingRequester", "รอผู้แจ้ง"),
+    },
+  };
 }
 
 function getRequesterQueueText(t) {
