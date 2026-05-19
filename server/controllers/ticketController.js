@@ -87,6 +87,21 @@ function buildTicketVisibilityQuery(user) {
   };
 }
 
+function buildHotelAnalyticsQuery(req, hotelScope) {
+  const query = {
+    ...hotelScope,
+    ...buildDateRangeQuery(req.query),
+  };
+
+  if (req.query.status) query.status = req.query.status;
+  if (req.query.category) query.category = req.query.category;
+  if (req.query.priority) query.priority = req.query.priority;
+  if (req.query.departmentId) query.departmentId = req.query.departmentId;
+  if (req.query.requesterUserId) query.requesterUserId = req.query.requesterUserId;
+
+  return query;
+}
+
 function canSubmitSatisfaction(user, ticket) {
   const userId = getUserId(user);
   const requesterUserId = String(ticket.requesterUserId?._id || ticket.requesterUserId || "");
@@ -269,15 +284,7 @@ async function findScopedTicketById(req, id) {
 async function getInsights(req, res) {
   try {
     const hotelScope = await buildHotelScopeQuery(req.user, req.query);
-    const tickets = await Ticket.find({
-      ...hotelScope,
-      ...buildTicketVisibilityQuery(req.user),
-      ...buildDateRangeQuery(req.query),
-      ...(req.query.departmentId ? { departmentId: req.query.departmentId } : {}),
-      ...(req.query.status ? { status: req.query.status } : {}),
-      ...(req.query.category ? { category: req.query.category } : {}),
-      ...(req.query.priority ? { priority: req.query.priority } : {}),
-    });
+    const tickets = await Ticket.find(buildHotelAnalyticsQuery(req, hotelScope));
     const total = tickets.length;
 
     // Calculate average resolution time
@@ -929,16 +936,7 @@ async function uploadAttachment(req, res) {
 async function getSummaryTickets(req, res) {
   try {
     const hotelScope = await buildHotelScopeQuery(req.user, req.query);
-    const query = {
-      ...hotelScope,
-      ...buildTicketVisibilityQuery(req.user),
-      ...buildDateRangeQuery(req.query),
-    };
-    if (req.query.status) query.status = req.query.status;
-    if (req.query.category) query.category = req.query.category;
-    if (req.query.priority) query.priority = req.query.priority;
-    if (req.query.departmentId) query.departmentId = req.query.departmentId;
-    if (req.query.requesterUserId) query.requesterUserId = req.query.requesterUserId;
+    const query = buildHotelAnalyticsQuery(req, hotelScope);
 
     const tickets = await Ticket.find(query)
       .sort({ createdAt: -1 })
