@@ -12,8 +12,8 @@ const emptyForm = {
   hotelAccess: [],
 };
 
-const roles = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager", "Agent", "User"];
-const roleOptions = roles.map((role) => ({ value: role, label: role, prefix: role.slice(0, 2).toUpperCase() }));
+const activeRoles = ["GroupAdmin", "HotelAdmin", "Manager", "Agent", "User"];
+const legacyRoles = new Set(["Admin", "RegionalManager"]);
 const staffRoles = new Set(["GroupAdmin", "RegionalManager", "HotelAdmin", "Admin", "Manager", "Agent"]);
 const multiHotelRoles = new Set(["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"]);
 
@@ -164,8 +164,11 @@ function UserManagement({
                   hotelAccess: normalizeHotelAccess(form.hotelId, form.hotelAccess, value),
                 })
               }
-              options={roleOptions}
+              options={getRoleOptions(form.role)}
             />
+            <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
+              Manager and HotelAdmin can be given access to more than one hotel. Admin and RegionalManager are legacy roles and are hidden for new users.
+            </p>
           </Field>
 
           <Field label="Team" className="lg:col-span-2">
@@ -499,6 +502,28 @@ function canUseMultiHotelAccess(role) {
   return multiHotelRoles.has(role);
 }
 
+function getRoleOptions(currentRole) {
+  const options = activeRoles.map((role) => ({
+    value: role,
+    label: role,
+    prefix: role.slice(0, 2).toUpperCase(),
+  }));
+
+  if (legacyRoles.has(currentRole)) {
+    return [
+      {
+        value: currentRole,
+        label: `${currentRole} (legacy)`,
+        meta: "Change to GroupAdmin or Manager when possible",
+        prefix: currentRole.slice(0, 2).toUpperCase(),
+      },
+      ...options,
+    ];
+  }
+
+  return options;
+}
+
 function getEmptyUserForm(selectedHotelId) {
   const primaryHotelId = selectedHotelId === "all" ? "" : selectedHotelId;
   return {
@@ -561,17 +586,20 @@ function Field({ children, className = "", label }) {
 }
 
 function RoleBadge({ role }) {
-  const isAdmin = role === "Admin";
+  const isAdmin = ["GroupAdmin", "Admin", "HotelAdmin"].includes(role);
+  const isLegacy = legacyRoles.has(role);
 
   return (
     <span
       className={`rounded-full px-3 py-1 text-xs font-bold ${
-        isAdmin
+        isLegacy
+          ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
+          : isAdmin
           ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200"
           : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
       }`}
     >
-      {role}
+      {isLegacy ? `${role} legacy` : role}
     </span>
   );
 }

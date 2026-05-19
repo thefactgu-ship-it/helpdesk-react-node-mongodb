@@ -251,12 +251,12 @@ npm run db:fix-problem-type-indexes
 ## Roles And Access
 
 - `GroupAdmin`: full cross-hotel management and dashboard visibility
-- `Admin`: legacy group-admin-compatible role retained for existing deployments
-- `RegionalManager`: cross-hotel or regional visibility depending on assigned access
-- `HotelAdmin`: hotel-level user, asset, department, problem type, and ticket management
-- `Manager`: can view and manage tickets, assign work, and access staff lists needed for assignment
+- `HotelAdmin`: can manage users, departments, assets, problem types, and ticket workflow for hotels in `hotelAccess`
+- `Manager`: can manage ticket queues, assign work, and update ticket workflow for hotels in `hotelAccess`
 - `Agent`: can work on assigned tickets and tickets they created
 - `User`: can create tickets, view their own or assigned tickets, add comments, and submit satisfaction feedback
+
+`Admin` and `RegionalManager` are legacy roles kept for existing data compatibility. They are hidden from new user creation and should be migrated to `GroupAdmin`, `HotelAdmin`, or `Manager` when possible.
 
 Ticket visibility is permission-limited on the backend. Frontend filters are convenience controls only.
 
