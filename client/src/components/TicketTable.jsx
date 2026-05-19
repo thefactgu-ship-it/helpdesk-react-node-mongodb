@@ -39,9 +39,15 @@ function TicketTable({
     () => buildQueueOptions(tickets, currentUserId, t, isRequester),
     [currentUserId, isRequester, tickets, t],
   );
+  const validQueueIds = useMemo(
+    () => queueOptions.map((queue) => queue.id),
+    [queueOptions],
+  );
+  const preferredQueue = isRequester ? "mine" : "now";
+  const activeQueueId = validQueueIds.includes(activeQueue) ? activeQueue : preferredQueue;
   const queueTickets = useMemo(
-    () => tickets.filter((ticket) => matchesQueue(ticket, activeQueue, currentUserId, isRequester)),
-    [activeQueue, currentUserId, isRequester, tickets],
+    () => tickets.filter((ticket) => matchesQueue(ticket, activeQueueId, currentUserId, isRequester)),
+    [activeQueueId, currentUserId, isRequester, tickets],
   );
   const totalPages = Math.max(1, Math.ceil(queueTickets.length / ticketsPerPage));
   const visibleTickets = queueTickets.slice(
@@ -59,15 +65,6 @@ function TicketTable({
       setCurrentPage(totalPages);
     }
   }, [currentPage, setCurrentPage, totalPages]);
-
-  useEffect(() => {
-    const validQueueIds = queueOptions.map((queue) => queue.id);
-    const preferredQueue = isRequester ? "mine" : "now";
-    if (!validQueueIds.includes(activeQueue)) {
-      setActiveQueue(preferredQueue);
-      setCurrentPage(1);
-    }
-  }, [activeQueue, isRequester, queueOptions, setCurrentPage]);
 
   const handleQueueChange = (queueId) => {
     setActiveQueue(queueId);
@@ -109,7 +106,7 @@ function TicketTable({
 
       <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
         {queueOptions.map((queue) => {
-          const active = activeQueue === queue.id;
+          const active = activeQueueId === queue.id;
           return (
             <button
               key={queue.id}
@@ -169,7 +166,7 @@ function TicketTable({
         )}
 
         {!loading && queueTickets.length === 0 && (
-          <QueueEmptyState activeQueue={activeQueue} t={t} />
+          <QueueEmptyState activeQueue={activeQueueId} t={t} />
         )}
 
         <PaginationControls
@@ -325,7 +322,7 @@ function TicketTable({
             {!loading && queueTickets.length === 0 && (
               <tr>
                 <td colSpan="7" className="py-8">
-                  <QueueEmptyState activeQueue={activeQueue} t={t} />
+                  <QueueEmptyState activeQueue={activeQueueId} t={t} />
                 </td>
               </tr>
             )}
