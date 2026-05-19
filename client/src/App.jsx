@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import axios from "axios";
@@ -118,6 +119,7 @@ function App() {
   const [deleteId, setDeleteId] = useState(null);
   const [deleteUserId, setDeleteUserId] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const selectedTicketRef = useRef(null);
   const [profileInitialSection, setProfileInitialSection] = useState("profile");
   const [form, setForm] = useState({
     title: "",
@@ -148,7 +150,8 @@ function App() {
   }, [selectedHotelId]);
   const t = useMemo(() => createTranslator(language), [language]);
 
-  const fetchTickets = useCallback(async () => {
+  const fetchTickets = useCallback(async (options = {}) => {
+    const { silent = false } = options;
     if (!token) {
       setTickets([]);
       setLoading(false);
@@ -156,7 +159,7 @@ function App() {
     }
 
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const res = await axios.get(API_URL, {
         headers: authHeaders,
         params: scopedParams,
@@ -166,7 +169,7 @@ function App() {
       console.error("Failed to fetch tickets", error);
       toast.error(getErrorMessage(error, "Failed to fetch tickets"));
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [authHeaders, scopedParams, token]);
 
@@ -464,7 +467,7 @@ function App() {
     }
   };
 
-  const openTicketDetails = async (id) => {
+  const openTicketDetails = useCallback(async (id) => {
     try {
       const res = await axios.get(`${API_URL}/${id}`, {
         headers: authHeaders,
@@ -475,7 +478,7 @@ function App() {
       console.error("Failed to load ticket details", error);
       toast.error(getErrorMessage(error, "Failed to load ticket details"));
     }
-  };
+  }, [authHeaders, scopedParams]);
 
   const closeTicketDetails = () => {
     setSelectedTicket(null);
@@ -484,6 +487,22 @@ function App() {
   const openNotificationTicket = async (ticketId) => {
     setActivePage("tickets");
     await openTicketDetails(ticketId);
+  };
+
+  const syncTicketsFromRealtime = async (notification) => {
+    const ticketId = notification?.ticketId?._id || notification?.ticketId;
+    const isTicketEvent = !notification || ticketId || String(notification?.type || "").startsWith("ticket_");
+    if (!isTicketEvent) return;
+
+    await Promise.all([
+      fetchTickets({ silent: true }),
+      fetchSummaryTickets(),
+    ]);
+
+    const activeTicket = selectedTicketRef.current;
+    if (ticketId && activeTicket && String(activeTicket._id) === String(ticketId)) {
+      await openTicketDetails(ticketId);
+    }
   };
 
   const addTicketComment = async (ticketId, text) => {
@@ -857,6 +876,10 @@ function App() {
   }, [selectedHotelId]);
 
   useEffect(() => {
+    selectedTicketRef.current = selectedTicket;
+  }, [selectedTicket]);
+
+  useEffect(() => {
     persistLanguage(language);
   }, [language]);
 
@@ -926,6 +949,8 @@ function App() {
                   <NotificationBell
                     token={token}
                     onOpenTicket={openNotificationTicket}
+                    onRealtimeNotification={syncTicketsFromRealtime}
+                    onRealtimeSync={syncTicketsFromRealtime}
                     t={t}
                   />
                 </div>

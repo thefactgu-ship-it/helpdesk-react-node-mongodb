@@ -23,7 +23,7 @@ function upsertNotification(notifications, notification) {
   return next.slice(0, NOTIFICATION_LIMIT);
 }
 
-function NotificationBell({ token, onOpenTicket, t }) {
+function NotificationBell({ token, onOpenTicket, onRealtimeNotification, onRealtimeSync, t }) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -34,6 +34,13 @@ function NotificationBell({ token, onOpenTicket, t }) {
   const buttonRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const syncTimeoutRef = useRef(null);
+  const realtimeNotificationRef = useRef(onRealtimeNotification);
+  const realtimeSyncRef = useRef(onRealtimeSync);
+
+  useEffect(() => {
+    realtimeNotificationRef.current = onRealtimeNotification;
+    realtimeSyncRef.current = onRealtimeSync;
+  }, [onRealtimeNotification, onRealtimeSync]);
 
   const fetchNotifications = useCallback(async (options = {}) => {
     if (!token) return;
@@ -44,6 +51,9 @@ function NotificationBell({ token, onOpenTicket, t }) {
       const body = await getNotifications(token, { limit: NOTIFICATION_LIMIT });
       setNotifications(body.data || []);
       setUnreadCount(body.unreadCount || 0);
+      if (silent) {
+        realtimeSyncRef.current?.();
+      }
     } catch (error) {
       console.error("Failed to load notifications", error);
     } finally {
@@ -67,6 +77,7 @@ function NotificationBell({ token, onOpenTicket, t }) {
       if (!notification.readAt) {
         setUnreadCount((current) => current + 1);
       }
+      realtimeNotificationRef.current?.(notification);
       scheduleNotificationSync();
     },
     [scheduleNotificationSync],
