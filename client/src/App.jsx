@@ -251,10 +251,13 @@ function App() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const requesterName = form.requester.trim() || currentUser?.name || "";
+    const currentUserId = currentUser?._id || currentUser?.id || "";
+    const requesterName =
+      currentUser?.role === "User"
+        ? currentUser?.name || ""
+        : form.requester.trim() || currentUser?.name || "";
     const requesterUserId =
-      form.requesterUserId ||
-      (currentUser?.role === "User" ? currentUser?._id || currentUser?.id || "" : "");
+      currentUser?.role === "User" ? currentUserId : form.requesterUserId || "";
     const userDepartmentId = currentUser?.departmentId?._id || currentUser?.departmentId || "";
     const selectedDepartment = departments.find(
       (department) =>

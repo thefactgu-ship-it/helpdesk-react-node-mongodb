@@ -41,8 +41,12 @@ function AddTicketPage({
   const selectedPriority = form.criticalRequested && !canAssignTickets
     ? t("addTicket.priorities.high")
     : t(`addTicket.priorities.${form.priority || "medium"}`);
+  const requesterName =
+    currentUser?.role === "User"
+      ? currentUser?.name || ""
+      : form.requester || currentUser?.name || "";
   const submissionSummary = {
-    requester: form.requester || currentUser?.name || t("common.currentUser"),
+    requester: requesterName || t("common.currentUser"),
     department:
       summaryDepartment?.name ||
       (formDepartmentIsPlaceholder ? userDepartmentName : form.department) ||
@@ -121,16 +125,21 @@ function AddTicketPage({
       if (ignore) return;
 
       setForm((currentForm) => {
-        const nextRequester = currentForm.requester || currentUser?.name || "";
         const currentUserId = currentUser?.id || currentUser?._id || "";
-        const defaultRequesterUserId = currentUser?.role === "User" ? currentUserId : "";
+        const isRequesterUser = currentUser?.role === "User";
+        const nextRequester = isRequesterUser
+          ? currentUser?.name || ""
+          : currentForm.requester || currentUser?.name || "";
+        const defaultRequesterUserId = isRequesterUser ? currentUserId : "";
         const requesterIdIsCurrentManager =
           canAssignTickets &&
           currentUser?.role !== "User" &&
           currentForm.requesterUserId === currentUserId;
         const nextRequesterUserId = requesterIdIsCurrentManager
           ? ""
-          : currentForm.requesterUserId || defaultRequesterUserId;
+          : isRequesterUser
+            ? defaultRequesterUserId
+            : currentForm.requesterUserId || defaultRequesterUserId;
         const nextDepartmentId =
           currentForm.departmentId ||
           currentUser?.departmentId?._id ||
