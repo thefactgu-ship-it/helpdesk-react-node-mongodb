@@ -2,6 +2,7 @@ import DashboardAnalytics from "../components/DashboardAnalytics";
 import {
   CheckCircle2,
   ClipboardList,
+  Clock3,
   MessageSquareMore,
   PlusCircle,
   Search,
@@ -71,16 +72,17 @@ function RequesterDashboard({ currentUser, loading, onNavigate, t, tickets }) {
   const ownTickets = tickets.filter((ticket) => isOwnTicket(ticket, currentUserId));
   const activeMine = ownTickets.filter((ticket) => !isCompleted(ticket));
   const waitingFeedback = ownTickets.filter((ticket) => isWaitingFeedback(ticket));
+  const inProgressMine = ownTickets.filter((ticket) => ticket.status === "in_progress");
   const departmentTickets = tickets
     .filter((ticket) => !isOwnTicket(ticket, currentUserId) && !isCompleted(ticket))
     .slice(0, 5);
 
   return (
     <div className="space-y-5">
-      <section className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <section className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-600 dark:text-blue-300">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600 dark:text-blue-300">
               {text.eyebrow}
             </p>
             <h3 className="mt-2 text-2xl font-black text-slate-950 dark:text-white">
@@ -90,29 +92,42 @@ function RequesterDashboard({ currentUser, loading, onNavigate, t, tickets }) {
               {text.description}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => onNavigate("add-ticket")}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700"
-          >
-            <PlusCircle className="h-5 w-5" aria-hidden="true" />
-            {text.createTicket}
-          </button>
+          <div className="grid gap-3 sm:grid-cols-2 lg:min-w-[24rem]">
+            <button
+              type="button"
+              onClick={() => onNavigate("add-ticket")}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700"
+            >
+              <PlusCircle className="h-5 w-5" aria-hidden="true" />
+              {text.createTicket}
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate("tickets")}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:bg-slate-800"
+            >
+              <Search className="h-5 w-5" aria-hidden="true" />
+              {text.checkDepartment}
+            </button>
+          </div>
         </div>
       </section>
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <RequesterStat
-          icon={ClipboardList}
-          label={text.activeMine}
-          value={activeMine.length}
+          detail={text.inProgressDetail}
+          icon={Clock3}
+          label={text.inProgressMine}
+          value={inProgressMine.length}
         />
         <RequesterStat
+          detail={text.waitingFeedbackDetail}
           icon={MessageSquareMore}
           label={text.waitingFeedback}
           value={waitingFeedback.length}
         />
         <RequesterStat
+          detail={text.departmentDetail}
           icon={Search}
           label={text.departmentActive}
           value={departmentTickets.length}
@@ -128,6 +143,8 @@ function RequesterDashboard({ currentUser, loading, onNavigate, t, tickets }) {
         >
           <TicketList
             empty={loading ? t("common.loadingPage") : text.noMyTickets}
+            emptyAction={text.createTicket}
+            onEmptyAction={() => onNavigate("add-ticket")}
             tickets={activeMine.slice(0, 5)}
           />
         </RequesterPanel>
@@ -140,7 +157,10 @@ function RequesterDashboard({ currentUser, loading, onNavigate, t, tickets }) {
         >
           <TicketList
             empty={loading ? t("common.loadingPage") : text.noDepartmentTickets}
+            emptyAction={text.createTicket}
+            onEmptyAction={() => onNavigate("add-ticket")}
             summaryOnly
+            summaryOnlyLabel={text.summaryOnly}
             tickets={departmentTickets}
           />
         </RequesterPanel>
@@ -162,25 +182,31 @@ function RequesterDashboard({ currentUser, loading, onNavigate, t, tickets }) {
 
 function getRequesterHomeText(t) {
   return {
-    activeMine: pickText(t, "requesterHome.activeMine", "My active tickets"),
-    checkQueue: pickText(t, "requesterHome.checkQueue", "Check queue"),
-    createTicket: pickText(t, "requesterHome.createTicket", "Report a new issue"),
-    departmentActive: pickText(t, "requesterHome.departmentActive", "Active in my department"),
-    departmentTickets: pickText(t, "requesterHome.departmentTickets", "Same department"),
+    activeMine: pickText(t, "requesterHome.activeMine", "เรื่องของฉันที่ยังเปิดอยู่"),
+    checkDepartment: pickText(t, "requesterHome.checkDepartment", "เช็กเรื่องในแผนก"),
+    checkQueue: pickText(t, "requesterHome.checkQueue", "เช็กรายการ"),
+    createTicket: pickText(t, "requesterHome.createTicket", "แจ้งปัญหาใหม่"),
+    departmentActive: pickText(t, "requesterHome.departmentActive", "เรื่องในแผนก"),
+    departmentDetail: pickText(t, "requesterHome.departmentDetail", "เช็กก่อนแจ้งซ้ำ"),
+    departmentTickets: pickText(t, "requesterHome.departmentTickets", "ในแผนกเดียวกัน"),
     description: pickText(
       t,
       "requesterHome.description",
-      "Start a new request, or check your department's active tickets first to avoid duplicate reports.",
+      "สร้างคำขอใหม่ให้ทีม IT หรือเช็กเรื่องในแผนกก่อนเพื่อไม่ต้องแจ้งซ้ำ",
     ),
-    eyebrow: pickText(t, "requesterHome.eyebrow", "Requester workspace"),
-    feedbackTitle: pickText(t, "requesterHome.feedbackTitle", "Waiting for feedback"),
-    giveFeedback: pickText(t, "requesterHome.giveFeedback", "Give feedback"),
-    myTickets: pickText(t, "requesterHome.myTickets", "My tickets"),
-    noDepartmentTickets: pickText(t, "requesterHome.noDepartmentTickets", "No active tickets in your department yet."),
-    noMyTickets: pickText(t, "requesterHome.noMyTickets", "You have no active tickets to follow up."),
-    title: pickText(t, "requesterHome.title", "Report issues and track your requests"),
-    viewQueue: pickText(t, "requesterHome.viewQueue", "View queue"),
-    waitingFeedback: pickText(t, "requesterHome.waitingFeedback", "Waiting for my feedback"),
+    eyebrow: pickText(t, "requesterHome.eyebrow", "พื้นที่แจ้งปัญหา"),
+    feedbackTitle: pickText(t, "requesterHome.feedbackTitle", "รอ feedback จากฉัน"),
+    giveFeedback: pickText(t, "requesterHome.giveFeedback", "ให้ feedback"),
+    inProgressDetail: pickText(t, "requesterHome.inProgressDetail", "ทีม IT กำลังดูแลอยู่"),
+    inProgressMine: pickText(t, "requesterHome.inProgressMine", "กำลังดำเนินการ"),
+    myTickets: pickText(t, "requesterHome.myTickets", "คำขอของฉัน"),
+    noDepartmentTickets: pickText(t, "requesterHome.noDepartmentTickets", "ตอนนี้ยังไม่มีเรื่องที่เปิดอยู่ในแผนก กดแจ้งปัญหาใหม่ได้เลย"),
+    noMyTickets: pickText(t, "requesterHome.noMyTickets", "ตอนนี้ไม่มีเรื่องค้าง กดแจ้งปัญหาใหม่ได้เลยเมื่อมีเรื่องให้ช่วย"),
+    title: pickText(t, "requesterHome.title", "แจ้งปัญหาได้เร็วขึ้น"),
+    summaryOnly: pickText(t, "queue.summaryOnly", "ดูสรุป"),
+    viewQueue: pickText(t, "requesterHome.viewQueue", "ดูคำขอ"),
+    waitingFeedback: pickText(t, "requesterHome.waitingFeedback", "รอฉันยืนยัน"),
+    waitingFeedbackDetail: pickText(t, "requesterHome.waitingFeedbackDetail", "ช่วยยืนยันเมื่อแก้เสร็จ"),
   };
 }
 
@@ -189,7 +215,7 @@ function pickText(t, key, fallback) {
   return value && value !== key ? value : fallback;
 }
 
-function RequesterStat({ icon: Icon, label, value }) {
+function RequesterStat({ detail, icon: Icon, label, value }) {
   return (
     <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
       <div className="flex items-center gap-3">
@@ -199,6 +225,11 @@ function RequesterStat({ icon: Icon, label, value }) {
         <div>
           <p className="text-2xl font-black text-slate-950 dark:text-white">{value}</p>
           <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{label}</p>
+          {detail && (
+            <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+              {detail}
+            </p>
+          )}
         </div>
       </div>
     </article>
@@ -232,11 +263,20 @@ function RequesterPanel({ actionLabel, children, icon: Icon, onAction, title }) 
   );
 }
 
-function TicketList({ empty, summaryOnly = false, tickets = [] }) {
+function TicketList({ empty, emptyAction, onEmptyAction, summaryOnly = false, summaryOnlyLabel = "", tickets = [] }) {
   if (!tickets.length) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-        {empty}
+      <div className="rounded-xl border border-dashed border-slate-300 p-5 text-center dark:border-slate-700">
+        <p className="text-sm text-slate-500 dark:text-slate-400">{empty}</p>
+        {emptyAction && onEmptyAction && (
+          <button
+            type="button"
+            onClick={onEmptyAction}
+            className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-xs font-black text-white transition hover:bg-blue-700"
+          >
+            {emptyAction}
+          </button>
+        )}
       </div>
     );
   }
@@ -263,7 +303,7 @@ function TicketList({ empty, summaryOnly = false, tickets = [] }) {
           </div>
           <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
             {ticket.category} / {ticket.departmentName || ticket.department}
-            {summaryOnly ? " / summary only" : ""}
+            {summaryOnly && summaryOnlyLabel ? ` / ${summaryOnlyLabel}` : ""}
           </p>
         </article>
       ))}

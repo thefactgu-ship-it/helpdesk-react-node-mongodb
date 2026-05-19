@@ -127,6 +127,22 @@ function TicketTable({
         })}
       </div>
 
+      {isRequester ? (
+        <RequesterQueueCards
+          activeQueue={activeQueueId}
+          currentPage={currentPage}
+          currentUserId={currentUserId}
+          loading={loading}
+          onViewTicket={onViewTicket}
+          queueTickets={queueTickets}
+          requesterText={requesterText}
+          setCurrentPage={setCurrentPage}
+          t={t}
+          ticketsPerPage={ticketsPerPage}
+          visibleTickets={visibleTickets}
+        />
+      ) : (
+        <>
       <div className="space-y-3 md:hidden">
         {loading ? (
           <>
@@ -335,7 +351,162 @@ function TicketTable({
           totalPages={totalPages}
         />
       </div>
+        </>
+      )}
     </section>
+  );
+}
+
+function RequesterQueueCards({
+  activeQueue,
+  currentPage,
+  currentUserId,
+  loading,
+  onViewTicket,
+  queueTickets,
+  requesterText,
+  setCurrentPage,
+  t,
+  ticketsPerPage,
+  visibleTickets,
+}) {
+  const totalPages = Math.max(1, Math.ceil(queueTickets.length / ticketsPerPage));
+
+  if (loading) {
+    return (
+      <div className="grid gap-3 lg:grid-cols-2">
+        <MobileTicketSkeleton />
+        <MobileTicketSkeleton />
+        <MobileTicketSkeleton />
+        <MobileTicketSkeleton />
+      </div>
+    );
+  }
+
+  if (!queueTickets.length) {
+    return (
+      <QueueEmptyState
+        activeQueue={activeQueue}
+        requesterText={requesterText}
+        t={t}
+      />
+    );
+  }
+
+  return (
+    <>
+      <div className="grid gap-3 lg:grid-cols-2">
+        {visibleTickets.map((ticket) => (
+          <RequesterQueueCard
+            key={ticket._id || ticket.id}
+            canViewTicket={canViewTicketDetails(ticket, currentUserId)}
+            onViewTicket={onViewTicket}
+            requesterText={requesterText}
+            t={t}
+            ticket={ticket}
+          />
+        ))}
+      </div>
+
+      <PaginationControls
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        t={t}
+        totalPages={totalPages}
+      />
+    </>
+  );
+}
+
+function RequesterQueueCard({ canViewTicket, onViewTicket, requesterText, t, ticket }) {
+  const summaryOnly = !canViewTicket;
+  const statusLabel = getStatusLabel(ticket.status, t);
+  const isActive = !isCompleted(ticket);
+  const updatedLabel = ticket.updatedAt
+    ? new Date(ticket.updatedAt).toLocaleDateString()
+    : ticket.createdAt
+      ? new Date(ticket.createdAt).toLocaleDateString()
+      : "-";
+
+  return (
+    <article
+      className={`rounded-xl border bg-white p-4 shadow-sm dark:bg-slate-950 ${
+        summaryOnly
+          ? "border-sky-200 dark:border-sky-500/30"
+          : "border-slate-200 dark:border-slate-800"
+      }`}
+    >
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-xs font-black text-blue-600 dark:text-blue-300">
+            {ticket.ticketNumber}
+          </p>
+          <h4 className="mt-1 line-clamp-2 break-words text-base font-black text-slate-950 dark:text-white">
+            {ticket.title}
+          </h4>
+        </div>
+        <span
+          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${
+            isActive
+              ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-200 dark:ring-blue-400/20"
+              : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20"
+          }`}
+        >
+          {statusLabel}
+        </span>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {summaryOnly ? (
+          <StatusPill label={requesterText.departmentSummary} tone="neutral" />
+        ) : (
+          <StatusPill label={requesterText.mineBadge} tone="info" />
+        )}
+        {isWaitingRequester(ticket) && (
+          <StatusPill label={requesterText.feedbackBadge} tone="warning" />
+        )}
+        {ticket.criticalRequested && (
+          <StatusPill label={t("queue.criticalReview")} tone="warning" />
+        )}
+      </div>
+
+      <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+        <RequesterMeta label={requesterText.categoryLabel} value={ticket.category || "-"} />
+        <RequesterMeta label={requesterText.departmentLabel} value={ticket.departmentName || ticket.department || "-"} />
+        <RequesterMeta label={requesterText.statusLabel} value={statusLabel} />
+        <RequesterMeta label={requesterText.updatedLabel} value={updatedLabel} />
+      </dl>
+
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs leading-5 text-slate-500 dark:text-slate-400">
+          {summaryOnly ? requesterText.summaryOnlyHelp : requesterText.ownTicketHelp}
+        </p>
+        {canViewTicket ? (
+          <button
+            type="button"
+            onClick={() => onViewTicket(ticket._id)}
+            className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-xs font-black text-white transition hover:bg-blue-700"
+          >
+            {t("common.view")}
+          </button>
+        ) : (
+          <span className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 px-4 py-2 text-xs font-black text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+            {requesterText.summaryOnly}
+          </span>
+        )}
+      </div>
+    </article>
+  );
+}
+
+function RequesterMeta({ label, value }) {
+  return (
+    <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-900">
+      <dt className="text-[11px] font-bold text-slate-400">{label}</dt>
+      <dd className="mt-1 truncate font-semibold text-slate-800 dark:text-slate-100">
+        {value}
+      </dd>
+    </div>
   );
 }
 
@@ -477,8 +648,10 @@ function MobileMeta({ label, value }) {
   );
 }
 
-function QueueEmptyState({ activeQueue, t }) {
-  const message = getEmptyQueueMessage(activeQueue, t);
+function QueueEmptyState({ activeQueue, requesterText, t }) {
+  const message = requesterText
+    ? getRequesterEmptyQueueMessage(activeQueue, requesterText)
+    : getEmptyQueueMessage(activeQueue, t);
 
   return (
     <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900">
@@ -689,17 +862,47 @@ function getEntityId(entity) {
   return String(entity?._id || entity?.id || entity || "");
 }
 
+function getRequesterEmptyQueueMessage(activeQueue, requesterText) {
+  return requesterText.empty[activeQueue] || requesterText.empty.all;
+}
+
 function getRequesterQueueText(t) {
   return {
-    departmentSummary: pickText(t, "queue.badges.departmentSummary", "Visible to prevent duplicate reports"),
-    description: pickText(t, "queue.requesterDescription", "Review your tickets and active department tickets before reporting a duplicate."),
-    heading: pickText(t, "queue.requesterHeading", "Related Tickets"),
-    summaryOnly: pickText(t, "queue.summaryOnly", "Summary only"),
+    categoryLabel: pickText(t, "queue.requesterFields.category", "หมวด"),
+    departmentSummary: pickText(t, "queue.badges.departmentSummary", "ดูเพื่อกันแจ้งซ้ำ"),
+    departmentLabel: pickText(t, "queue.requesterFields.department", "แผนก"),
+    description: pickText(t, "queue.requesterDescription", "ติดตามคำขอของคุณ และเช็กเรื่องในแผนกก่อนแจ้งซ้ำ"),
+    feedbackBadge: pickText(t, "queue.badges.feedbackNeeded", "รอยืนยัน"),
+    heading: pickText(t, "queue.requesterHeading", "คำขอของฉัน"),
+    mineBadge: pickText(t, "queue.badges.mine", "ของฉัน"),
+    ownTicketHelp: pickText(t, "queue.ownTicketHelp", "เปิดรายละเอียดเพื่อเพิ่มข้อมูลหรือยืนยันผลการแก้ไข"),
+    statusLabel: pickText(t, "queue.requesterFields.status", "สถานะ"),
+    summaryOnlyHelp: pickText(t, "queue.summaryOnlyHelp", "แสดงไว้เพื่อให้ทีมไม่ต้องแจ้งเรื่องเดียวกันซ้ำ"),
+    summaryOnly: pickText(t, "queue.summaryOnly", "ดูสรุป"),
+    updatedLabel: pickText(t, "queue.requesterFields.updated", "อัปเดต"),
+    empty: {
+      all: {
+        title: pickText(t, "queue.userEmpty.allTitle", "ยังไม่มีรายการที่เกี่ยวข้อง"),
+        description: pickText(t, "queue.userEmpty.allDescription", "ถ้าต้องการให้ IT ช่วย กดแจ้งปัญหาใหม่ได้เลย"),
+      },
+      department: {
+        title: pickText(t, "queue.userEmpty.departmentTitle", "ยังไม่มีเรื่องในแผนก"),
+        description: pickText(t, "queue.userEmpty.departmentDescription", "ตอนนี้ไม่มีเรื่องคล้ายกันที่เปิดอยู่ในแผนก"),
+      },
+      feedback: {
+        title: pickText(t, "queue.userEmpty.feedbackTitle", "ยังไม่มีเรื่องที่รอคุณยืนยัน"),
+        description: pickText(t, "queue.userEmpty.feedbackDescription", "เมื่อ IT แก้เสร็จ รายการจะมาอยู่ตรงนี้ให้ยืนยัน"),
+      },
+      mine: {
+        title: pickText(t, "queue.userEmpty.mineTitle", "ตอนนี้ไม่มีเรื่องค้าง"),
+        description: pickText(t, "queue.userEmpty.mineDescription", "ถ้ามีเรื่องให้ IT ช่วย กดแจ้งปัญหาใหม่ได้เลย"),
+      },
+    },
     tabs: {
-      all: pickText(t, "queue.userTabs.all", "All related"),
-      department: pickText(t, "queue.userTabs.department", "Department"),
-      feedback: pickText(t, "queue.userTabs.feedback", "Feedback"),
-      mine: pickText(t, "queue.userTabs.mine", "Mine"),
+      all: pickText(t, "queue.userTabs.all", "ทั้งหมดที่เกี่ยวข้อง"),
+      department: pickText(t, "queue.userTabs.department", "ในแผนก"),
+      feedback: pickText(t, "queue.userTabs.feedback", "รอ feedback"),
+      mine: pickText(t, "queue.userTabs.mine", "ของฉัน"),
     },
   };
 }
