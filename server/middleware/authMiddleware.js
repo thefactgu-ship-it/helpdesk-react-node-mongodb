@@ -22,7 +22,7 @@ const authMiddleware = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id).select(
-      "email role team hotelId hotelAccess regions passwordChangedAt"
+      "email role team departmentId departmentName hotelId hotelAccess regions passwordChangedAt"
     );
 
     if (!user) {
@@ -44,6 +44,8 @@ const authMiddleware = async (req, res, next) => {
       ...decoded,
       role: user.role,
       team: user.team,
+      departmentId: user.departmentId ? String(user.departmentId) : null,
+      departmentName: user.departmentName || "",
       hotelId: user.hotelId ? String(user.hotelId) : null,
       hotelAccess: (user.hotelAccess || []).map((hotelId) => String(hotelId)),
       regions: user.regions || [],

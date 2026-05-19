@@ -84,10 +84,12 @@ function Sidebar({
   const isAdmin = ["GroupAdmin", "Admin", "HotelAdmin"].includes(currentUser?.role);
   const isGroupAdmin = ["GroupAdmin", "Admin"].includes(currentUser?.role);
   const isManager = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"].includes(currentUser?.role);
+  const isRequester = currentUser?.role === "User";
   const visibleGroups = useMemo(
     () =>
       menuGroups
         .filter((group) => !group.adminOnly || isAdmin)
+        .filter((group) => group.labelKey !== "nav.reports" || !isRequester)
         .map((group) => ({
           ...group,
           items: group.items
@@ -95,7 +97,7 @@ function Sidebar({
             .filter((item) => !item.managerOnly || isManager),
         }))
         .filter((group) => group.items.length),
-    [isAdmin, isGroupAdmin, isManager],
+    [isAdmin, isGroupAdmin, isManager, isRequester],
   );
 
   useEffect(() => {
@@ -241,13 +243,14 @@ function MobileChrome({
   visibleGroups,
 }) {
   const userName = currentUser?.name || "Welcome";
+  const isRequester = currentUser?.role === "User";
   const bottomItems = [
     { id: "dashboard", text: t("nav.home"), icon: Home, action: () => onNavigate("dashboard") },
     { id: "tickets", text: t("nav.tickets"), icon: ClipboardList, action: () => onNavigate("tickets") },
     { id: "add-ticket", text: t("nav.add"), icon: PlusCircle, action: () => onNavigate("add-ticket") },
-    { id: "monthly-report", text: t("nav.reports"), icon: BarChart3, action: () => onNavigate("monthly-report") },
+    !isRequester && { id: "monthly-report", text: t("nav.reports"), icon: BarChart3, action: () => onNavigate("monthly-report") },
     { id: "profile", text: t("nav.profile"), icon: User, action: onOpenProfile },
-  ];
+  ].filter(Boolean);
 
   return (
     <>
@@ -327,7 +330,7 @@ function MobileChrome({
         </div>
       )}
 
-      <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-slate-200 bg-white/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 md:hidden" aria-label="Mobile primary navigation">
+      <nav className={`fixed inset-x-0 bottom-0 z-40 grid ${isRequester ? "grid-cols-4" : "grid-cols-5"} border-t border-slate-200 bg-white/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 md:hidden`} aria-label="Mobile primary navigation">
         {bottomItems.map((item) => {
           const Icon = item.icon;
           const active =

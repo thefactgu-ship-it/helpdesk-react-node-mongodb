@@ -27,6 +27,8 @@ function TicketTable({
 }) {
   const [activeQueue, setActiveQueue] = useState("now");
   const canManageTickets = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"].includes(currentUser?.role);
+  const isRequester = currentUser?.role === "User";
+  const requesterText = getRequesterQueueText(t);
   const assignableUsers = users.filter((user) =>
     ["admin", "manager", "agent", "staff"].includes(
       String(user.role || "").toLowerCase(),
@@ -34,12 +36,12 @@ function TicketTable({
   );
   const currentUserId = getEntityId(currentUser);
   const queueOptions = useMemo(
-    () => buildQueueOptions(tickets, currentUserId, t),
-    [currentUserId, tickets, t],
+    () => buildQueueOptions(tickets, currentUserId, t, isRequester),
+    [currentUserId, isRequester, tickets, t],
   );
   const queueTickets = useMemo(
-    () => tickets.filter((ticket) => matchesQueue(ticket, activeQueue, currentUserId)),
-    [activeQueue, currentUserId, tickets],
+    () => tickets.filter((ticket) => matchesQueue(ticket, activeQueue, currentUserId, isRequester)),
+    [activeQueue, currentUserId, isRequester, tickets],
   );
   const totalPages = Math.max(1, Math.ceil(queueTickets.length / ticketsPerPage));
   const visibleTickets = queueTickets.slice(
@@ -58,6 +60,15 @@ function TicketTable({
     }
   }, [currentPage, setCurrentPage, totalPages]);
 
+  useEffect(() => {
+    const validQueueIds = queueOptions.map((queue) => queue.id);
+    const preferredQueue = isRequester ? "mine" : "now";
+    if (!validQueueIds.includes(activeQueue)) {
+      setActiveQueue(preferredQueue);
+      setCurrentPage(1);
+    }
+  }, [activeQueue, isRequester, queueOptions, setCurrentPage]);
+
   const handleQueueChange = (queueId) => {
     setActiveQueue(queueId);
     setCurrentPage(1);
@@ -68,10 +79,10 @@ function TicketTable({
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-sm font-black text-slate-900 dark:text-white">
-            {t("queue.heading")}
+            {isRequester ? requesterText.heading : t("queue.heading")}
           </p>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {t("queue.description")}
+            {isRequester ? requesterText.description : t("queue.description")}
           </p>
         </div>
 
@@ -140,6 +151,7 @@ function TicketTable({
                 assignableUsers={assignableUsers}
                 canManageTickets={canManageTickets}
                 canUpdateStatus={canUpdateTicketStatus(ticket)}
+                canViewTicket={canManageTickets || canViewTicketDetails(ticket, currentUserId)}
                 deleteTicket={deleteTicket}
                 isAssigning={isAssigning}
                 isBusy={isBusy}
@@ -195,6 +207,7 @@ function TicketTable({
                 const isAssigning = assigningTicketId === ticket._id;
                 const isDeleting = deletingTicketId === ticket._id;
                 const isBusy = isUpdating || isAssigning || isDeleting;
+                const canOpenDetails = canManageTickets || canViewTicketDetails(ticket, currentUserId);
 
                 return (
                   <tr
@@ -210,6 +223,9 @@ function TicketTable({
                         {getQueueBadges(ticket, t).map((badge) => (
                           <StatusPill key={badge.label} {...badge} />
                         ))}
+                        {isRequester && !canViewTicketDetails(ticket, currentUserId) && (
+                          <StatusPill label={requesterText.departmentSummary} tone="neutral" />
+                        )}
                       </div>
                       <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                         {ticket.category} / {ticket.departmentName || ticket.department}
@@ -285,9 +301,10 @@ function TicketTable({
                       <button
                         type="button"
                         onClick={() => onViewTicket(ticket._id)}
+                        disabled={!canOpenDetails}
                         className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                       >
-                        {t("common.view")}
+                        {canOpenDetails ? t("common.view") : requesterText.summaryOnly}
                       </button>
                       {canManageTickets && (
                         <button
@@ -330,6 +347,7 @@ function TicketMobileCard({
   assignableUsers,
   canManageTickets,
   canUpdateStatus,
+  canViewTicket,
   deleteTicket,
   isAssigning,
   isBusy,
@@ -380,6 +398,9 @@ function TicketMobileCard({
         {getQueueBadges(ticket, t).map((badge) => (
           <StatusPill key={badge.label} {...badge} />
         ))}
+        {!canViewTicket && (
+          <StatusPill label={getRequesterQueueText(t).departmentSummary} tone="neutral" />
+        )}
       </div>
 
       <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
@@ -426,9 +447,10 @@ function TicketMobileCard({
         <button
           type="button"
           onClick={() => onViewTicket(ticket._id)}
+          disabled={!canViewTicket}
           className="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
         >
-          {t("common.view")}
+          {canViewTicket ? t("common.view") : getRequesterQueueText(t).summaryOnly}
         </button>
         {canManageTickets && (
           <button
@@ -545,9 +567,19 @@ function StatusPill({ label, tone = "info" }) {
   );
 }
 
-function buildQueueOptions(tickets, currentUserId, t) {
+function buildQueueOptions(tickets, currentUserId, t, isRequester) {
   const count = (queueId) =>
-    tickets.filter((ticket) => matchesQueue(ticket, queueId, currentUserId)).length;
+    tickets.filter((ticket) => matchesQueue(ticket, queueId, currentUserId, isRequester)).length;
+
+  if (isRequester) {
+    const requesterText = getRequesterQueueText(t);
+    return [
+      { id: "mine", label: requesterText.tabs.mine, count: count("mine"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+      { id: "department", label: requesterText.tabs.department, count: count("department"), activeClass: "border-sky-600 bg-sky-600 text-white" },
+      { id: "feedback", label: requesterText.tabs.feedback, count: count("feedback"), activeClass: "border-amber-500 bg-amber-500 text-white" },
+      { id: "all", label: requesterText.tabs.all, count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+    ];
+  }
 
   return [
     { id: "now", label: t("queue.tabs.now"), count: count("now"), activeClass: "border-blue-600 bg-blue-600 text-white" },
@@ -560,7 +592,14 @@ function buildQueueOptions(tickets, currentUserId, t) {
   ];
 }
 
-function matchesQueue(ticket, queueId, currentUserId) {
+function matchesQueue(ticket, queueId, currentUserId, isRequester = false) {
+  if (isRequester) {
+    if (queueId === "department") return !canViewTicketDetails(ticket, currentUserId) && !isCompleted(ticket);
+    if (queueId === "feedback") return canViewTicketDetails(ticket, currentUserId) && isWaitingRequester(ticket);
+    if (queueId === "all") return true;
+    return canViewTicketDetails(ticket, currentUserId);
+  }
+
   if (queueId === "all") return true;
   if (queueId === "overdue") return isOverdue(ticket);
   if (queueId === "dueSoon") return isDueSoon(ticket);
@@ -651,6 +690,35 @@ function isWaitingRequester(ticket) {
 
 function getEntityId(entity) {
   return String(entity?._id || entity?.id || entity || "");
+}
+
+function getRequesterQueueText(t) {
+  return {
+    departmentSummary: pickText(t, "queue.badges.departmentSummary", "Visible to prevent duplicate reports"),
+    description: pickText(t, "queue.requesterDescription", "Review your tickets and active department tickets before reporting a duplicate."),
+    heading: pickText(t, "queue.requesterHeading", "Related Tickets"),
+    summaryOnly: pickText(t, "queue.summaryOnly", "Summary only"),
+    tabs: {
+      all: pickText(t, "queue.userTabs.all", "All related"),
+      department: pickText(t, "queue.userTabs.department", "Department"),
+      feedback: pickText(t, "queue.userTabs.feedback", "Feedback"),
+      mine: pickText(t, "queue.userTabs.mine", "Mine"),
+    },
+  };
+}
+
+function pickText(t, key, fallback) {
+  const value = t?.(key);
+  return value && value !== key ? value : fallback;
+}
+
+function canViewTicketDetails(ticket, currentUserId) {
+  if (ticket.requesterScope === "department") return false;
+  return (
+    getEntityId(ticket.createdBy) === currentUserId ||
+    getEntityId(ticket.requesterUserId) === currentUserId ||
+    getEntityId(ticket.assignedTo) === currentUserId
+  );
 }
 
 function getInitials(name) {

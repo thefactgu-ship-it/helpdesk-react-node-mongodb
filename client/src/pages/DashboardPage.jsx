@@ -1,6 +1,13 @@
 import DashboardAnalytics from "../components/DashboardAnalytics";
+import {
+  CheckCircle2,
+  ClipboardList,
+  MessageSquareMore,
+  PlusCircle,
+  Search,
+} from "lucide-react";
 
-function DashboardPage({ darkMode, loading, tickets }) {
+function DashboardPage({ currentUser, darkMode, loading, onNavigate, t, tickets }) {
   if (loading && !tickets.length) {
     return (
       <div className="space-y-5">
@@ -27,6 +34,18 @@ function DashboardPage({ darkMode, loading, tickets }) {
     );
   }
 
+  if (currentUser?.role === "User") {
+    return (
+      <RequesterDashboard
+        currentUser={currentUser}
+        loading={loading}
+        onNavigate={onNavigate}
+        t={t}
+        tickets={tickets}
+      />
+    );
+  }
+
   if (!tickets.length) {
     return (
       <section className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40">
@@ -44,6 +63,237 @@ function DashboardPage({ darkMode, loading, tickets }) {
   }
 
   return <DashboardAnalytics darkMode={darkMode} tickets={tickets} />;
+}
+
+function RequesterDashboard({ currentUser, loading, onNavigate, t, tickets }) {
+  const currentUserId = getEntityId(currentUser);
+  const text = getRequesterHomeText(t);
+  const ownTickets = tickets.filter((ticket) => isOwnTicket(ticket, currentUserId));
+  const activeMine = ownTickets.filter((ticket) => !isCompleted(ticket));
+  const waitingFeedback = ownTickets.filter((ticket) => isWaitingFeedback(ticket));
+  const departmentTickets = tickets
+    .filter((ticket) => !isOwnTicket(ticket, currentUserId) && !isCompleted(ticket))
+    .slice(0, 5);
+
+  return (
+    <div className="space-y-5">
+      <section className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-blue-600 dark:text-blue-300">
+              {text.eyebrow}
+            </p>
+            <h3 className="mt-2 text-2xl font-black text-slate-950 dark:text-white">
+              {text.title}
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-400">
+              {text.description}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onNavigate("add-ticket")}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700"
+          >
+            <PlusCircle className="h-5 w-5" aria-hidden="true" />
+            {text.createTicket}
+          </button>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
+        <RequesterStat
+          icon={ClipboardList}
+          label={text.activeMine}
+          value={activeMine.length}
+        />
+        <RequesterStat
+          icon={MessageSquareMore}
+          label={text.waitingFeedback}
+          value={waitingFeedback.length}
+        />
+        <RequesterStat
+          icon={Search}
+          label={text.departmentActive}
+          value={departmentTickets.length}
+        />
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+        <RequesterPanel
+          actionLabel={text.viewQueue}
+          icon={ClipboardList}
+          onAction={() => onNavigate("tickets")}
+          title={text.myTickets}
+        >
+          <TicketList
+            empty={loading ? t("common.loadingPage") : text.noMyTickets}
+            tickets={activeMine.slice(0, 5)}
+          />
+        </RequesterPanel>
+
+        <RequesterPanel
+          actionLabel={text.checkQueue}
+          icon={Search}
+          onAction={() => onNavigate("tickets")}
+          title={text.departmentTickets}
+        >
+          <TicketList
+            empty={loading ? t("common.loadingPage") : text.noDepartmentTickets}
+            summaryOnly
+            tickets={departmentTickets}
+          />
+        </RequesterPanel>
+      </section>
+
+      {waitingFeedback.length > 0 && (
+        <RequesterPanel
+          actionLabel={text.giveFeedback}
+          icon={CheckCircle2}
+          onAction={() => onNavigate("tickets")}
+          title={text.feedbackTitle}
+        >
+          <TicketList tickets={waitingFeedback.slice(0, 4)} />
+        </RequesterPanel>
+      )}
+    </div>
+  );
+}
+
+function getRequesterHomeText(t) {
+  return {
+    activeMine: pickText(t, "requesterHome.activeMine", "My active tickets"),
+    checkQueue: pickText(t, "requesterHome.checkQueue", "Check queue"),
+    createTicket: pickText(t, "requesterHome.createTicket", "Report a new issue"),
+    departmentActive: pickText(t, "requesterHome.departmentActive", "Active in my department"),
+    departmentTickets: pickText(t, "requesterHome.departmentTickets", "Same department"),
+    description: pickText(
+      t,
+      "requesterHome.description",
+      "Start a new request, or check your department's active tickets first to avoid duplicate reports.",
+    ),
+    eyebrow: pickText(t, "requesterHome.eyebrow", "Requester workspace"),
+    feedbackTitle: pickText(t, "requesterHome.feedbackTitle", "Waiting for feedback"),
+    giveFeedback: pickText(t, "requesterHome.giveFeedback", "Give feedback"),
+    myTickets: pickText(t, "requesterHome.myTickets", "My tickets"),
+    noDepartmentTickets: pickText(t, "requesterHome.noDepartmentTickets", "No active tickets in your department yet."),
+    noMyTickets: pickText(t, "requesterHome.noMyTickets", "You have no active tickets to follow up."),
+    title: pickText(t, "requesterHome.title", "Report issues and track your requests"),
+    viewQueue: pickText(t, "requesterHome.viewQueue", "View queue"),
+    waitingFeedback: pickText(t, "requesterHome.waitingFeedback", "Waiting for my feedback"),
+  };
+}
+
+function pickText(t, key, fallback) {
+  const value = t?.(key);
+  return value && value !== key ? value : fallback;
+}
+
+function RequesterStat({ icon: Icon, label, value }) {
+  return (
+    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+      <div className="flex items-center gap-3">
+        <span className="grid h-11 w-11 place-items-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div>
+          <p className="text-2xl font-black text-slate-950 dark:text-white">{value}</p>
+          <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">{label}</p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function RequesterPanel({ actionLabel, children, icon: Icon, onAction, title }) {
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+            <Icon className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <h3 className="truncate text-sm font-black text-slate-900 dark:text-white">
+            {title}
+          </h3>
+        </div>
+        {onAction && (
+          <button
+            type="button"
+            onClick={onAction}
+            className="shrink-0 rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            {actionLabel}
+          </button>
+        )}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function TicketList({ empty, summaryOnly = false, tickets = [] }) {
+  if (!tickets.length) {
+    return (
+      <div className="rounded-xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+        {empty}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {tickets.map((ticket) => (
+        <article
+          key={ticket._id || ticket.id}
+          className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
+        >
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-blue-600 dark:text-blue-300">
+                {ticket.ticketNumber}
+              </p>
+              <h4 className="mt-1 line-clamp-2 text-sm font-black text-slate-950 dark:text-white">
+                {ticket.title}
+              </h4>
+            </div>
+            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-slate-600 ring-1 ring-slate-200 dark:bg-slate-950 dark:text-slate-300 dark:ring-slate-700">
+              {formatStatus(ticket.status)}
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+            {ticket.category} / {ticket.departmentName || ticket.department}
+            {summaryOnly ? " / summary only" : ""}
+          </p>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function getEntityId(entity) {
+  return String(entity?._id || entity?.id || entity || "");
+}
+
+function isOwnTicket(ticket, currentUserId) {
+  if (ticket.requesterScope === "department") return false;
+  return (
+    getEntityId(ticket.createdBy) === currentUserId ||
+    getEntityId(ticket.requesterUserId) === currentUserId ||
+    getEntityId(ticket.assignedTo) === currentUserId
+  );
+}
+
+function isCompleted(ticket) {
+  return ["resolved", "closed"].includes(ticket.status);
+}
+
+function isWaitingFeedback(ticket) {
+  return isCompleted(ticket) && !ticket.satisfactionScore;
+}
+
+function formatStatus(status = "") {
+  return status.replace("_", " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 export default DashboardPage;

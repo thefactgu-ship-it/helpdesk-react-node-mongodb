@@ -755,6 +755,13 @@ function App() {
 
   const visibleActivePage = useMemo(() => {
     if (
+      currentUser?.role === "User" &&
+      (activePage === "monthly-report" || activePage === "quarterly-report")
+    ) {
+      return "dashboard";
+    }
+
+    if (
       (activePage === "user-management" && !isAdmin) ||
       (activePage === "request-users" && !isAdmin) ||
       (activePage === "hotels" && !["GroupAdmin", "Admin"].includes(currentUser?.role)) ||
@@ -994,7 +1001,10 @@ function App() {
               {visibleActivePage === "dashboard" && (
                 <DashboardPage
                   darkMode={darkMode}
+                  currentUser={currentUser}
                   loading={loading}
+                  onNavigate={setActivePage}
+                  t={t}
                   tickets={summaryTickets}
                 />
               )}

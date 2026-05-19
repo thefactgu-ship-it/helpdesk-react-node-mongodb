@@ -64,10 +64,22 @@ function isCompletedStatus(status) {
   return ["resolved", "closed"].includes(status);
 }
 
+function getUserDepartmentId(user) {
+  return String(user?.departmentId?._id || user?.departmentId || "");
+}
+
+function normalizeName(value) {
+  return String(value || "").trim();
+}
+
+function isOwnTicket(user, ticket) {
+  return isAssignedToUser(user, ticket) || isCreatedByUser(user, ticket) || isRequesterUser(user, ticket);
+}
+
 function canAccessTicket(user, ticket) {
   if (canManageTickets(user)) return true;
   if (getTicketHotelId(ticket) !== getUserHotelId(user)) return false;
-  return isAssignedToUser(user, ticket) || isCreatedByUser(user, ticket) || isRequesterUser(user, ticket);
+  return isOwnTicket(user, ticket);
 }
 
 function canWorkOnTicket(user, ticket) {
@@ -78,12 +90,33 @@ function canWorkOnTicket(user, ticket) {
 function buildTicketVisibilityQuery(user) {
   if (canManageTickets(user)) return {};
 
+  const departmentId = getUserDepartmentId(user);
+  const departmentName = normalizeName(user?.departmentName);
+  const ownTicketQuery = [
+    { createdBy: getUserId(user) },
+    { requesterUserId: getUserId(user) },
+    { assignedTo: getUserId(user) },
+  ];
+  const departmentQuery = [];
+
+  if (departmentId) {
+    departmentQuery.push({ departmentId });
+  }
+
+  if (departmentName) {
+    departmentQuery.push({ departmentName });
+    departmentQuery.push({ department: departmentName });
+  }
+
+  if (departmentQuery.length) {
+    ownTicketQuery.push({
+      status: { $nin: ["resolved", "closed"] },
+      $or: departmentQuery,
+    });
+  }
+
   return {
-    $or: [
-      { createdBy: getUserId(user) },
-      { requesterUserId: getUserId(user) },
-      { assignedTo: getUserId(user) },
-    ],
+    $or: ownTicketQuery,
   };
 }
 
@@ -108,6 +141,45 @@ function canSubmitSatisfaction(user, ticket) {
   const fallbackCreatorId = String(ticket.createdBy?._id || ticket.createdBy || "");
 
   return requesterUserId ? requesterUserId === userId : fallbackCreatorId === userId;
+}
+
+function sanitizeRequesterListTicket(user, ticket) {
+  if (canManageTickets(user) || isOwnTicket(user, ticket)) return ticket;
+
+  const plainTicket = typeof ticket.toObject === "function"
+    ? ticket.toObject({ virtuals: true })
+    : { ...ticket };
+
+  return {
+    _id: plainTicket._id,
+    id: plainTicket.id,
+    ticketNumber: plainTicket.ticketNumber,
+    hotelId: plainTicket.hotelId,
+    title: plainTicket.title,
+    requester: plainTicket.requester ? "Department teammate" : "",
+    requesterUserId: plainTicket.requesterUserId
+      ? {
+          _id: plainTicket.requesterUserId._id,
+          id: plainTicket.requesterUserId.id,
+          departmentId: plainTicket.requesterUserId.departmentId,
+          departmentName: plainTicket.requesterUserId.departmentName,
+        }
+      : null,
+    category: plainTicket.category,
+    department: plainTicket.department,
+    departmentId: plainTicket.departmentId,
+    departmentName: plainTicket.departmentName,
+    priority: plainTicket.priority,
+    status: plainTicket.status,
+    assignedTo: plainTicket.assignedTo
+      ? { _id: plainTicket.assignedTo._id, id: plainTicket.assignedTo.id, name: plainTicket.assignedTo.name }
+      : null,
+    dueDate: plainTicket.dueDate,
+    createdAt: plainTicket.createdAt,
+    updatedAt: plainTicket.updatedAt,
+    isOverdue: plainTicket.isOverdue,
+    requesterScope: "department",
+  };
 }
 
 function applyResolvedAtForStatus(updateFields, existingTicket, status) {
@@ -265,7 +337,10 @@ async function getAllTickets(req, res) {
       Ticket.countDocuments(query),
     ]);
 
-    res.json({ data: tickets, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
+    res.json({
+      data: tickets.map((ticket) => sanitizeRequesterListTicket(req.user, ticket)),
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    });
   } catch (error) {
     sendError(res, 500, "Failed to fetch tickets", error);
   }
@@ -284,7 +359,10 @@ async function findScopedTicketById(req, id) {
 async function getInsights(req, res) {
   try {
     const hotelScope = await buildHotelScopeQuery(req.user, req.query);
-    const tickets = await Ticket.find(buildHotelAnalyticsQuery(req, hotelScope));
+    const tickets = await Ticket.find({
+      ...buildHotelAnalyticsQuery(req, hotelScope),
+      ...buildTicketVisibilityQuery(req.user),
+    });
     const total = tickets.length;
 
     // Calculate average resolution time
@@ -936,13 +1014,16 @@ async function uploadAttachment(req, res) {
 async function getSummaryTickets(req, res) {
   try {
     const hotelScope = await buildHotelScopeQuery(req.user, req.query);
-    const query = buildHotelAnalyticsQuery(req, hotelScope);
+    const query = {
+      ...buildHotelAnalyticsQuery(req, hotelScope),
+      ...buildTicketVisibilityQuery(req.user),
+    };
 
     const tickets = await Ticket.find(query)
       .sort({ createdAt: -1 })
       .limit(Math.min(Number(req.query.limit) || 1000, 5000))
       .populate(TICKET_POPULATE_CONFIG);
-    res.json(tickets);
+    res.json(tickets.map((ticket) => sanitizeRequesterListTicket(req.user, ticket)));
   } catch (error) {
     sendError(res, 500, "Failed to fetch ticket summary", error);
   }
