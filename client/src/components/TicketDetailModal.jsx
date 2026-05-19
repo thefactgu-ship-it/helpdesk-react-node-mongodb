@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { API_BASE_URL } from "../services/api";
+import ThemedSelect from "./ThemedSelect";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
@@ -15,6 +16,8 @@ function TicketDetailModal({
   onSatisfaction,
   onUploadAttachment,
   canUploadAttachment = false,
+  canManageTickets = false,
+  onUpdatePriority,
 }) {
   if (!open || !ticket) {
     return null;
@@ -30,6 +33,8 @@ function TicketDetailModal({
       onSatisfaction={onSatisfaction}
       onUploadAttachment={onUploadAttachment}
       canUploadAttachment={canUploadAttachment}
+      canManageTickets={canManageTickets}
+      onUpdatePriority={onUpdatePriority}
     />
   );
 }
@@ -42,6 +47,8 @@ function TicketDetailModalContent({
   onSatisfaction,
   onUploadAttachment,
   canUploadAttachment,
+  canManageTickets,
+  onUpdatePriority,
 }) {
   const [comment, setComment] = useState("");
   const [file, setFile] = useState(null);
@@ -216,7 +223,22 @@ function TicketDetailModalContent({
             </div>
 
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
-              <InfoItem label="Priority" value={ticket.priority} />
+              <InfoItem
+                label="Priority"
+                value={
+                  canManageTickets && onUpdatePriority ? (
+                    <ThemedSelect
+                      compactOptions
+                      size="sm"
+                      value={ticket.priority}
+                      onChange={(value) => onUpdatePriority(ticket._id, value)}
+                      options={priorityOptions}
+                    />
+                  ) : (
+                    ticket.priority
+                  )
+                }
+              />
               <InfoItem label="Status" value={ticket.status} />
               <InfoItem label="Requester" value={ticket.requester || "Unknown"} />
               <InfoItem label="Created By" value={ticket.createdBy?.name || "Unknown"} />
@@ -464,12 +486,19 @@ function InfoItem({ label, value }) {
       <p className="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">
         {label}
       </p>
-      <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+      <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
         {value}
-      </p>
+      </div>
     </div>
   );
 }
+
+const priorityOptions = [
+  { value: "low", label: "Low", prefix: "L" },
+  { value: "medium", label: "Medium", prefix: "M" },
+  { value: "high", label: "High", prefix: "H" },
+  { value: "critical", label: "Critical", prefix: "C" },
+];
 
 function getEntityId(entity) {
   return String(entity?._id || entity?.id || entity || "");

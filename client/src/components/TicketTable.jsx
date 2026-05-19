@@ -13,6 +13,7 @@ function TicketTable({
   setFilterStatus,
   updatingTicketId,
   deletingTicketId,
+  updatePriority,
   updateStatus,
   deleteTicket,
   currentPage,
@@ -85,6 +86,7 @@ function TicketTable({
                 onViewTicket={onViewTicket}
                 ticket={ticket}
                 updateStatus={updateStatus}
+                updatePriority={updatePriority}
               />
             );
           })
@@ -148,7 +150,20 @@ function TicketTable({
                     </td>
                     <td>
                       <div className="flex flex-wrap gap-2">
-                        <Badge text={ticket.priority} />
+                        {canManageTickets ? (
+                          <ThemedSelect
+                            className="w-32"
+                            compactOptions
+                            menuWidth={150}
+                            size="sm"
+                            value={ticket.priority}
+                            disabled={isBusy}
+                            onChange={(value) => updatePriority(ticket._id, value)}
+                            options={priorityOptions}
+                          />
+                        ) : (
+                          <Badge text={ticket.priority} />
+                        )}
                         {ticket.criticalRequested && (
                           <Badge text="Critical review requested" />
                         )}
@@ -253,6 +268,7 @@ function TicketMobileCard({
   onViewTicket,
   ticket,
   updateStatus,
+  updatePriority,
 }) {
   return (
     <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
@@ -270,7 +286,18 @@ function TicketMobileCard({
           </p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-2">
-          <Badge text={ticket.priority} />
+          {canManageTickets ? (
+            <ThemedSelect
+              compactOptions
+              size="sm"
+              value={ticket.priority}
+              disabled={isBusy}
+              onChange={(value) => updatePriority(ticket._id, value)}
+              options={priorityOptions}
+            />
+          ) : (
+            <Badge text={ticket.priority} />
+          )}
           {ticket.criticalRequested && (
             <Badge text="Critical review requested" />
           )}
@@ -407,6 +434,13 @@ const statusOptions = [
   { value: "in_progress", label: "In Progress", prefix: "IP" },
   { value: "resolved", label: "Resolved", prefix: "R" },
   { value: "closed", label: "Closed", prefix: "C" },
+];
+
+const priorityOptions = [
+  { value: "low", label: "Low", prefix: "L" },
+  { value: "medium", label: "Medium", prefix: "M" },
+  { value: "high", label: "High", prefix: "H" },
+  { value: "critical", label: "Critical", prefix: "C" },
 ];
 
 function getInitials(name) {

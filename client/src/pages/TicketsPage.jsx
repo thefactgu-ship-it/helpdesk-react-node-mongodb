@@ -15,6 +15,7 @@ function TicketsPage({
   setSearch,
   tickets,
   totalPages,
+  updatePriority,
   updateStatus,
   updatingTicketId,
   currentUser,
@@ -32,6 +33,7 @@ function TicketsPage({
       setFilterStatus={setFilterStatus}
       updatingTicketId={updatingTicketId}
       deletingTicketId={deletingTicketId}
+      updatePriority={updatePriority}
       updateStatus={updateStatus}
       deleteTicket={deleteTicket}
       currentPage={currentPage}

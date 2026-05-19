@@ -369,6 +369,36 @@ function App() {
     }
   };
 
+  const updateTicketPriority = async (id, priority) => {
+    if (!canManageTickets) {
+      toast.error("Only Admin or Manager can update priority");
+      return;
+    }
+
+    try {
+      setUpdatingTicketId(id);
+      await axios.patch(
+        `${API_URL}/${id}`,
+        { priority, criticalRequested: false },
+        {
+          headers: authHeaders,
+          params: scopedParams,
+        },
+      );
+      toast.success("Priority updated");
+      await fetchTickets();
+      await fetchSummaryTickets();
+      if (selectedTicket && selectedTicket._id === id) {
+        await openTicketDetails(id);
+      }
+    } catch (error) {
+      console.error("Failed to update priority", error);
+      toast.error(getErrorMessage(error, "Failed to update priority"));
+    } finally {
+      setUpdatingTicketId(null);
+    }
+  };
+
   const assignTicket = async (id, assignedTo) => {
     if (!assignedTo) return;
     if (!canManageTickets) return;
@@ -824,6 +854,8 @@ function App() {
         onSatisfaction={submitTicketSatisfaction}
         onUploadAttachment={uploadTicketAttachment}
         canUploadAttachment={canUploadSelectedTicketAttachment}
+        canManageTickets={canManageTickets}
+        onUpdatePriority={updateTicketPriority}
       />
       <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-white md:p-6">
         <div className="mx-auto flex min-h-screen max-w-7xl flex-col bg-white dark:bg-slate-900 md:min-h-[calc(100vh-3rem)] md:overflow-hidden md:rounded-2xl md:border md:border-slate-200 md:shadow-xl md:dark:border-slate-800 md:flex-row">
@@ -899,6 +931,7 @@ function App() {
                   updatingTicketId={updatingTicketId}
                   deletingTicketId={deletingTicketId}
                   updateStatus={updateStatus}
+                  updatePriority={updateTicketPriority}
                   deleteTicket={deleteTicket}
                   currentPage={currentPage}
                   setCurrentPage={setCurrentPage}

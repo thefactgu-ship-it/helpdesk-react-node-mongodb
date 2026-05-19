@@ -568,9 +568,7 @@ async function updateTicket(req, res) {
 
       updateFields.priority = priority;
       updateFields.slaHours = getSlaHoursByPriority(priority);
-      if (priority === "critical") {
-        updateFields.criticalRequested = false;
-      }
+      updateFields.criticalRequested = false;
       logDetails.push("Priority updated");
     }
     if (dueDate) {
