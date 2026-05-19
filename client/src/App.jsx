@@ -30,21 +30,45 @@ import { API_BASE_URL } from "./services/api";
 import { getHotels } from "./services/hotelService";
 import { getDepartments } from "./services/departmentService";
 
-const AddTicketPage = lazy(() => import("./pages/AddTicketPage"));
-const AssetManagementPage = lazy(() => import("./pages/AssetManagementPage"));
-const DashboardPage = lazy(() => import("./pages/DashboardPage"));
-const DepartmentManagementPage = lazy(() => import("./pages/DepartmentManagementPage"));
-const HotelManagementPage = lazy(() => import("./pages/HotelManagementPage"));
-const MonthlyReportPage = lazy(() => import("./pages/MonthlyReportPage"));
-const ProblemTypesPage = lazy(() => import("./pages/ProblemTypesPage"));
-const ProfilePage = lazy(() => import("./pages/ProfilePage"));
-const QuarterlyYearlyPage = lazy(() => import("./pages/QuarterlyYearlyPage"));
-const TicketsPage = lazy(() => import("./pages/TicketsPage"));
-const UserManagementPage = lazy(() => import("./pages/UserManagementPage"));
+const AddTicketPage = lazyWithDeployRetry(() => import("./pages/AddTicketPage"));
+const AssetManagementPage = lazyWithDeployRetry(() => import("./pages/AssetManagementPage"));
+const DashboardPage = lazyWithDeployRetry(() => import("./pages/DashboardPage"));
+const DepartmentManagementPage = lazyWithDeployRetry(() => import("./pages/DepartmentManagementPage"));
+const HotelManagementPage = lazyWithDeployRetry(() => import("./pages/HotelManagementPage"));
+const MonthlyReportPage = lazyWithDeployRetry(() => import("./pages/MonthlyReportPage"));
+const ProblemTypesPage = lazyWithDeployRetry(() => import("./pages/ProblemTypesPage"));
+const ProfilePage = lazyWithDeployRetry(() => import("./pages/ProfilePage"));
+const QuarterlyYearlyPage = lazyWithDeployRetry(() => import("./pages/QuarterlyYearlyPage"));
+const TicketsPage = lazyWithDeployRetry(() => import("./pages/TicketsPage"));
+const UserManagementPage = lazyWithDeployRetry(() => import("./pages/UserManagementPage"));
 
 const API_URL = `${API_BASE_URL}/tickets`;
 const AUTH_URL = `${API_BASE_URL}/auth`;
 const attachmentsEnabled = import.meta.env.VITE_ATTACHMENTS_ENABLED === "true";
+const DEPLOY_RELOAD_KEY = "helpdesk:deploy-reload-attempted";
+
+function lazyWithDeployRetry(importer) {
+  return lazy(async () => {
+    try {
+      const module = await importer();
+      sessionStorage.removeItem(DEPLOY_RELOAD_KEY);
+      return module;
+    } catch (error) {
+      const message = String(error?.message || error || "");
+      const isMissingChunk =
+        message.includes("Failed to fetch dynamically imported module") ||
+        message.includes("Importing a module script failed") ||
+        message.includes("error loading dynamically imported module");
+
+      if (isMissingChunk && !sessionStorage.getItem(DEPLOY_RELOAD_KEY)) {
+        sessionStorage.setItem(DEPLOY_RELOAD_KEY, "true");
+        window.location.reload();
+      }
+
+      throw error;
+    }
+  });
+}
 
 function getErrorMessage(error, fallback) {
   const validationMessage = error?.response?.data?.errors?.[0]?.message;
@@ -165,7 +189,10 @@ function App() {
   }, [authHeaders, scopedParams, token]);
 
   const fetchUsers = useCallback(async () => {
-    if (!token) return;
+    if (!token || !ticketManagerRoles.includes(currentUser?.role)) {
+      setUsers([]);
+      return;
+    }
 
     try {
       const res = await axios.get(`${AUTH_URL}/users`, {
@@ -176,7 +203,7 @@ function App() {
     } catch (error) {
       console.error("Failed to fetch users", error);
     }
-  }, [authHeaders, scopedParams, token]);
+  }, [authHeaders, currentUser?.role, scopedParams, token]);
 
   const fetchHotels = useCallback(async () => {
     if (!token) {
@@ -768,13 +795,15 @@ function App() {
                 console.error("Failed to fetch current user", error);
                 return null;
               }),
-        axios
-          .get(`${AUTH_URL}/users`, { headers: authHeaders, params: scopedParams })
-          .then((res) => res.data)
-          .catch((error) => {
-            console.error("Failed to fetch users", error);
-            return null;
-          }),
+        ticketManagerRoles.includes(currentUser?.role)
+          ? axios
+              .get(`${AUTH_URL}/users`, { headers: authHeaders, params: scopedParams })
+              .then((res) => res.data)
+              .catch((error) => {
+                console.error("Failed to fetch users", error);
+                return null;
+              })
+          : Promise.resolve([]),
         getHotels(token).catch((error) => {
           console.error("Failed to fetch hotels", error);
           return null;
