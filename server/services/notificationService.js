@@ -1,6 +1,7 @@
 const Notification = require("../models/Notification");
 const User = require("../models/User");
 const { MANAGER_ROLES } = require("../constants");
+const { emitNotifications } = require("./notificationStream");
 
 function toId(value) {
   return String(value?._id || value || "");
@@ -23,7 +24,7 @@ async function createNotifications(recipients, payload, actorId) {
   const recipientIds = uniqueRecipientIds(recipients, actorId);
   if (!recipientIds.length) return [];
 
-  return Notification.insertMany(
+  const notifications = await Notification.insertMany(
     recipientIds.map((userId) => ({
       userId,
       hotelId: payload.hotelId,
@@ -34,6 +35,9 @@ async function createNotifications(recipients, payload, actorId) {
     })),
     { ordered: false }
   );
+
+  emitNotifications(notifications);
+  return notifications;
 }
 
 async function findTicketManagers(ticket) {

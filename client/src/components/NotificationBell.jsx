@@ -5,6 +5,23 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "../services/notificationService";
+import { API_BASE_URL } from "../services/api";
+
+const NOTIFICATION_LIMIT = 20;
+const POLLING_FALLBACK_MS = 120000;
+const STREAM_RECONNECT_MS = 5000;
+
+function upsertNotification(notifications, notification) {
+  if (!notification?._id) return notifications;
+
+  const notificationId = String(notification._id);
+  const next = [
+    notification,
+    ...notifications.filter((item) => String(item._id) !== notificationId),
+  ];
+
+  return next.slice(0, NOTIFICATION_LIMIT);
+}
 
 function NotificationBell({ token, onOpenTicket }) {
   const [open, setOpen] = useState(false);
@@ -14,21 +31,44 @@ function NotificationBell({ token, onOpenTicket }) {
   const [mobilePanelStyle, setMobilePanelStyle] = useState({});
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
+  const reconnectTimeoutRef = useRef(null);
+  const syncTimeoutRef = useRef(null);
 
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async (options = {}) => {
     if (!token) return;
+    const { silent = false } = options;
 
     try {
-      setLoading(true);
-      const body = await getNotifications(token, { limit: 20 });
+      if (!silent) setLoading(true);
+      const body = await getNotifications(token, { limit: NOTIFICATION_LIMIT });
       setNotifications(body.data || []);
       setUnreadCount(body.unreadCount || 0);
     } catch (error) {
       console.error("Failed to load notifications", error);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, [token]);
+
+  const scheduleNotificationSync = useCallback(() => {
+    window.clearTimeout(syncTimeoutRef.current);
+    syncTimeoutRef.current = window.setTimeout(() => {
+      fetchNotifications({ silent: true });
+    }, 750);
+  }, [fetchNotifications]);
+
+  const applyStreamNotification = useCallback(
+    (notification) => {
+      if (!notification?._id) return;
+
+      setNotifications((current) => upsertNotification(current, notification));
+      if (!notification.readAt) {
+        setUnreadCount((current) => current + 1);
+      }
+      scheduleNotificationSync();
+    },
+    [scheduleNotificationSync],
+  );
 
   const updateMobilePanelPosition = useCallback(() => {
     const buttonRect = buttonRef.current?.getBoundingClientRect();
@@ -51,7 +91,7 @@ function NotificationBell({ token, onOpenTicket }) {
 
     const loadNotifications = async () => {
       try {
-        const body = await getNotifications(token, { limit: 20 });
+        const body = await getNotifications(token, { limit: NOTIFICATION_LIMIT });
         if (ignore) return;
 
         setNotifications(body.data || []);
@@ -73,8 +113,91 @@ function NotificationBell({ token, onOpenTicket }) {
   useEffect(() => {
     if (!token) return undefined;
 
-    const intervalId = window.setInterval(fetchNotifications, 45000);
+    const intervalId = window.setInterval(() => {
+      fetchNotifications({ silent: true });
+    }, POLLING_FALLBACK_MS);
     return () => window.clearInterval(intervalId);
+  }, [fetchNotifications, token]);
+
+  useEffect(() => {
+    if (!token) return undefined;
+
+    let cancelled = false;
+    let abortController = null;
+
+    const connect = async () => {
+      abortController = new AbortController();
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/notifications/stream`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          signal: abortController.signal,
+        });
+
+        if (!response.ok || !response.body) {
+          throw new Error(`Notification stream failed: ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = "";
+
+        while (!cancelled) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const chunks = buffer.split("\n\n");
+          buffer = chunks.pop() || "";
+
+          chunks.forEach((chunk) => {
+            const event = parseSseEvent(chunk);
+            if (event.name === "notification:new") {
+              applyStreamNotification(event.data);
+            } else if (event.name === "notification:sync") {
+              fetchNotifications({ silent: true });
+            }
+          });
+        }
+      } catch (error) {
+        if (!cancelled && error.name !== "AbortError") {
+          console.error("Notification stream disconnected", error);
+        }
+      }
+
+      if (!cancelled) {
+        reconnectTimeoutRef.current = window.setTimeout(connect, STREAM_RECONNECT_MS);
+      }
+    };
+
+    connect();
+
+    return () => {
+      cancelled = true;
+      abortController?.abort();
+      window.clearTimeout(reconnectTimeoutRef.current);
+    };
+  }, [applyStreamNotification, fetchNotifications, token]);
+
+  useEffect(() => {
+    if (!token) return undefined;
+
+    const syncOnFocus = () => {
+      if (document.visibilityState === "visible") {
+        fetchNotifications({ silent: true });
+      }
+    };
+
+    document.addEventListener("visibilitychange", syncOnFocus);
+    window.addEventListener("focus", syncOnFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", syncOnFocus);
+      window.removeEventListener("focus", syncOnFocus);
+      window.clearTimeout(syncTimeoutRef.current);
+    };
   }, [fetchNotifications, token]);
 
   useEffect(() => {
@@ -230,6 +353,29 @@ function NotificationBell({ token, onOpenTicket }) {
 function formatNotificationTime(value) {
   if (!value) return "";
   return new Date(value).toLocaleString();
+}
+
+function parseSseEvent(chunk) {
+  const lines = chunk.split("\n");
+  const eventName = lines
+    .find((line) => line.startsWith("event:"))
+    ?.replace("event:", "")
+    .trim();
+  const dataLines = lines
+    .filter((line) => line.startsWith("data:"))
+    .map((line) => line.replace("data:", "").trim());
+
+  if (!dataLines.length) return { name: eventName || "message", data: null };
+
+  try {
+    return {
+      name: eventName || "message",
+      data: JSON.parse(dataLines.join("\n")),
+    };
+  } catch (error) {
+    console.error("Failed to parse notification stream event", error);
+    return { name: eventName || "message", data: null };
+  }
 }
 
 export default NotificationBell;

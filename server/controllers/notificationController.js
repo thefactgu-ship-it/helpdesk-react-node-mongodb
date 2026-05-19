@@ -1,4 +1,5 @@
 const Notification = require("../models/Notification");
+const notificationStream = require("../services/notificationStream");
 
 function getUserId(req) {
   return req.user?.id;
@@ -46,8 +47,14 @@ async function markAllNotificationsRead(req, res) {
   res.json({ message: "Notifications marked as read", modifiedCount: result.modifiedCount });
 }
 
+async function streamNotifications(req, res) {
+  const unsubscribe = notificationStream.subscribe(getUserId(req), res);
+  req.on("close", unsubscribe);
+}
+
 module.exports = {
   getNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  streamNotifications,
 };

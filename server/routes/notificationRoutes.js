@@ -12,6 +12,12 @@ router.get(
   asyncHandler(notificationController.getNotifications)
 );
 
+router.get(
+  "/stream",
+  authMiddleware,
+  asyncHandler(notificationController.streamNotifications)
+);
+
 router.patch(
   "/read-all",
   authMiddleware,

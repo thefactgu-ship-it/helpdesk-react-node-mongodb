@@ -9,6 +9,7 @@ process.env.NODE_ENV = "test";
 
 const authMiddleware = require("../middleware/authMiddleware");
 const authRoutes = require("../routes/authRoutes");
+const notificationRoutes = require("../routes/notificationRoutes");
 const ticketRoutes = require("../routes/ticketRoutes");
 const errorHandler = require("../middleware/errorHandler");
 
@@ -17,6 +18,7 @@ function createTestApp() {
   app.use(express.json());
   app.use("/api/auth", authRoutes);
   app.use("/api/tickets", ticketRoutes);
+  app.use("/api/notifications", notificationRoutes);
   app.use(errorHandler);
   return app;
 }
@@ -98,6 +100,15 @@ test("ticket API requires authentication", async () => {
   const app = createTestApp();
 
   const response = await request(app, "/api/tickets", { method: "GET" });
+
+  assert.equal(response.status, 401);
+  assert.equal(response.data.message, "No token provided");
+});
+
+test("notification stream requires authentication", async () => {
+  const app = createTestApp();
+
+  const response = await request(app, "/api/notifications/stream", { method: "GET" });
 
   assert.equal(response.status, 401);
   assert.equal(response.data.message, "No token provided");
