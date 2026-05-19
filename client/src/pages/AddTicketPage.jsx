@@ -14,6 +14,7 @@ function AddTicketPage({
   departments = [],
   canAssignTickets = false,
   users = [],
+  t,
 }) {
   const [problemTypes, setProblemTypes] = useState([]);
   const [loadingProblemTypes, setLoadingProblemTypes] = useState(Boolean(token));
@@ -31,10 +32,10 @@ function AddTicketPage({
       department.name === currentUser?.team,
   );
   const selectedPriority = form.criticalRequested && !canAssignTickets
-    ? "High / IT review"
-    : toPriorityLabel(form.priority || "medium");
+    ? t("addTicket.priorities.high")
+    : t(`addTicket.priorities.${form.priority || "medium"}`);
   const submissionSummary = {
-    requester: form.requester || currentUser?.name || "Current user",
+    requester: form.requester || currentUser?.name || t("common.currentUser"),
     department:
       form.department ||
       summaryDepartment?.name ||
@@ -195,14 +196,9 @@ function AddTicketPage({
       submissionSummary={submissionSummary}
       canAssignTickets={canAssignTickets}
       users={users}
+      t={t}
     />
   );
-}
-
-function toPriorityLabel(priority) {
-  return String(priority || "medium")
-    .replace("_", " ")
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 export default AddTicketPage;

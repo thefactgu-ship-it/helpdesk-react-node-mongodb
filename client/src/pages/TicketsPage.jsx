@@ -20,6 +20,7 @@ function TicketsPage({
   updatingTicketId,
   currentUser,
   users,
+  t,
 }) {
   return (
     <TicketTable
@@ -42,6 +43,7 @@ function TicketsPage({
       onViewTicket={onViewTicket}
       currentUser={currentUser}
       users={users}
+      t={t}
     />
   );
 }

@@ -17,10 +17,15 @@ import TicketDetailModal from "./components/TicketDetailModal";
 import {
   adminRoles,
   groupRoles,
-  pageTitles,
   ticketManagerRoles,
 } from "./config/appConfig";
 import { useTicketFilters } from "./hooks/useTicketFilters";
+import {
+  createTranslator,
+  getInitialLanguage,
+  getPageMeta,
+  persistLanguage,
+} from "./i18n";
 import { API_BASE_URL } from "./services/api";
 import { getHotels } from "./services/hotelService";
 import { getDepartments } from "./services/departmentService";
@@ -73,6 +78,7 @@ function App() {
   const [tickets, setTickets] = useState([]);
   const [summaryTickets, setSummaryTickets] = useState([]);
   const [darkMode, setDarkMode] = useState(false);
+  const [language, setLanguage] = useState(getInitialLanguage);
   const [activePage, setActivePage] = useState("dashboard");
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -116,6 +122,7 @@ function App() {
     if (!selectedHotelId || selectedHotelId === "all") return {};
     return { hotelId: selectedHotelId };
   }, [selectedHotelId]);
+  const t = useMemo(() => createTranslator(language), [language]);
 
   const fetchTickets = useCallback(async () => {
     if (!token) {
@@ -714,7 +721,7 @@ function App() {
     return activePage;
   }, [activePage, currentUser?.role, isAdmin]);
 
-  const currentPageMeta = pageTitles[visibleActivePage] || pageTitles.dashboard;
+  const currentPageMeta = getPageMeta(visibleActivePage, language);
   const pendingDeleteUser = users.find(
     (user) => user._id === deleteUserId || user.id === deleteUserId,
   );
@@ -817,6 +824,10 @@ function App() {
     localStorage.setItem("selectedHotelId", selectedHotelId);
   }, [selectedHotelId]);
 
+  useEffect(() => {
+    persistLanguage(language);
+  }, [language]);
+
   if (!token) {
     return (
       <>
@@ -856,6 +867,7 @@ function App() {
         canUploadAttachment={canUploadSelectedTicketAttachment}
         canManageTickets={canManageTickets}
         onUpdatePriority={updateTicketPriority}
+        t={t}
       />
       <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-white md:p-6">
         <div className="mx-auto flex min-h-screen max-w-7xl flex-col bg-white dark:bg-slate-900 md:min-h-[calc(100vh-3rem)] md:overflow-hidden md:rounded-2xl md:border md:border-slate-200 md:shadow-xl md:dark:border-slate-800 md:flex-row">
@@ -866,6 +878,7 @@ function App() {
             onLogout={handleLogout}
             onOpenPassword={() => openProfilePage("password")}
             onOpenProfile={() => openProfilePage("profile")}
+            t={t}
           />
           <main className="min-h-[calc(100vh-3rem)] flex-1 bg-slate-50/90 p-4 pb-28 dark:bg-slate-900 md:p-6">
             <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -881,6 +894,7 @@ function App() {
                   <NotificationBell
                     token={token}
                     onOpenTicket={openNotificationTicket}
+                    t={t}
                   />
                 </div>
                 {canSelectHotel && (
@@ -890,7 +904,7 @@ function App() {
                     onChange={setSelectedHotelId}
                     variant="pill"
                     options={[
-                      { value: "all", label: "All Hotels", meta: "Group dashboard", prefix: "ALL" },
+                      { value: "all", label: t("common.allHotels"), meta: t("common.groupDashboard"), prefix: "ALL" },
                       ...hotels.map((hotel) => ({
                         value: hotel._id || hotel.id,
                         label: `${hotel.code} / ${hotel.name}`,
@@ -901,10 +915,20 @@ function App() {
                   />
                 )}
                 <button
+                  type="button"
+                  onClick={() => setLanguage((current) => (current === "th" ? "en" : "th"))}
+                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-blue-400 dark:hover:bg-slate-800"
+                  aria-label={t("common.languageToggle")}
+                  title={t("common.languageToggle")}
+                >
+                  {language === "th" ? "TH" : "EN"}
+                </button>
+                <button
+                  type="button"
                   onClick={() => setDarkMode(!darkMode)}
                   className="rounded-full border border-blue-200 bg-white px-5 py-2 text-sm font-semibold text-blue-700 shadow-sm transition hover:border-blue-400 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-950 dark:text-blue-200 dark:hover:border-blue-400 dark:hover:bg-slate-800"
                 >
-                  {darkMode ? "Light Mode" : "Dark Mode"}
+                  {darkMode ? t("common.lightMode") : t("common.darkMode")}
                 </button>
               </div>
             </header>
@@ -939,6 +963,7 @@ function App() {
                   onViewTicket={openTicketDetails}
                   currentUser={currentUser}
                   users={users}
+                  t={t}
                 />
               )}
 
@@ -954,6 +979,7 @@ function App() {
                   hotelId={selectedHotelId}
                   currentUser={currentUser}
                   departments={departments}
+                  t={t}
                 />
               )}
 
@@ -1045,7 +1071,7 @@ function PageLoading() {
   return (
     <div className="flex min-h-[24rem] items-center justify-center">
       <div className="rounded-2xl border border-blue-100 bg-white px-6 py-4 text-sm font-semibold text-blue-700 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-blue-200">
-        Loading page...
+        {createTranslator(getInitialLanguage())("common.loadingPage")}
       </div>
     </div>
   );

@@ -23,7 +23,7 @@ function upsertNotification(notifications, notification) {
   return next.slice(0, NOTIFICATION_LIMIT);
 }
 
-function NotificationBell({ token, onOpenTicket }) {
+function NotificationBell({ token, onOpenTicket, t }) {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -279,7 +279,7 @@ function NotificationBell({ token, onOpenTicket }) {
           setOpen((current) => !current);
         }}
         className="relative grid h-11 w-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-blue-400 dark:hover:bg-slate-800"
-        aria-label="Open notifications"
+        aria-label={t("notifications.open")}
         aria-expanded={open}
       >
         <Bell className="h-5 w-5" aria-hidden="true" />
@@ -298,10 +298,10 @@ function NotificationBell({ token, onOpenTicket }) {
           <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
             <div>
               <p className="text-sm font-black text-slate-900 dark:text-white">
-                Notifications
+                {t("notifications.title")}
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {unreadCount ? `${unreadCount} unread` : "All caught up"}
+                {unreadCount ? t("notifications.unread", { count: unreadCount }) : t("notifications.allCaughtUp")}
               </p>
             </div>
             <button
@@ -309,8 +309,8 @@ function NotificationBell({ token, onOpenTicket }) {
               onClick={handleMarkAllRead}
               disabled={!unreadCount}
               className="grid h-9 w-9 place-items-center rounded-full text-slate-500 transition hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-blue-200"
-              aria-label="Mark all notifications as read"
-              title="Mark all as read"
+              aria-label={t("notifications.markAll")}
+              title={t("notifications.markAll")}
             >
               <CheckCheck className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -319,13 +319,13 @@ function NotificationBell({ token, onOpenTicket }) {
           <div className="min-h-0 flex-1 overflow-y-auto p-2 sm:max-h-96">
             {loading && !notifications.length && (
               <p className="px-3 py-5 text-center text-sm text-slate-500 dark:text-slate-400">
-                Loading notifications...
+                {t("notifications.loading")}
               </p>
             )}
 
             {!loading && !notifications.length && (
               <p className="px-3 py-5 text-center text-sm text-slate-500 dark:text-slate-400">
-                No notifications yet.
+                {t("notifications.empty")}
               </p>
             )}
 

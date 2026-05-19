@@ -11,6 +11,7 @@ function AddTicketForm({
   submissionSummary,
   canAssignTickets = false,
   users = [],
+  t,
 }) {
   const fieldClass =
     "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400";
@@ -29,6 +30,8 @@ function AddTicketForm({
     : form.criticalRequested
       ? "high"
       : "medium";
+  const priorityOptions = buildPriorityOptions(t);
+  const priorityGuidance = buildPriorityGuidance(t);
   const selectedGuidance = priorityGuidance[selectedPriority] || priorityGuidance.medium;
   const GuidanceIcon = selectedGuidance.icon;
 
@@ -38,29 +41,29 @@ function AddTicketForm({
         <div className="max-w-2xl">
           <p className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-            แจ้งปัญหาเร็ว / Quick report
+            {t("addTicket.quickReport")}
           </p>
           <h3 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
-            แจ้งปัญหา / Add Ticket
+            {t("addTicket.title")}
           </h3>
           <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
-            กรอกเฉพาะข้อมูลสำคัญก่อน ทีม IT จะใช้รายละเอียดนี้จัดคิวและติดตามงานต่อให้
+            {t("addTicket.intro")}
           </p>
         </div>
         <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
-          <p className="font-bold">เป้าหมาย: 30-60 วินาที</p>
-          <p className="mt-1 text-xs leading-5">หัวข้อ + หมวด + อธิบายสั้นๆ ก็ส่งได้แล้ว</p>
+          <p className="font-bold">{t("addTicket.goalTitle")}</p>
+          <p className="mt-1 text-xs leading-5">{t("addTicket.goalBody")}</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-5 lg:grid-cols-[1.4fr_0.9fr]">
           <div className="space-y-5">
-            <Field label="หัวข้อปัญหา / Title" labelClass={labelClass} required>
+            <Field label={t("addTicket.titleLabel")} labelClass={labelClass} required>
               <input
                 type="text"
                 required
-                placeholder="เช่น เครื่องปริ้น FO ใช้งานไม่ได้"
+                placeholder={t("addTicket.titlePlaceholder")}
                 value={form.title}
                 minLength={5}
                 maxLength={200}
@@ -69,22 +72,22 @@ function AddTicketForm({
                 className={fieldClass}
               />
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                เขียนให้รู้ว่าเกิดอะไรขึ้นและอยู่จุดไหน เช่น FO, POS, HK, Office
+                {t("addTicket.titleHint")}
               </p>
             </Field>
 
-            <Field label="หมวดปัญหา / Category" labelClass={labelClass} required>
+            <Field label={t("addTicket.categoryLabel")} labelClass={labelClass} required>
               <ThemedSelect
                 value={form.category}
                 disabled={submitting || loadingProblemTypes || !hasProblemTypes}
                 emptyLabel={
-                  loadingProblemTypes ? "กำลังโหลดหมวดปัญหา..." : "ยังไม่มีหมวดปัญหา"
+                  loadingProblemTypes ? t("addTicket.loadingCategories") : t("addTicket.noCategories")
                 }
                 onChange={(value) => setForm({ ...form, category: value })}
                 options={categoryOptions.map((type) => ({
                   value: type.name,
                   label: type.name,
-                  meta: type.description || "เลือกหมวดที่ใกล้เคียงที่สุด",
+                  meta: type.description || t("addTicket.categoryMetaFallback"),
                   prefix: "#",
                 }))}
               />
@@ -112,16 +115,16 @@ function AddTicketForm({
               )}
               {!loadingProblemTypes && !hasProblemTypes && (
                 <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-200">
-                  กรุณาให้ Admin เพิ่ม Problem Type ก่อนสร้าง ticket
+                  {t("addTicket.categoryAdminHint")}
                 </p>
               )}
             </Field>
 
-            <Field label="รายละเอียดสั้นๆ / Brief description" labelClass={labelClass} required>
+            <Field label={t("addTicket.descriptionLabel")} labelClass={labelClass} required>
               <textarea
                 required
                 rows="4"
-                placeholder="บอกอาการ, จุดที่เกิด, ผู้ได้รับผลกระทบ หรือสิ่งที่ลองแก้แล้ว"
+                placeholder={t("addTicket.descriptionPlaceholder")}
                 value={form.description}
                 disabled={submitting}
                 onChange={(e) =>
@@ -140,7 +143,7 @@ function AddTicketForm({
                 </span>
                 <div>
                   <p className="font-black text-slate-900 dark:text-white">
-                    ความเร่งด่วน / Priority
+                    {t("addTicket.priority")}
                   </p>
                   <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
                     {selectedGuidance.description}
@@ -164,9 +167,9 @@ function AddTicketForm({
                     className="mt-1 h-4 w-4 rounded border-amber-300 text-amber-600 focus:ring-amber-500"
                   />
                   <span>
-                    <span className="block font-bold">กระทบงานด่วน / Urgent</span>
+                    <span className="block font-bold">{t("addTicket.urgent")}</span>
                     <span className="mt-1 block text-xs leading-5 text-amber-800 dark:text-amber-100/80">
-                      ใช้เมื่อระบบหลักหยุด, แขกได้รับผลกระทบ, หรือ operation ทำงานต่อไม่ได้
+                      {t("addTicket.urgentHint")}
                     </span>
                   </span>
                 </label>
@@ -176,10 +179,10 @@ function AddTicketForm({
             {canAssignTickets && (
               <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
                 <p className="text-sm font-black text-slate-900 dark:text-white">
-                  จัดคิวเบื้องต้น / Triage
+                  {t("addTicket.triage")}
                 </p>
                 <div className="mt-4 space-y-4">
-                  <Field label="ระดับความเร่งด่วน / Priority" labelClass={labelClass}>
+                  <Field label={t("addTicket.priority")} labelClass={labelClass}>
                     <ThemedSelect
                       value={form.priority || "medium"}
                       disabled={submitting}
@@ -194,14 +197,14 @@ function AddTicketForm({
                     />
                   </Field>
 
-                  <Field label="มอบหมายให้ / Assign" labelClass={labelClass}>
+                  <Field label={t("addTicket.assign")} labelClass={labelClass}>
                     <ThemedSelect
                       value={form.assignedTo || ""}
                       disabled={submitting || !assignableUsers.length}
-                      emptyLabel="ยังไม่มอบหมาย"
+                      emptyLabel={t("addTicket.unassignedOption")}
                       onChange={(value) => setForm({ ...form, assignedTo: value })}
                       options={[
-                        { value: "", label: "ยังไม่มอบหมาย / Unassigned", prefix: "-" },
+                        { value: "", label: t("addTicket.unassignedOption"), prefix: "-" },
                         ...assignableUsers.map((user) => ({
                           value: user._id || user.id,
                           label: user.name,
@@ -212,7 +215,7 @@ function AddTicketForm({
                     />
                   </Field>
 
-                  <Field label="กำหนดเสร็จ / Due" labelClass={labelClass}>
+                  <Field label={t("addTicket.due")} labelClass={labelClass}>
                     <input
                       type="datetime-local"
                       value={form.dueDate || ""}
@@ -227,16 +230,16 @@ function AddTicketForm({
 
             <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-500/20 dark:bg-blue-500/10">
               <p className="text-sm font-black text-blue-950 dark:text-blue-100">
-                สรุปก่อนส่ง / Summary
+                {t("addTicket.summary")}
               </p>
               <dl className="mt-3 space-y-2 text-sm">
-                <SummaryItem label="ผู้แจ้ง / Requester" value={submissionSummary?.requester} />
-                <SummaryItem label="แผนก / Department" value={submissionSummary?.department} />
-                <SummaryItem label="Priority" value={submissionSummary?.priority} />
+                <SummaryItem label={t("addTicket.requester")} value={submissionSummary?.requester} />
+                <SummaryItem label={t("addTicket.department")} value={submissionSummary?.department} />
+                <SummaryItem label={t("addTicket.priority")} value={submissionSummary?.priority} />
               </dl>
               {submitting && (
                 <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-blue-700 dark:bg-slate-900 dark:text-blue-200">
-                  กำลังสร้าง ticket และแจ้งทีมที่เกี่ยวข้อง...
+                  {t("addTicket.creating")}
                 </p>
               )}
             </div>
@@ -245,7 +248,7 @@ function AddTicketForm({
 
         <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-slate-500 dark:text-slate-400">
-            ส่งแล้วระบบจะสร้าง ticket และแจ้งเตือนผู้เกี่ยวข้องทันที
+            {t("addTicket.submitHint")}
           </p>
           <button
             type="submit"
@@ -255,12 +258,12 @@ function AddTicketForm({
             {submitting ? (
               <>
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                กำลังส่ง / Submitting
+                {t("addTicket.submitting")}
               </>
             ) : (
               <>
                 <Send className="h-4 w-4" aria-hidden="true" />
-                ส่ง Ticket / Submit
+                {t("addTicket.submitTicket")}
               </>
             )}
           </button>
@@ -270,35 +273,39 @@ function AddTicketForm({
   );
 }
 
-const priorityOptions = [
-  { value: "low", label: "Low / ไม่เร่ง", meta: "งานทั่วไปหรือวางแผนได้", prefix: "L" },
-  { value: "medium", label: "Medium / ปกติ", meta: "กระทบงานบางส่วน", prefix: "M" },
-  { value: "high", label: "High / ด่วน", meta: "กระทบ operation หรือแขก", prefix: "H" },
-  { value: "critical", label: "Critical / วิกฤต", meta: "ระบบหลักหยุดทำงาน", prefix: "C" },
-];
+function buildPriorityOptions(t) {
+  return [
+    { value: "low", label: t("addTicket.priorities.low"), meta: t("addTicket.priorityMeta.low"), prefix: "L" },
+    { value: "medium", label: t("addTicket.priorities.medium"), meta: t("addTicket.priorityMeta.medium"), prefix: "M" },
+    { value: "high", label: t("addTicket.priorities.high"), meta: t("addTicket.priorityMeta.high"), prefix: "H" },
+    { value: "critical", label: t("addTicket.priorities.critical"), meta: t("addTicket.priorityMeta.critical"), prefix: "C" },
+  ];
+}
 
-const priorityGuidance = {
-  low: {
-    icon: CheckCircle2,
-    iconClass: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200",
-    description: "งานที่วางแผนได้ เช่น ขออุปกรณ์เสริม ขอสิทธิ์เพิ่ม หรือคำถามทั่วไป",
-  },
-  medium: {
-    icon: Clock3,
-    iconClass: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200",
-    description: "ค่าเริ่มต้นสำหรับปัญหาที่กระทบงานบางส่วน เช่น PC ช้า โปรแกรมใช้งานติดขัด",
-  },
-  high: {
-    icon: AlertTriangle,
-    iconClass: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100",
-    description: "ใช้เมื่อกระทบ operation หรือแขก เช่น printer FO เสีย, POS ใช้งานไม่ได้บางจุด",
-  },
-  critical: {
-    icon: AlertTriangle,
-    iconClass: "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-100",
-    description: "ใช้เมื่อระบบหลักหยุด เช่น PMS down, internet ทั้งโรงแรมล่ม, payment ใช้ไม่ได้",
-  },
-};
+function buildPriorityGuidance(t) {
+  return {
+    low: {
+      icon: CheckCircle2,
+      iconClass: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200",
+      description: t("addTicket.guidance.low"),
+    },
+    medium: {
+      icon: Clock3,
+      iconClass: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200",
+      description: t("addTicket.guidance.medium"),
+    },
+    high: {
+      icon: AlertTriangle,
+      iconClass: "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100",
+      description: t("addTicket.guidance.high"),
+    },
+    critical: {
+      icon: AlertTriangle,
+      iconClass: "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-100",
+      description: t("addTicket.guidance.critical"),
+    },
+  };
+}
 
 function Field({ children, label, labelClass, required = false }) {
   return (

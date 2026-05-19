@@ -18,10 +18,9 @@ function TicketDetailModal({
   canUploadAttachment = false,
   canManageTickets = false,
   onUpdatePriority,
+  t,
 }) {
-  if (!open || !ticket) {
-    return null;
-  }
+  if (!open || !ticket) return null;
 
   return (
     <TicketDetailModalContent
@@ -35,6 +34,7 @@ function TicketDetailModal({
       canUploadAttachment={canUploadAttachment}
       canManageTickets={canManageTickets}
       onUpdatePriority={onUpdatePriority}
+      t={t}
     />
   );
 }
@@ -49,6 +49,7 @@ function TicketDetailModalContent({
   canUploadAttachment,
   canManageTickets,
   onUpdatePriority,
+  t,
 }) {
   const [comment, setComment] = useState("");
   const [submittingComment, setSubmittingComment] = useState(false);
@@ -90,8 +91,7 @@ function TicketDetailModalContent({
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!canUploadAttachment) return;
-    if (!file) return;
+    if (!canUploadAttachment || !file) return;
     await onUploadAttachment(ticket._id, file);
     setFile(null);
     setFileError("");
@@ -109,9 +109,7 @@ function TicketDetailModalContent({
         comment: satisfactionComment.trim(),
       });
 
-      if (success) {
-        setSatisfactionComment("");
-      }
+      if (success) setSatisfactionComment("");
     } finally {
       setSavingSatisfaction(false);
     }
@@ -122,7 +120,6 @@ function TicketDetailModalContent({
     const res = await fetch(getAttachmentUrl(ticket._id, attachment), {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-
     if (!res.ok) return;
 
     const blob = await res.blob();
@@ -136,7 +133,6 @@ function TicketDetailModalContent({
     const res = await fetch(getAttachmentUrl(ticket._id, attachment), {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-
     if (!res.ok) return;
 
     const blob = await res.blob();
@@ -152,7 +148,6 @@ function TicketDetailModalContent({
     const selectedFile = e.target.files?.[0] || null;
     setFile(null);
     setFileError("");
-
     if (!selectedFile) return;
 
     if (!ALLOWED_IMAGE_TYPES.includes(selectedFile.type)) {
@@ -181,7 +176,7 @@ function TicketDetailModalContent({
         type="button"
         className="absolute inset-0 h-full w-full"
         onClick={onClose}
-        aria-label="Close ticket details backdrop"
+        aria-label={t("detail.closeBackdrop")}
       />
       <div
         className="relative max-h-[90dvh] w-full overflow-y-auto rounded-t-2xl bg-white p-4 shadow-2xl dark:bg-slate-900 sm:max-w-[52rem] sm:rounded-2xl md:p-5"
@@ -192,7 +187,7 @@ function TicketDetailModalContent({
         <div className="mb-4 flex items-start justify-between gap-4">
           <div className="min-w-0">
             <h2 id="ticket-detail-title" className="text-xl font-bold text-slate-900 dark:text-white">
-              Ticket Details
+              {t("detail.title")}
             </h2>
             <p className="truncate text-xs text-slate-500 dark:text-slate-400">
               {ticket.ticketNumber} / {ticket.category} / {ticket.departmentName || ticket.department}
@@ -203,34 +198,34 @@ function TicketDetailModalContent({
             type="button"
             onClick={onClose}
             className="shrink-0 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-            aria-label="Close ticket details"
+            aria-label={t("common.close")}
           >
-            Close
+            {t("common.close")}
           </button>
         </div>
 
         <div className={`grid gap-3 ${ticket.attachments?.length ? "lg:grid-cols-2" : ""}`}>
           <CompactPanel>
-            <SectionLabel>Title</SectionLabel>
+            <SectionLabel>{t("detail.titleLabel")}</SectionLabel>
             <p className="mt-1 text-base font-semibold text-slate-900 dark:text-white">
               {ticket.title}
             </p>
             {ticket.criticalRequested && (
               <span className="mt-3 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-amber-200 dark:bg-amber-500/20 dark:text-amber-100 dark:ring-amber-400/20">
-                Critical review requested
+                {t("detail.criticalReview")}
               </span>
             )}
 
             <div className="mt-3">
-              <SectionLabel>Description</SectionLabel>
+              <SectionLabel>{t("detail.description")}</SectionLabel>
               <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                {ticket.description || "No description provided."}
+                {ticket.description || t("detail.noDescription")}
               </p>
             </div>
 
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               <InfoItem
-                label="Priority"
+                label={t("detail.priority")}
                 value={
                   canManageTickets && onUpdatePriority ? (
                     <ThemedSelect
@@ -238,21 +233,21 @@ function TicketDetailModalContent({
                       size="sm"
                       value={ticket.priority}
                       onChange={(value) => onUpdatePriority(ticket._id, value)}
-                      options={priorityOptions}
+                      options={buildPriorityOptions(t)}
                     />
                   ) : (
-                    ticket.priority
+                    getPriorityLabel(ticket.priority, t)
                   )
                 }
               />
-              <InfoItem label="Status" value={ticket.status} />
-              <InfoItem label="Requester" value={ticket.requester || "Unknown"} />
-              <InfoItem label="Created By" value={ticket.createdBy?.name || "Unknown"} />
-              <InfoItem label="Assigned To" value={ticket.assignedTo?.name || "Unassigned"} />
-              <InfoItem label="SLA (hrs)" value={ticket.slaHours} />
+              <InfoItem label={t("detail.status")} value={getStatusLabel(ticket.status, t)} />
+              <InfoItem label={t("detail.requester")} value={ticket.requester || t("common.unknown")} />
+              <InfoItem label={t("detail.createdBy")} value={ticket.createdBy?.name || t("common.unknown")} />
+              <InfoItem label={t("detail.assignedTo")} value={ticket.assignedTo?.name || t("common.unassigned")} />
+              <InfoItem label={t("detail.slaHours")} value={ticket.slaHours} />
               <InfoItem
-                label="Due Date"
-                value={ticket.dueDate ? new Date(ticket.dueDate).toLocaleString() : "Not set"}
+                label={t("detail.dueDate")}
+                value={ticket.dueDate ? new Date(ticket.dueDate).toLocaleString() : t("common.notSet")}
               />
             </div>
           </CompactPanel>
@@ -261,7 +256,7 @@ function TicketDetailModalContent({
             <CompactPanel>
               <SectionLabel>Updated By</SectionLabel>
               <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">
-                {ticket.updatedBy?.name || ticket.createdBy?.name || "Unknown"}
+                {ticket.updatedBy?.name || ticket.createdBy?.name || t("common.unknown")}
               </p>
 
               <div className="mt-4">
@@ -280,7 +275,7 @@ function TicketDetailModalContent({
                         {attachment.originalName}
                       </button>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Uploaded by {attachment.uploadedBy?.name || "Unknown"}
+                        Uploaded by {attachment.uploadedBy?.name || t("common.unknown")}
                       </p>
                       <button
                         type="button"
@@ -359,7 +354,7 @@ function TicketDetailModalContent({
                     disabled={!satisfactionScore || savingSatisfaction}
                     className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
                   >
-                    {savingSatisfaction ? "Saving..." : hasSatisfaction ? "Update Rating" : "Submit Rating"}
+                    {savingSatisfaction ? t("common.saving") : hasSatisfaction ? "Update Rating" : "Submit Rating"}
                   </button>
                 </form>
               )}
@@ -369,7 +364,7 @@ function TicketDetailModalContent({
 
         <div className={`mt-3 grid gap-3 ${canUploadAttachment ? "lg:grid-cols-2" : ""}`}>
           <CompactPanel>
-            <SectionLabel>ความคิดเห็น / Comments</SectionLabel>
+            <SectionLabel>{t("detail.comments")}</SectionLabel>
             <div className="mt-2 max-h-28 space-y-2 overflow-y-auto">
               {ticket.comments?.length ? (
                 ticket.comments.map((item) => (
@@ -381,13 +376,13 @@ function TicketDetailModalContent({
                       {item.text}
                     </p>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      {item.author?.name || "Unknown"} / {new Date(item.createdAt).toLocaleString()}
+                      {item.author?.name || t("common.unknown")} / {new Date(item.createdAt).toLocaleString()}
                     </p>
                   </div>
                 ))
               ) : (
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  ยังไม่มี comment. เพิ่มข้อมูลอัปเดตเพื่อให้ทีมตามงานต่อได้ง่ายขึ้น
+                  {t("detail.noComments")}
                 </p>
               )}
             </div>
@@ -398,7 +393,7 @@ function TicketDetailModalContent({
                 value={comment}
                 disabled={!onComment || submittingComment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="เพิ่ม comment หรืออัปเดตสถานะงาน"
+                placeholder={t("detail.commentPlaceholder")}
                 className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               />
               <button
@@ -406,14 +401,14 @@ function TicketDetailModalContent({
                 disabled={!comment.trim() || submittingComment}
                 className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {submittingComment ? "กำลังส่ง..." : "ส่ง Comment"}
+                {submittingComment ? t("detail.sendingComment") : t("detail.submitComment")}
               </button>
             </form>
           </CompactPanel>
 
           {canUploadAttachment && (
             <CompactPanel>
-              <SectionLabel>Add Attachment</SectionLabel>
+              <SectionLabel>{t("detail.attachment")}</SectionLabel>
               <form onSubmit={handleUpload} className="mt-2 space-y-2">
                 <input
                   type="file"
@@ -443,7 +438,7 @@ function TicketDetailModalContent({
 
         <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-950">
           <h3 className="mb-2 font-semibold text-slate-700 dark:text-slate-200">
-            Activity log
+            {t("detail.activityLog")}
           </h3>
           <div className="max-h-40 space-y-2 overflow-y-auto">
             {ticket.activityLog?.length ? (
@@ -456,12 +451,12 @@ function TicketDetailModalContent({
                     {entry.details}
                   </p>
                   <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    {entry.action} by {entry.user?.name || "Unknown"} / {new Date(entry.createdAt).toLocaleString()}
+                    {entry.action} by {entry.user?.name || t("common.unknown")} / {new Date(entry.createdAt).toLocaleString()}
                   </p>
                 </div>
               ))
             ) : (
-              <p className="text-slate-500 dark:text-slate-400">No activity yet.</p>
+              <p className="text-slate-500 dark:text-slate-400">{t("detail.noActivity")}</p>
             )}
           </div>
         </div>
@@ -500,12 +495,22 @@ function InfoItem({ label, value }) {
   );
 }
 
-const priorityOptions = [
-  { value: "low", label: "Low", prefix: "L" },
-  { value: "medium", label: "Medium", prefix: "M" },
-  { value: "high", label: "High", prefix: "H" },
-  { value: "critical", label: "Critical", prefix: "C" },
-];
+function buildPriorityOptions(t) {
+  return [
+    { value: "low", label: t("addTicket.priorities.low"), prefix: "L" },
+    { value: "medium", label: t("addTicket.priorities.medium"), prefix: "M" },
+    { value: "high", label: t("addTicket.priorities.high"), prefix: "H" },
+    { value: "critical", label: t("addTicket.priorities.critical"), prefix: "C" },
+  ];
+}
+
+function getStatusLabel(status, t) {
+  return t(`queue.status.${status}`) || status;
+}
+
+function getPriorityLabel(priority, t) {
+  return t(`addTicket.priorities.${priority}`) || priority;
+}
 
 function getEntityId(entity) {
   return String(entity?._id || entity?.id || entity || "");

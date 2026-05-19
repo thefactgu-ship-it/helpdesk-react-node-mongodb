@@ -21,35 +21,35 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 const menuGroups = [
   {
-    label: "Main",
+    labelKey: "nav.main",
     items: [
-      { id: "dashboard", text: "Dashboard", icon: LayoutDashboard, enabled: true },
-      { id: "tickets", text: "Helpdesk Tickets", icon: ClipboardList, enabled: true },
-      { id: "add-ticket", text: "Add Ticket", icon: PlusCircle, enabled: true },
+      { id: "dashboard", textKey: "nav.dashboard", icon: LayoutDashboard, enabled: true },
+      { id: "tickets", textKey: "nav.tickets", icon: ClipboardList, enabled: true },
+      { id: "add-ticket", textKey: "nav.addTicket", icon: PlusCircle, enabled: true },
     ],
   },
   {
-    label: "Reports",
+    labelKey: "nav.reports",
     items: [
-      { id: "monthly-report", text: "Monthly Report", icon: CalendarDays, enabled: true },
-      { id: "quarterly-report", text: "Quarterly / Yearly", icon: BarChart3, enabled: true },
+      { id: "monthly-report", textKey: "nav.monthlyReport", icon: CalendarDays, enabled: true },
+      { id: "quarterly-report", textKey: "nav.quarterlyReport", icon: BarChart3, enabled: true },
     ],
   },
   {
-    label: "System",
+    labelKey: "nav.system",
     adminOnly: true,
     items: [
-      { id: "assets", text: "Asset Management", icon: Laptop, enabled: true },
-      { id: "departments", text: "Departments", icon: FileBarChart, enabled: true, managerOnly: true },
+      { id: "assets", textKey: "nav.assets", icon: Laptop, enabled: true },
+      { id: "departments", textKey: "nav.departments", icon: FileBarChart, enabled: true, managerOnly: true },
       {
         id: "hotels",
-        text: "Hotel Management",
+        textKey: "nav.hotels",
         icon: Building2,
         enabled: true,
         groupOnly: true,
       },
-      { id: "user-management", text: "User Management", icon: UserCog, enabled: true },
-      { id: "problem-types", text: "Problem Types", icon: Hash, enabled: true },
+      { id: "user-management", textKey: "nav.users", icon: UserCog, enabled: true },
+      { id: "problem-types", textKey: "nav.problemTypes", icon: Hash, enabled: true },
     ],
   },
 ];
@@ -73,6 +73,7 @@ function Sidebar({
   onLogout,
   onOpenPassword,
   onOpenProfile,
+  t,
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -163,6 +164,7 @@ function Sidebar({
         onNavigate={navigate}
         onOpenDrawer={() => setDrawerOpen(true)}
         onOpenProfile={handleProfile}
+        t={t}
         visibleGroups={visibleGroups}
       />
 
@@ -172,10 +174,11 @@ function Sidebar({
         <nav className="flex-1 space-y-6 px-4 py-5 text-sm" aria-label="Primary navigation">
           {visibleGroups.map((group) => (
             <NavGroup
-              key={group.label}
+              key={group.labelKey}
               activePage={activePage}
               group={group}
               onNavigate={navigate}
+              t={t}
             />
           ))}
         </nav>
@@ -189,6 +192,7 @@ function Sidebar({
               onLogout={handleLogout}
               onOpenPassword={handlePassword}
               onOpenProfile={handleProfile}
+              t={t}
             />
           )}
 
@@ -198,7 +202,7 @@ function Sidebar({
             className="flex w-full items-center gap-3 rounded-xl bg-slate-50 p-3 text-left transition hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-slate-800"
             aria-expanded={userMenuOpen}
             aria-haspopup="menu"
-            aria-label="Open account menu"
+            aria-label={t("nav.accountMenu")}
           >
             <Avatar name={userName} />
 
@@ -233,15 +237,16 @@ function MobileChrome({
   onNavigate,
   onOpenDrawer,
   onOpenProfile,
+  t,
   visibleGroups,
 }) {
   const userName = currentUser?.name || "Welcome";
   const bottomItems = [
-    { id: "dashboard", text: "Home", icon: Home, action: () => onNavigate("dashboard") },
-    { id: "tickets", text: "Tickets", icon: ClipboardList, action: () => onNavigate("tickets") },
-    { id: "add-ticket", text: "Add", icon: PlusCircle, action: () => onNavigate("add-ticket") },
-    { id: "monthly-report", text: "Reports", icon: BarChart3, action: () => onNavigate("monthly-report") },
-    { id: "profile", text: "Profile", icon: User, action: onOpenProfile },
+    { id: "dashboard", text: t("nav.home"), icon: Home, action: () => onNavigate("dashboard") },
+    { id: "tickets", text: t("nav.tickets"), icon: ClipboardList, action: () => onNavigate("tickets") },
+    { id: "add-ticket", text: t("nav.add"), icon: PlusCircle, action: () => onNavigate("add-ticket") },
+    { id: "monthly-report", text: t("nav.reports"), icon: BarChart3, action: () => onNavigate("monthly-report") },
+    { id: "profile", text: t("nav.profile"), icon: User, action: onOpenProfile },
   ];
 
   return (
@@ -251,7 +256,7 @@ function MobileChrome({
           type="button"
           onClick={onOpenDrawer}
           className="grid h-11 w-11 place-items-center rounded-xl border border-slate-200 text-slate-700 dark:border-slate-800 dark:text-slate-200"
-          aria-label="Open navigation menu"
+          aria-label={t("nav.openMenu")}
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
@@ -269,7 +274,7 @@ function MobileChrome({
           type="button"
           onClick={onOpenProfile}
           className="grid h-11 w-11 place-items-center rounded-xl bg-blue-600 text-xs font-black text-white"
-          aria-label="Open profile"
+          aria-label={t("nav.profile")}
         >
           {getInitials(userName)}
         </button>
@@ -281,7 +286,7 @@ function MobileChrome({
             type="button"
             className="absolute inset-0 h-full w-full bg-slate-950/45"
             onClick={onCloseDrawer}
-            aria-label="Close navigation backdrop"
+            aria-label={t("nav.closeMenu")}
           />
           <div className="absolute inset-y-0 left-0 flex w-[min(22rem,88vw)] flex-col bg-white shadow-2xl dark:bg-slate-950">
             <div className="flex items-center justify-between border-b border-slate-100 p-4 dark:border-slate-800">
@@ -290,7 +295,7 @@ function MobileChrome({
                 type="button"
                 onClick={onCloseDrawer}
                 className="grid h-11 w-11 place-items-center rounded-xl border border-slate-200 text-slate-700 dark:border-slate-800 dark:text-slate-200"
-                aria-label="Close navigation menu"
+                aria-label={t("nav.closeMenu")}
               >
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
@@ -299,10 +304,11 @@ function MobileChrome({
             <nav className="flex-1 space-y-6 overflow-y-auto px-4 py-5" aria-label="Mobile navigation">
               {visibleGroups.map((group) => (
                 <NavGroup
-                  key={group.label}
+                  key={group.labelKey}
                   activePage={activePage}
                   group={group}
                   onNavigate={onNavigate}
+                  t={t}
                 />
               ))}
             </nav>
@@ -314,7 +320,7 @@ function MobileChrome({
                 className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-bold text-rose-600 hover:bg-rose-50 dark:text-rose-200 dark:hover:bg-rose-500/10"
               >
                 <LogOut className="h-5 w-5" aria-hidden="true" />
-                Logout
+                {t("nav.logout")}
               </button>
             </div>
           </div>
@@ -369,11 +375,11 @@ function BrandHeader({ compact }) {
   );
 }
 
-function NavGroup({ activePage, group, onNavigate }) {
+function NavGroup({ activePage, group, onNavigate, t }) {
   return (
     <div>
       <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-600">
-        {group.label}
+        {t(group.labelKey)}
       </p>
 
       <div className="space-y-1">
@@ -383,7 +389,7 @@ function NavGroup({ activePage, group, onNavigate }) {
             active={activePage === item.id}
             enabled={item.enabled}
             icon={item.icon}
-            text={item.text}
+            text={t(item.textKey)}
             onClick={() => item.enabled && onNavigate(item.id)}
           />
         ))}
@@ -392,7 +398,7 @@ function NavGroup({ activePage, group, onNavigate }) {
   );
 }
 
-function ProfileMenu({ onLogout, onOpenPassword, onOpenProfile }) {
+function ProfileMenu({ onLogout, onOpenPassword, onOpenProfile, t }) {
   return (
     <div className="absolute bottom-[5.25rem] left-4 right-4 z-20 overflow-hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/80 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/50">
       <button
@@ -400,14 +406,14 @@ function ProfileMenu({ onLogout, onOpenPassword, onOpenProfile }) {
         onClick={onOpenProfile}
         className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-blue-200"
       >
-        Update Profile
+        {t("nav.updateProfile")}
       </button>
       <button
         type="button"
         onClick={onOpenPassword}
         className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-blue-200"
       >
-        Change Password
+        {t("nav.changePassword")}
       </button>
       <div className="my-2 h-px bg-slate-100 dark:bg-slate-800" />
       <button
@@ -415,7 +421,7 @@ function ProfileMenu({ onLogout, onOpenPassword, onOpenProfile }) {
         onClick={onLogout}
         className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-bold text-rose-600 transition hover:bg-rose-50 dark:text-rose-200 dark:hover:bg-rose-500/10"
       >
-        Logout
+        {t("nav.logout")}
       </button>
     </div>
   );

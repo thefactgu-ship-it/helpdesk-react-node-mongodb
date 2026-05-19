@@ -23,6 +23,7 @@ function TicketTable({
   onViewTicket,
   currentUser,
   users = [],
+  t,
 }) {
   const [activeQueue, setActiveQueue] = useState("now");
   const canManageTickets = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"].includes(currentUser?.role);
@@ -33,8 +34,8 @@ function TicketTable({
   );
   const currentUserId = getEntityId(currentUser);
   const queueOptions = useMemo(
-    () => buildQueueOptions(tickets, currentUserId),
-    [currentUserId, tickets],
+    () => buildQueueOptions(tickets, currentUserId, t),
+    [currentUserId, tickets, t],
   );
   const queueTickets = useMemo(
     () => tickets.filter((ticket) => matchesQueue(ticket, activeQueue, currentUserId)),
@@ -45,6 +46,8 @@ function TicketTable({
     (currentPage - 1) * ticketsPerPage,
     currentPage * ticketsPerPage,
   );
+  const statusOptions = buildStatusOptions(t);
+  const priorityOptions = buildPriorityOptions(t);
   const canUpdateTicketStatus = (ticket) =>
     canManageTickets ||
     (currentUser?.role === "Agent" && getEntityId(ticket.assignedTo) === currentUserId);
@@ -65,17 +68,17 @@ function TicketTable({
       <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-sm font-black text-slate-900 dark:text-white">
-            คิวงาน / Work Queue
+            {t("queue.heading")}
           </p>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            ดูงานที่ต้องจัดการก่อน แล้วค่อยไล่รายการทั้งหมด
+            {t("queue.description")}
           </p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row">
           <input
             type="text"
-            placeholder="ค้นหา ticket / Search..."
+            placeholder={t("queue.searchPlaceholder")}
             value={search}
             disabled={loading}
             onChange={(e) => setSearch(e.target.value)}
@@ -142,6 +145,9 @@ function TicketTable({
                 isBusy={isBusy}
                 isDeleting={isDeleting}
                 onViewTicket={onViewTicket}
+                priorityOptions={priorityOptions}
+                statusOptions={statusOptions}
+                t={t}
                 ticket={ticket}
                 updateStatus={updateStatus}
                 updatePriority={updatePriority}
@@ -151,12 +157,13 @@ function TicketTable({
         )}
 
         {!loading && queueTickets.length === 0 && (
-          <QueueEmptyState activeQueue={activeQueue} />
+          <QueueEmptyState activeQueue={activeQueue} t={t} />
         )}
 
         <PaginationControls
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
+          t={t}
           totalPages={totalPages}
         />
       </div>
@@ -165,13 +172,13 @@ function TicketTable({
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-700 dark:text-slate-400">
-              <th className="py-3 font-semibold">Ticket #</th>
-              <th className="font-semibold">งาน / Issue</th>
-              <th className="font-semibold">Priority</th>
-              <th className="font-semibold">Status</th>
-              <th className="font-semibold">Assign</th>
-              <th className="font-semibold">Due</th>
-              <th className="font-semibold">Action</th>
+              <th className="py-3 font-semibold">{t("queue.ticketNumber")}</th>
+              <th className="font-semibold">{t("queue.issue")}</th>
+              <th className="font-semibold">{t("queue.priority")}</th>
+              <th className="font-semibold">{t("queue.statusLabel")}</th>
+              <th className="font-semibold">{t("queue.assign")}</th>
+              <th className="font-semibold">{t("queue.due")}</th>
+              <th className="font-semibold">{t("queue.action")}</th>
             </tr>
           </thead>
 
@@ -200,7 +207,7 @@ function TicketTable({
                     <td className="py-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="font-semibold text-slate-900 dark:text-white">{ticket.title}</span>
-                        {getQueueBadges(ticket).map((badge) => (
+                        {getQueueBadges(ticket, t).map((badge) => (
                           <StatusPill key={badge.label} {...badge} />
                         ))}
                       </div>
@@ -223,10 +230,10 @@ function TicketTable({
                             options={priorityOptions}
                           />
                         ) : (
-                          <Badge text={ticket.priority} />
+                          <Badge text={getPriorityLabel(ticket.priority, t)} />
                         )}
                         {ticket.criticalRequested && (
-                          <StatusPill label="Critical review" tone="warning" />
+                          <StatusPill label={t("queue.criticalReview")} tone="warning" />
                         )}
                       </div>
                     </td>
@@ -243,7 +250,7 @@ function TicketTable({
                           options={statusOptions.filter((option) => option.value !== "all")}
                         />
                       ) : (
-                        <Badge text={ticket.status} />
+                        <Badge text={getStatusLabel(ticket.status, t)} />
                       )}
                     </td>
                     <td className="text-slate-500 dark:text-slate-400">
@@ -255,10 +262,10 @@ function TicketTable({
                           size="sm"
                           value={ticket.assignedTo?._id || ""}
                           disabled={isBusy || !assignableUsers.length}
-                          emptyLabel={isAssigning ? "กำลังมอบหมาย..." : "ยังไม่มอบหมาย"}
+                          emptyLabel={isAssigning ? t("addTicket.assigning") : t("common.unassigned")}
                           onChange={(value) => assignTicket(ticket._id, value)}
                           options={[
-                            { value: "", label: isAssigning ? "กำลังมอบหมาย..." : "ยังไม่มอบหมาย", prefix: "-" },
+                            { value: "", label: isAssigning ? t("addTicket.assigning") : t("common.unassigned"), prefix: "-" },
                             ...assignableUsers.map((user) => ({
                               value: user._id || user.id,
                               label: user.name,
@@ -268,7 +275,7 @@ function TicketTable({
                           ]}
                         />
                       ) : (
-                        ticket.assignedTo?.name || "ยังไม่มอบหมาย"
+                        ticket.assignedTo?.name || t("common.unassigned")
                       )}
                     </td>
                     <td className="text-slate-500 dark:text-slate-400">
@@ -280,7 +287,7 @@ function TicketTable({
                         onClick={() => onViewTicket(ticket._id)}
                         className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                       >
-                        ดู / View
+                        {t("common.view")}
                       </button>
                       {canManageTickets && (
                         <button
@@ -289,7 +296,7 @@ function TicketTable({
                           disabled={isBusy}
                           className="rounded-lg bg-rose-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
                         >
-                          {isDeleting ? "Deleting..." : "Delete"}
+                          {isDeleting ? t("common.deleting") : t("common.delete")}
                         </button>
                       )}
                     </td>
@@ -301,7 +308,7 @@ function TicketTable({
             {!loading && queueTickets.length === 0 && (
               <tr>
                 <td colSpan="7" className="py-8">
-                  <QueueEmptyState activeQueue={activeQueue} />
+                  <QueueEmptyState activeQueue={activeQueue} t={t} />
                 </td>
               </tr>
             )}
@@ -310,6 +317,7 @@ function TicketTable({
         <PaginationControls
           currentPage={currentPage}
           setCurrentPage={setCurrentPage}
+          t={t}
           totalPages={totalPages}
         />
       </div>
@@ -327,6 +335,9 @@ function TicketMobileCard({
   isBusy,
   isDeleting,
   onViewTicket,
+  priorityOptions,
+  statusOptions,
+  t,
   ticket,
   updateStatus,
   updatePriority,
@@ -357,23 +368,23 @@ function TicketMobileCard({
               options={priorityOptions}
             />
           ) : (
-            <Badge text={ticket.priority} />
+            <Badge text={getPriorityLabel(ticket.priority, t)} />
           )}
           {ticket.criticalRequested && (
-            <StatusPill label="Critical review" tone="warning" />
+            <StatusPill label={t("queue.criticalReview")} tone="warning" />
           )}
         </div>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
-        {getQueueBadges(ticket).map((badge) => (
+        {getQueueBadges(ticket, t).map((badge) => (
           <StatusPill key={badge.label} {...badge} />
         ))}
       </div>
 
       <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-        <MobileMeta label="Due" value={<DueLabel ticket={ticket} />} />
-        <MobileMeta label="Assign" value={ticket.assignedTo?.name || "ยังไม่มอบหมาย"} />
+        <MobileMeta label={t("queue.due")} value={<DueLabel ticket={ticket} />} />
+        <MobileMeta label={t("queue.assign")} value={ticket.assignedTo?.name || t("common.unassigned")} />
       </dl>
 
       <div className="mt-4 grid gap-3">
@@ -387,7 +398,7 @@ function TicketMobileCard({
             options={statusOptions.filter((option) => option.value !== "all")}
           />
         ) : (
-          <Badge text={ticket.status} />
+          <Badge text={getStatusLabel(ticket.status, t)} />
         )}
 
         {canManageTickets && (
@@ -396,10 +407,10 @@ function TicketMobileCard({
             size="sm"
             value={ticket.assignedTo?._id || ""}
             disabled={isBusy || !assignableUsers.length}
-            emptyLabel={isAssigning ? "กำลังมอบหมาย..." : "ยังไม่มอบหมาย"}
+            emptyLabel={isAssigning ? t("addTicket.assigning") : t("common.unassigned")}
             onChange={(value) => assignTicket(ticket._id, value)}
             options={[
-              { value: "", label: isAssigning ? "กำลังมอบหมาย..." : "ยังไม่มอบหมาย", prefix: "-" },
+              { value: "", label: isAssigning ? t("addTicket.assigning") : t("common.unassigned"), prefix: "-" },
               ...assignableUsers.map((user) => ({
                 value: user._id || user.id,
                 label: user.name,
@@ -417,7 +428,7 @@ function TicketMobileCard({
           onClick={() => onViewTicket(ticket._id)}
           className="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
         >
-          ดู / View
+          {t("common.view")}
         </button>
         {canManageTickets && (
           <button
@@ -426,7 +437,7 @@ function TicketMobileCard({
             disabled={isBusy}
             className="rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
           >
-            {isDeleting ? "Deleting..." : "Delete"}
+            {isDeleting ? t("common.deleting") : t("common.delete")}
           </button>
         )}
       </div>
@@ -447,8 +458,8 @@ function MobileMeta({ label, value }) {
   );
 }
 
-function QueueEmptyState({ activeQueue }) {
-  const message = emptyQueueMessages[activeQueue] || emptyQueueMessages.all;
+function QueueEmptyState({ activeQueue, t }) {
+  const message = getEmptyQueueMessage(activeQueue, t);
 
   return (
     <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900">
@@ -474,7 +485,7 @@ function MobileTicketSkeleton() {
   );
 }
 
-function PaginationControls({ currentPage, setCurrentPage, totalPages }) {
+function PaginationControls({ currentPage, setCurrentPage, totalPages, t }) {
   if (totalPages <= 1) return null;
 
   return (
@@ -485,11 +496,11 @@ function PaginationControls({ currentPage, setCurrentPage, totalPages }) {
         onClick={() => setCurrentPage(currentPage - 1)}
         className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold disabled:opacity-40 dark:border-slate-700"
       >
-        ก่อนหน้า
+        {t("queue.previous")}
       </button>
 
       <span className="text-sm text-slate-500 dark:text-slate-400">
-        หน้า {currentPage} / {totalPages}
+        {t("queue.page", { current: currentPage, total: totalPages })}
       </span>
 
       <button
@@ -498,7 +509,7 @@ function PaginationControls({ currentPage, setCurrentPage, totalPages }) {
         onClick={() => setCurrentPage(currentPage + 1)}
         className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold disabled:opacity-40 dark:border-slate-700"
       >
-        ถัดไป
+        {t("queue.next")}
       </button>
     </div>
   );
@@ -534,18 +545,18 @@ function StatusPill({ label, tone = "info" }) {
   );
 }
 
-function buildQueueOptions(tickets, currentUserId) {
+function buildQueueOptions(tickets, currentUserId, t) {
   const count = (queueId) =>
     tickets.filter((ticket) => matchesQueue(ticket, queueId, currentUserId)).length;
 
   return [
-    { id: "now", label: "ต้องทำตอนนี้", count: count("now"), activeClass: "border-blue-600 bg-blue-600 text-white" },
-    { id: "overdue", label: "Overdue", count: count("overdue"), activeClass: "border-rose-600 bg-rose-600 text-white" },
-    { id: "dueSoon", label: "Due soon", count: count("dueSoon"), activeClass: "border-amber-500 bg-amber-500 text-white" },
-    { id: "unassigned", label: "Unassigned", count: count("unassigned"), activeClass: "border-sky-600 bg-sky-600 text-white" },
-    { id: "assignedToMe", label: "Assigned to me", count: count("assignedToMe"), activeClass: "border-blue-600 bg-blue-600 text-white" },
-    { id: "waitingRequester", label: "Waiting requester", count: count("waitingRequester"), activeClass: "border-slate-700 bg-slate-700 text-white" },
-    { id: "all", label: "All", count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+    { id: "now", label: t("queue.tabs.now"), count: count("now"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+    { id: "overdue", label: t("queue.tabs.overdue"), count: count("overdue"), activeClass: "border-rose-600 bg-rose-600 text-white" },
+    { id: "dueSoon", label: t("queue.tabs.dueSoon"), count: count("dueSoon"), activeClass: "border-amber-500 bg-amber-500 text-white" },
+    { id: "unassigned", label: t("queue.tabs.unassigned"), count: count("unassigned"), activeClass: "border-sky-600 bg-sky-600 text-white" },
+    { id: "assignedToMe", label: t("queue.tabs.assignedToMe"), count: count("assignedToMe"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+    { id: "waitingRequester", label: t("queue.tabs.waitingRequester"), count: count("waitingRequester"), activeClass: "border-slate-700 bg-slate-700 text-white" },
+    { id: "all", label: t("queue.tabs.all"), count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
   ];
 }
 
@@ -566,13 +577,57 @@ function matchesQueue(ticket, queueId, currentUserId) {
   );
 }
 
-function getQueueBadges(ticket) {
+function getQueueBadges(ticket, t) {
   const badges = [];
-  if (isOverdue(ticket)) badges.push({ label: "Overdue", tone: "danger" });
-  else if (isDueSoon(ticket)) badges.push({ label: "Due soon", tone: "warning" });
-  if (!isCompleted(ticket) && !ticket.assignedTo) badges.push({ label: "Unassigned", tone: "info" });
-  if (isWaitingRequester(ticket)) badges.push({ label: "Waiting requester", tone: "neutral" });
+  if (isOverdue(ticket)) badges.push({ label: t("queue.badges.overdue"), tone: "danger" });
+  else if (isDueSoon(ticket)) badges.push({ label: t("queue.badges.dueSoon"), tone: "warning" });
+  if (!isCompleted(ticket) && !ticket.assignedTo) badges.push({ label: t("queue.badges.unassigned"), tone: "info" });
+  if (isWaitingRequester(ticket)) badges.push({ label: t("queue.badges.waitingRequester"), tone: "neutral" });
   return badges;
+}
+
+function getEmptyQueueMessage(activeQueue, t) {
+  const keys = {
+    now: ["nowTitle", "nowDescription"],
+    overdue: ["overdueTitle", "overdueDescription"],
+    dueSoon: ["dueSoonTitle", "dueSoonDescription"],
+    unassigned: ["unassignedTitle", "unassignedDescription"],
+    assignedToMe: ["assignedToMeTitle", "assignedToMeDescription"],
+    waitingRequester: ["waitingRequesterTitle", "waitingRequesterDescription"],
+    all: ["allTitle", "allDescription"],
+  }[activeQueue] || ["allTitle", "allDescription"];
+
+  return {
+    title: t(`queue.empty.${keys[0]}`),
+    description: t(`queue.empty.${keys[1]}`),
+  };
+}
+
+function buildStatusOptions(t) {
+  return [
+    { value: "all", label: t("queue.status.all"), prefix: "A" },
+    { value: "open", label: t("queue.status.open"), prefix: "O" },
+    { value: "in_progress", label: t("queue.status.in_progress"), prefix: "IP" },
+    { value: "resolved", label: t("queue.status.resolved"), prefix: "R" },
+    { value: "closed", label: t("queue.status.closed"), prefix: "C" },
+  ];
+}
+
+function buildPriorityOptions(t) {
+  return [
+    { value: "low", label: t("addTicket.priorities.low"), prefix: "L" },
+    { value: "medium", label: t("addTicket.priorities.medium"), prefix: "M" },
+    { value: "high", label: t("addTicket.priorities.high"), prefix: "H" },
+    { value: "critical", label: t("addTicket.priorities.critical"), prefix: "C" },
+  ];
+}
+
+function getStatusLabel(status, t) {
+  return t(`queue.status.${status}`) || status;
+}
+
+function getPriorityLabel(priority, t) {
+  return t(`addTicket.priorities.${priority}`) || priority;
 }
 
 function isCompleted(ticket) {
@@ -597,52 +652,6 @@ function isWaitingRequester(ticket) {
 function getEntityId(entity) {
   return String(entity?._id || entity?.id || entity || "");
 }
-
-const emptyQueueMessages = {
-  now: {
-    title: "ยังไม่มีงานเร่งด่วนตอนนี้",
-    description: "ลองดู All หรือค้นหาจากเลข ticket เพื่อเช็กงานทั่วไปได้",
-  },
-  overdue: {
-    title: "ไม่มีงานเกินกำหนด",
-    description: "ดีมาก คิวนี้สะอาดแล้ว กลับไปดู Due soon เพื่อกันงานหลุด SLA",
-  },
-  dueSoon: {
-    title: "ไม่มีงานใกล้ถึงกำหนด",
-    description: "ยังไม่มี ticket ที่ต้องรีบ follow-up ใน 4 ชั่วโมงข้างหน้า",
-  },
-  unassigned: {
-    title: "ไม่มีงานที่ยังไม่มอบหมาย",
-    description: "งานใหม่ถูก assign เรียบร้อยแล้ว หรือใช้ All เพื่อดูงานทั้งหมด",
-  },
-  assignedToMe: {
-    title: "ยังไม่มีงานที่มอบหมายให้คุณ",
-    description: "ถ้ามีงานใหม่ ระบบจะแจ้งเตือน realtime ผ่าน notification",
-  },
-  waitingRequester: {
-    title: "ไม่มีงานที่รอ requester",
-    description: "เมื่อปิดงานแล้วแต่ยังไม่มี feedback งานจะมาอยู่คิวนี้",
-  },
-  all: {
-    title: "ไม่พบ ticket",
-    description: "ลองล้าง search/filter หรือสร้าง ticket ใหม่จากหน้า Add Ticket",
-  },
-};
-
-const statusOptions = [
-  { value: "all", label: "ทุกสถานะ / All", prefix: "A" },
-  { value: "open", label: "เปิดใหม่ / Open", prefix: "O" },
-  { value: "in_progress", label: "กำลังดำเนินการ / In Progress", prefix: "IP" },
-  { value: "resolved", label: "แก้ไขแล้ว / Resolved", prefix: "R" },
-  { value: "closed", label: "ปิดงาน / Closed", prefix: "C" },
-];
-
-const priorityOptions = [
-  { value: "low", label: "Low / ไม่เร่ง", prefix: "L" },
-  { value: "medium", label: "Medium / ปกติ", prefix: "M" },
-  { value: "high", label: "High / ด่วน", prefix: "H" },
-  { value: "critical", label: "Critical / วิกฤต", prefix: "C" },
-];
 
 function getInitials(name) {
   return String(name || "U")
