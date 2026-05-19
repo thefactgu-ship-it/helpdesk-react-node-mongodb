@@ -1002,8 +1002,10 @@ function App() {
                 <DashboardPage
                   darkMode={darkMode}
                   currentUser={currentUser}
+                  hotels={hotels}
                   loading={loading}
                   onNavigate={setActivePage}
+                  selectedHotelId={selectedHotelId}
                   t={t}
                   tickets={summaryTickets}
                 />
