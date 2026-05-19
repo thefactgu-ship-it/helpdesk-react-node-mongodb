@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import ThemedSelect from "./ThemedSelect";
 
 const emptyForm = {
@@ -32,15 +32,50 @@ function UserManagement({
   const [form, setForm] = useState(getEmptyUserForm(selectedHotelId));
   const [editingUserId, setEditingUserId] = useState(null);
   const [accountView, setAccountView] = useState("staff");
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [hotelFilter, setHotelFilter] = useState("all");
+  const [departmentFilter, setDepartmentFilter] = useState("all");
+  const [setupFilter, setSetupFilter] = useState("all");
   const isEditing = Boolean(editingUserId);
+  const isGroupAdmin = currentUser?.role === "GroupAdmin";
   const activeDepartments = departments.filter((department) => {
     if (department.active === false) return false;
     const departmentHotelId = department.hotelId?._id || department.hotelId || "";
     const formHotelId = form.hotelId || (selectedHotelId === "all" ? "" : selectedHotelId);
     return !formHotelId || String(departmentHotelId) === String(formHotelId);
   });
-  const visibleUsers = users.filter((user) =>
+  const baseVisibleUsers = users.filter((user) =>
     accountView === "staff" ? staffRoles.has(user.role) : user.role === "User",
+  );
+  const accountStats = useMemo(
+    () => buildAccountStats(users),
+    [users],
+  );
+  const filteredUsers = useMemo(
+    () =>
+      baseVisibleUsers.filter((user) =>
+        matchesUserFilters(user, {
+          departmentFilter,
+          hotelFilter,
+          roleFilter,
+          search,
+          setupFilter,
+        }),
+      ),
+    [baseVisibleUsers, departmentFilter, hotelFilter, roleFilter, search, setupFilter],
+  );
+  const roleOptions = useMemo(
+    () => buildRoleFilterOptions(baseVisibleUsers),
+    [baseVisibleUsers],
+  );
+  const departmentOptions = useMemo(
+    () => buildDepartmentFilterOptions(baseVisibleUsers, departments),
+    [baseVisibleUsers, departments],
+  );
+  const hotelOptions = useMemo(
+    () => buildHotelFilterOptions(hotels),
+    [hotels],
   );
 
   const handleSubmit = async (e) => {
@@ -94,9 +129,41 @@ function UserManagement({
     setEditingUserId(null);
     setForm(getEmptyUserForm(selectedHotelId));
   };
+  const handleAccountViewChange = (view) => {
+    setAccountView(view);
+    setRoleFilter("all");
+    setDepartmentFilter("all");
+    setSetupFilter("all");
+  };
 
   return (
     <div className="space-y-6">
+      {isGroupAdmin && (
+        <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+          <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600 dark:text-blue-300">
+                Access control
+              </p>
+              <h3 className="mt-1 text-xl font-black text-slate-950 dark:text-white">
+                Multi-hotel account control
+              </h3>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Review staff, requesters, hotel access, and accounts that need setup attention.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+            <AccountStat label="Staff" value={accountStats.staff} />
+            <AccountStat label="Requesters" value={accountStats.requesters} />
+            <AccountStat label="Multi-hotel" value={accountStats.multiHotel} />
+            <AccountStat label="Needs review" tone="warning" value={accountStats.needsReview} />
+            <AccountStat label="Legacy roles" tone="warning" value={accountStats.legacy} />
+          </div>
+        </section>
+      )}
+
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
         <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
@@ -321,13 +388,13 @@ function UserManagement({
                 {accountView === "staff" ? "Staff Users" : "Requester Users"}
               </h3>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                {visibleUsers.length} visible accounts in this view
+                {filteredUsers.length} visible accounts in this view
               </p>
             </div>
             <div className="grid grid-cols-2 rounded-2xl border border-slate-200 bg-slate-50 p-1 text-sm font-bold dark:border-slate-800 dark:bg-slate-900">
               <button
                 type="button"
-                onClick={() => setAccountView("staff")}
+                onClick={() => handleAccountViewChange("staff")}
                 className={`rounded-xl px-4 py-2 transition ${
                   accountView === "staff"
                     ? "bg-blue-600 text-white shadow-sm"
@@ -338,7 +405,7 @@ function UserManagement({
               </button>
               <button
                 type="button"
-                onClick={() => setAccountView("requester")}
+                onClick={() => handleAccountViewChange("requester")}
                 className={`rounded-xl px-4 py-2 transition ${
                   accountView === "requester"
                     ? "bg-blue-600 text-white shadow-sm"
@@ -351,10 +418,54 @@ function UserManagement({
           </div>
         </div>
 
+        {isGroupAdmin && (
+          <div className="mb-5 grid gap-3 lg:grid-cols-5">
+            <input
+              type="text"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search name, email, team..."
+              className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 lg:col-span-2"
+            />
+            <ThemedSelect
+              size="sm"
+              value={roleFilter}
+              onChange={setRoleFilter}
+              options={roleOptions}
+            />
+            <ThemedSelect
+              size="sm"
+              value={hotelFilter}
+              onChange={setHotelFilter}
+              options={hotelOptions}
+            />
+            <ThemedSelect
+              size="sm"
+              value={setupFilter}
+              onChange={setSetupFilter}
+              options={[
+                { value: "all", label: "All setup states", prefix: "A" },
+                { value: "needs-review", label: "Needs review", prefix: "!" },
+                { value: "ready", label: "Ready", prefix: "R" },
+                { value: "legacy", label: "Legacy roles", prefix: "L" },
+              ]}
+            />
+            <div className="lg:col-span-2">
+              <ThemedSelect
+                size="sm"
+                value={departmentFilter}
+                onChange={setDepartmentFilter}
+                options={departmentOptions}
+              />
+            </div>
+          </div>
+        )}
+
         <div className="grid gap-3 md:hidden">
-          {visibleUsers.map((user) => {
+          {filteredUsers.map((user) => {
             const userId = user._id || user.id;
             const isSelf = userId === currentUser?.id || userId === currentUser?._id;
+            const setupIssues = getUserSetupIssues(user);
 
             return (
               <article
@@ -372,6 +483,8 @@ function UserManagement({
                   </div>
                   <RoleBadge role={user.role} />
                 </div>
+
+                <SetupBadges issues={setupIssues} />
 
                 <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <MobileMeta label="Team" value={user.departmentId?.name || user.departmentName || user.team || "-"} />
@@ -405,7 +518,7 @@ function UserManagement({
             );
           })}
 
-          {!visibleUsers.length && (
+          {!filteredUsers.length && (
             <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500 dark:border-slate-700">
               No users found
             </div>
@@ -426,9 +539,10 @@ function UserManagement({
               </tr>
             </thead>
             <tbody>
-              {visibleUsers.map((user) => {
+              {filteredUsers.map((user) => {
                 const userId = user._id || user.id;
                 const isSelf = userId === currentUser?.id || userId === currentUser?._id;
+                const setupIssues = getUserSetupIssues(user);
 
                 return (
                   <tr
@@ -444,7 +558,10 @@ function UserManagement({
                       </div>
                     </td>
                     <td>
-                      <RoleBadge role={user.role} />
+                      <div className="space-y-2">
+                        <RoleBadge role={user.role} />
+                        <SetupBadges issues={setupIssues} compact />
+                      </div>
                     </td>
                     <td className="text-slate-600 dark:text-slate-300">
                       {user.departmentId?.name || user.departmentName || user.team}
@@ -483,7 +600,7 @@ function UserManagement({
                 );
               })}
 
-              {!visibleUsers.length && (
+              {!filteredUsers.length && (
                 <tr>
                   <td colSpan="7" className="py-8 text-center text-slate-500">
                     No users found
@@ -500,6 +617,125 @@ function UserManagement({
 
 function canUseMultiHotelAccess(role) {
   return multiHotelRoles.has(role);
+}
+
+function buildAccountStats(users) {
+  return users.reduce(
+    (stats, user) => {
+      if (staffRoles.has(user.role)) stats.staff += 1;
+      if (user.role === "User") stats.requesters += 1;
+      if (getHotelAccessIds(user).length > 1) stats.multiHotel += 1;
+      if (legacyRoles.has(user.role)) stats.legacy += 1;
+      if (getUserSetupIssues(user).length > 0) stats.needsReview += 1;
+      return stats;
+    },
+    { legacy: 0, multiHotel: 0, needsReview: 0, requesters: 0, staff: 0 },
+  );
+}
+
+function matchesUserFilters(user, filters) {
+  const keyword = filters.search.trim().toLowerCase();
+  const hotelIds = [
+    getEntityId(user.hotelId),
+    ...getHotelAccessIds(user),
+  ].filter(Boolean);
+  const userDepartmentId = getEntityId(user.departmentId);
+  const setupIssues = getUserSetupIssues(user);
+  const text = [
+    user.name,
+    user.email,
+    user.role,
+    user.team,
+    user.departmentName,
+    user.departmentId?.name,
+    getHotelLabel(user.hotelId),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  if (keyword && !text.includes(keyword)) return false;
+  if (filters.roleFilter !== "all" && user.role !== filters.roleFilter) return false;
+  if (filters.hotelFilter !== "all" && !hotelIds.includes(filters.hotelFilter)) return false;
+  if (
+    filters.departmentFilter !== "all" &&
+    userDepartmentId !== filters.departmentFilter &&
+    String(user.departmentName || user.team || "") !== filters.departmentFilter
+  ) {
+    return false;
+  }
+  if (filters.setupFilter === "needs-review" && setupIssues.length === 0) return false;
+  if (filters.setupFilter === "ready" && setupIssues.length > 0) return false;
+  if (filters.setupFilter === "legacy" && !legacyRoles.has(user.role)) return false;
+
+  return true;
+}
+
+function buildRoleFilterOptions(users) {
+  const roles = [...new Set(users.map((user) => user.role).filter(Boolean))];
+  return [
+    { value: "all", label: "All roles", prefix: "A" },
+    ...roles.map((role) => ({
+      value: role,
+      label: role,
+      prefix: role.slice(0, 2).toUpperCase(),
+    })),
+  ];
+}
+
+function buildDepartmentFilterOptions(users, departments) {
+  const departmentLookup = new Map(
+    departments.map((department) => [getEntityId(department), department]),
+  );
+  const options = new Map();
+
+  users.forEach((user) => {
+    const departmentId = getEntityId(user.departmentId);
+    const department = departmentLookup.get(departmentId) || user.departmentId;
+    const label = department?.name || user.departmentName || user.team;
+    const value = departmentId || label;
+    if (value && label) {
+      options.set(String(value), {
+        value: String(value),
+        label,
+        meta: department?.code || "Department",
+        prefix: String(department?.code || label).slice(0, 2).toUpperCase(),
+      });
+    }
+  });
+
+  return [
+    { value: "all", label: "All departments", prefix: "A" },
+    ...Array.from(options.values()).sort((a, b) => a.label.localeCompare(b.label)),
+  ];
+}
+
+function buildHotelFilterOptions(hotels) {
+  return [
+    { value: "all", label: "All hotels", prefix: "A" },
+    ...hotels.map((hotel) => ({
+      value: getEntityId(hotel),
+      label: getHotelLabel(hotel),
+      meta: hotel.region || "Hotel",
+      prefix: String(hotel.code || hotel.name || "HT").slice(0, 2),
+    })),
+  ];
+}
+
+function getUserSetupIssues(user) {
+  const issues = [];
+  const primaryHotelId = getEntityId(user.hotelId);
+  const accessIds = normalizeHotelAccess(primaryHotelId, getHotelAccessIds(user), user.role);
+  const hasDepartment = Boolean(getEntityId(user.departmentId) || user.departmentName || user.team);
+
+  if (user.active === false) issues.push({ label: "Inactive", tone: "neutral" });
+  if (legacyRoles.has(user.role)) issues.push({ label: "Legacy role", tone: "warning" });
+  if (!primaryHotelId) issues.push({ label: "No hotel", tone: "danger" });
+  if (user.role === "User" && !hasDepartment) issues.push({ label: "No department", tone: "danger" });
+  if (canUseMultiHotelAccess(user.role) && !accessIds.length) {
+    issues.push({ label: "No access", tone: "danger" });
+  }
+
+  return issues;
 }
 
 function getRoleOptions(currentRole) {
@@ -582,6 +818,53 @@ function Field({ children, className = "", label }) {
       </span>
       {children}
     </label>
+  );
+}
+
+function AccountStat({ label, tone = "default", value }) {
+  const toneClass =
+    tone === "warning"
+      ? "text-amber-700 dark:text-amber-200"
+      : "text-slate-950 dark:text-white";
+
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+      <p className={`text-2xl font-black ${toneClass}`}>{value.toLocaleString()}</p>
+      <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">{label}</p>
+    </div>
+  );
+}
+
+function SetupBadges({ compact = false, issues }) {
+  if (!issues.length) {
+    return (
+      <div className={compact ? "flex flex-wrap gap-1" : "mt-3 flex flex-wrap gap-2"}>
+        <SetupBadge label="Ready" tone="success" />
+      </div>
+    );
+  }
+
+  return (
+    <div className={compact ? "flex flex-wrap gap-1" : "mt-3 flex flex-wrap gap-2"}>
+      {issues.map((issue) => (
+        <SetupBadge key={issue.label} {...issue} />
+      ))}
+    </div>
+  );
+}
+
+function SetupBadge({ label, tone = "neutral" }) {
+  const className = {
+    danger: "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-500/15 dark:text-rose-200 dark:ring-rose-400/20",
+    neutral: "bg-slate-100 text-slate-600 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700",
+    success: "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20",
+    warning: "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/20",
+  }[tone];
+
+  return (
+    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-black ring-1 ${className}`}>
+      {label}
+    </span>
   );
 }
 
