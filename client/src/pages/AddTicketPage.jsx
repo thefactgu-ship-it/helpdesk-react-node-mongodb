@@ -24,12 +24,19 @@ function AddTicketPage({
     [departments],
   );
   const userDepartmentId = currentUser?.departmentId?._id || currentUser?.departmentId || "";
+  const userDepartmentName =
+    currentUser?.departmentName || currentUser?.team || "";
+  const formDepartmentIsPlaceholder =
+    form.department === "IT" &&
+    userDepartmentName &&
+    userDepartmentName !== "IT" &&
+    !form.departmentId;
   const summaryDepartment = activeDepartments.find(
     (department) =>
       (department._id || department.id) === (form.departmentId || userDepartmentId) ||
-      department.name === form.department ||
       department.name === currentUser?.departmentName ||
-      department.name === currentUser?.team,
+      department.name === currentUser?.team ||
+      (!formDepartmentIsPlaceholder && department.name === form.department),
   );
   const selectedPriority = form.criticalRequested && !canAssignTickets
     ? t("addTicket.priorities.high")
@@ -37,10 +44,9 @@ function AddTicketPage({
   const submissionSummary = {
     requester: form.requester || currentUser?.name || t("common.currentUser"),
     department:
-      form.department ||
       summaryDepartment?.name ||
-      currentUser?.departmentName ||
-      currentUser?.team ||
+      (formDepartmentIsPlaceholder ? userDepartmentName : form.department) ||
+      userDepartmentName ||
       "IT",
     priority: selectedPriority,
   };
@@ -130,19 +136,25 @@ function AddTicketPage({
           currentUser?.departmentId?._id ||
           currentUser?.departmentId ||
           "";
+        const nextUserDepartmentName =
+          currentUser?.departmentName || currentUser?.team || "";
+        const currentDepartmentIsPlaceholder =
+          currentForm.department === "IT" &&
+          nextUserDepartmentName &&
+          nextUserDepartmentName !== "IT" &&
+          !currentForm.departmentId;
         const department = activeDepartments.find(
           (item) =>
             (item._id || item.id) === nextDepartmentId ||
-            item.name === currentForm.department ||
             item.name === currentUser?.departmentName ||
-            item.name === currentUser?.team,
+            item.name === currentUser?.team ||
+            (!currentDepartmentIsPlaceholder && item.name === currentForm.department),
         );
         const resolvedDepartmentId = department?._id || department?.id || nextDepartmentId;
         const nextDepartment =
-          currentForm.department ||
           department?.name ||
-          currentUser?.departmentName ||
-          currentUser?.team ||
+          (currentDepartmentIsPlaceholder ? nextUserDepartmentName : currentForm.department) ||
+          nextUserDepartmentName ||
           "IT";
 
         const nextPriority = canAssignTickets
