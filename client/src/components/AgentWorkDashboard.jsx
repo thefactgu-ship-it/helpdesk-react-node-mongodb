@@ -1,5 +1,6 @@
 import {
   CheckCircle2,
+  CircleDot,
   ClipboardList,
   Clock3,
   MessageSquareMore,
@@ -17,6 +18,8 @@ import {
 } from "../utils/ticketQueueUtils";
 
 function AgentWorkDashboard({
+  assigningTicketId,
+  claimTicket,
   currentUser,
   loading,
   onNavigate,
@@ -73,7 +76,7 @@ function AgentWorkDashboard({
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
         <AgentKpi
           detail={text.assignedDetail}
           icon={ClipboardList}
@@ -93,6 +96,13 @@ function AgentWorkDashboard({
           label={text.overdue}
           tone={data.overdue.length ? "rose" : "blue"}
           value={data.overdue.length}
+        />
+        <AgentKpi
+          detail={text.availableDetail}
+          icon={CircleDot}
+          label={text.availableToClaim}
+          tone={data.availableToClaim.length ? "emerald" : "blue"}
+          value={data.availableToClaim.length}
         />
         <AgentKpi
           detail={text.waitingRequesterDetail}
@@ -122,6 +132,36 @@ function AgentWorkDashboard({
         </AgentPanel>
 
         <AgentPanel
+          actionLabel={text.openQueue}
+          className="xl:col-span-5"
+          icon={CircleDot}
+          onAction={() => onNavigate("tickets")}
+          title={text.availableToClaim}
+        >
+          {data.availableToClaim.length ? (
+            <div className="space-y-3">
+              {data.availableToClaim.map((ticket) => {
+                const ticketId = ticket._id || ticket.id;
+                return (
+                  <AgentTicketItem
+                    actionDisabled={assigningTicketId === ticketId}
+                    actionLabel={assigningTicketId === ticketId ? text.claimingTicket : text.claimTicket}
+                    compact
+                    key={ticketId}
+                    onAction={claimTicket ? () => claimTicket(ticketId) : undefined}
+                    text={text}
+                    ticket={ticket}
+                    t={t}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <AgentEmptyState loading={loading} loadingLabel={text.loading} message={text.noAvailableTickets} />
+          )}
+        </AgentPanel>
+
+        <AgentPanel
           className="xl:col-span-5"
           icon={MessageSquareMore}
           title={text.recentUpdates}
@@ -147,6 +187,10 @@ function buildAgentDashboardData(tickets, currentUserId) {
   const dueSoon = activeAssigned.filter((ticket) => isDueSoon(ticket) || isOverdue(ticket));
   const overdue = activeAssigned.filter(isOverdue);
   const waitingRequester = assigned.filter(isWaitingRequester);
+  const availableToClaim = tickets
+    .filter((ticket) => !isCompleted(ticket) && !ticket.assignedTo)
+    .sort((a, b) => getAgentTicketRank(a) - getAgentTicketRank(b))
+    .slice(0, 5);
   const focusTickets = activeAssigned
     .map((ticket) => ({
       ...ticket,
@@ -164,6 +208,7 @@ function buildAgentDashboardData(tickets, currentUserId) {
 
   return {
     activeAssigned,
+    availableToClaim,
     dueSoon,
     focusTickets,
     overdue,
@@ -176,6 +221,7 @@ function AgentKpi({ detail, icon: Icon, label, tone = "blue", value }) {
   const toneClasses = {
     amber: "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200",
     blue: "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200",
+    emerald: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200",
     rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
   };
 
@@ -228,7 +274,7 @@ function AgentPanel({ actionLabel, children, className = "", icon: Icon, onActio
   );
 }
 
-function AgentTicketItem({ compact = false, text, ticket, t }) {
+function AgentTicketItem({ actionDisabled = false, actionLabel, compact = false, onAction, text, ticket, t }) {
   return (
     <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -255,6 +301,16 @@ function AgentTicketItem({ compact = false, text, ticket, t }) {
             <AgentMeta label={text.statusLabel} value={getStatusLabel(ticket.status, t)} />
             <AgentMeta label={text.updatedLabel} value={formatDate(ticket.updatedAt || ticket.createdAt) || "-"} />
           </div>
+        )}
+        {onAction && (
+          <button
+            type="button"
+            disabled={actionDisabled}
+            onClick={onAction}
+            className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {actionLabel}
+          </button>
         )}
       </div>
     </article>
@@ -317,6 +373,10 @@ function getAgentDashboardText(t) {
   return {
     assigned: pickText(t, "agentDashboard.assigned", "Assigned active"),
     assignedDetail: pickText(t, "agentDashboard.assignedDetail", "Tickets currently assigned to you"),
+    availableDetail: pickText(t, "agentDashboard.availableDetail", "Unassigned visible tickets your team can cover"),
+    availableToClaim: pickText(t, "agentDashboard.availableToClaim", "Available to claim"),
+    claimTicket: pickText(t, "agentDashboard.claimTicket", "Claim"),
+    claimingTicket: pickText(t, "agentDashboard.claimingTicket", "Claiming..."),
     description: pickText(
       t,
       "agentDashboard.description",
@@ -332,6 +392,7 @@ function getAgentDashboardText(t) {
     newWorkRisk: pickText(t, "agentDashboard.newWorkRisk", "New work"),
     nextWork: pickText(t, "agentDashboard.nextWork", "Next work"),
     noFocusTickets: pickText(t, "agentDashboard.noFocusTickets", "No assigned work needs action right now."),
+    noAvailableTickets: pickText(t, "agentDashboard.noAvailableTickets", "No visible unassigned work is available right now."),
     noRecentUpdates: pickText(t, "agentDashboard.noRecentUpdates", "No assigned ticket updates yet."),
     normalRisk: pickText(t, "agentDashboard.normalRisk", "Normal"),
     openQueue: pickText(t, "agentDashboard.openQueue", "Open my queue"),

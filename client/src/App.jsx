@@ -509,6 +509,35 @@ function App() {
     }
   };
 
+  const claimTicket = async (id) => {
+    if (!id || currentUser?.role !== "Agent") return false;
+
+    try {
+      setAssigningTicketId(id);
+      await axios.patch(
+        `${API_URL}/${id}/claim`,
+        {},
+        {
+          headers: authHeaders,
+          params: scopedParams,
+        },
+      );
+      toast.success(t("agentQueue.quick.claimSuccess"));
+      await fetchTickets();
+      await fetchSummaryTickets();
+      if (selectedTicket && (selectedTicket._id || selectedTicket.id) === id) {
+        await openTicketDetails(id);
+      }
+      return true;
+    } catch (error) {
+      console.error("Failed to claim ticket", error);
+      toast.error(getErrorMessage(error, t("agentQueue.quick.claimFailed")));
+      return false;
+    } finally {
+      setAssigningTicketId(null);
+    }
+  };
+
   const openTicketDetails = useCallback(async (id) => {
     try {
       const res = await axios.get(`${API_URL}/${id}`, {
@@ -1063,6 +1092,8 @@ function App() {
                   hotels={hotels}
                   loading={loading}
                   onNavigate={setActivePage}
+                  claimTicket={claimTicket}
+                  assigningTicketId={assigningTicketId}
                   selectedHotelId={selectedHotelId}
                   t={t}
                   tickets={summaryTickets}
@@ -1073,6 +1104,7 @@ function App() {
                 <TicketsPage
                   assigningTicketId={assigningTicketId}
                   assignTicket={assignTicket}
+                  claimTicket={claimTicket}
                   filterPriority={filterPriority}
                   hotels={hotels}
                   tickets={filteredTickets}

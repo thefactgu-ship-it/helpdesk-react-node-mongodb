@@ -18,9 +18,11 @@ function WorkQueueTicketDrawer({
   addTicketComment,
   assignTicket,
   assignableUsers,
+  canClaimTicket,
   canDelete,
   canManageTickets,
   canUpdateStatus,
+  claimTicket,
   deleting,
   disabled,
   onClose,
@@ -89,7 +91,9 @@ function WorkQueueTicketDrawer({
           <AgentQuickUpdatePanel
             key={ticketId}
             addTicketComment={addTicketComment}
+            canClaimTicket={canClaimTicket}
             canUpdateStatus={canUpdateStatus}
+            claimTicket={claimTicket}
             disabled={disabled}
             drawerText={drawerText}
             ticket={ticket}
@@ -206,7 +210,9 @@ function toDateTimeLocalValue(value) {
 
 function AgentQuickUpdatePanel({
   addTicketComment,
+  canClaimTicket,
   canUpdateStatus,
+  claimTicket,
   disabled,
   drawerText,
   ticket,
@@ -227,6 +233,11 @@ function AgentQuickUpdatePanel({
     setCommenting(false);
   };
 
+  const handleClaim = async () => {
+    if (!canClaimTicket || !claimTicket) return;
+    await claimTicket(ticketId);
+  };
+
   return (
     <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -235,10 +246,24 @@ function AgentQuickUpdatePanel({
             {drawerText.quickActionTitle}
           </p>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {canUpdateStatus ? drawerText.quickActionHelp : drawerText.readOnlyHelp}
+            {canUpdateStatus
+              ? drawerText.quickActionHelp
+              : canClaimTicket
+                ? drawerText.claimHelp
+                : drawerText.readOnlyHelp}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {canClaimTicket && (
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={handleClaim}
+              className="rounded-xl bg-emerald-600 px-3 py-2 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              {disabled ? drawerText.claimingTicket : drawerText.claimTicket}
+            </button>
+          )}
           {agentQuickActions.map((action) => (
             <button
               key={action.status}
@@ -320,6 +345,9 @@ function getDrawerText(t, workQueueProfile) {
       quickActionTitle: pickText(t, "agentQueue.quick.title", "Quick update"),
       quickActionHelp: pickText(t, "agentQueue.quick.help", "Use the fastest status action, then leave a short work note."),
       readOnlyHelp: pickText(t, "agentQueue.quick.readOnlyHelp", "This ticket is visible to you, but it is not assigned to you yet."),
+      claimHelp: pickText(t, "agentQueue.quick.claimHelp", "This ticket is unassigned. Claim it first, then you can update status and add work notes."),
+      claimTicket: pickText(t, "agentQueue.quick.claimTicket", "Claim ticket"),
+      claimingTicket: pickText(t, "agentQueue.quick.claimingTicket", "Claiming..."),
       startWork: pickText(t, "agentQueue.quick.startWork", "Start work"),
       markResolved: pickText(t, "agentQueue.quick.markResolved", "Mark resolved"),
       reopenWork: pickText(t, "agentQueue.quick.reopenWork", "Reopen"),

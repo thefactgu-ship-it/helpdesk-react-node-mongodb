@@ -895,6 +895,72 @@ async function assignTicket(req, res) {
 }
 
 /**
+ * Claim an unassigned ticket for the current agent
+ * PATCH /api/tickets/:id/claim
+ */
+async function claimTicket(req, res) {
+  try {
+    if (req.user?.role !== "Agent") {
+      return res.status(403).json({ message: "Only agents can claim tickets" });
+    }
+
+    const hotelScope = await buildHotelScopeQuery(req.user, req.query);
+    const existingTicket = await Ticket.findOne({
+      _id: req.params.id,
+      ...hotelScope,
+      ...buildTicketVisibilityQuery(req.user),
+    }).populate(TICKET_POPULATE_CONFIG);
+    if (!existingTicket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    if (isCompletedStatus(existingTicket.status)) {
+      return res.status(409).json({ message: "Closed tickets cannot be claimed" });
+    }
+
+    if (isAssignedToUser(req.user, existingTicket)) {
+      return res.json(existingTicket);
+    }
+
+    if (existingTicket.assignedTo) {
+      return res.status(409).json({ message: "Ticket is already assigned" });
+    }
+
+    const ticket = await Ticket.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        hotelId: getTicketHotelId(existingTicket),
+        $or: [{ assignedTo: { $exists: false } }, { assignedTo: null }],
+      },
+      {
+        assignedTo: req.user.id,
+        status: "in_progress",
+        resolvedAt: null,
+        updatedBy: req.user.id,
+        $push: {
+          activityLog: buildLogEntry("assigned", "Ticket claimed", req.user.id),
+        },
+      },
+      { returnDocument: "after", runValidators: true }
+    ).populate(TICKET_POPULATE_CONFIG);
+
+    if (!ticket) {
+      const currentTicket = await Ticket.findById(req.params.id).populate(TICKET_POPULATE_CONFIG);
+      if (currentTicket?.assignedTo) {
+        return res.status(409).json({ message: "Ticket is already assigned" });
+      }
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    auditLog("ticket.claimed", req, { ticketId: ticket._id, hotelId: ticket.hotelId });
+    await notifySafely(notifyTicketAssigned, ticket, req.user.id);
+    res.json(ticket);
+  } catch (error) {
+    sendError(res, 400, "Failed to claim ticket", error);
+  }
+}
+
+/**
  * Add comment to ticket
  * POST /api/tickets/:id/comment
  */
@@ -1112,6 +1178,7 @@ module.exports = {
   updateTicketStatus,
   submitSatisfaction,
   assignTicket,
+  claimTicket,
   addComment,
   uploadAttachment,
   viewAttachment,

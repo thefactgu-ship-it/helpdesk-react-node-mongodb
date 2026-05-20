@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 
 function DashboardPage({
+  assigningTicketId,
+  claimTicket,
   currentUser,
   darkMode,
   hotels = [],
@@ -94,6 +96,8 @@ function DashboardPage({
   if (currentUser?.role === "Agent") {
     return (
       <AgentWorkDashboard
+        assigningTicketId={assigningTicketId}
+        claimTicket={claimTicket}
         currentUser={currentUser}
         loading={loading}
         onNavigate={onNavigate}

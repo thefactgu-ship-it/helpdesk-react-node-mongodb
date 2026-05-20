@@ -111,6 +111,14 @@ router.patch(
   asyncHandler(ticketController.assignTicket)
 );
 
+// PATCH claim ticket for current agent
+router.patch(
+  "/:id/claim",
+  authMiddleware,
+  mongoIdValidator,
+  asyncHandler(ticketController.claimTicket)
+);
+
 // POST add comment with validation
 router.post(
   "/:id/comment",

@@ -38,6 +38,7 @@ import {
 function TicketTable({
   assigningTicketId,
   assignTicket,
+  claimTicket,
   addTicketComment,
   tickets,
   loading,
@@ -134,6 +135,11 @@ function TicketTable({
     [hotels, t],
   );
   const canUpdateTicketStatus = (ticket) => roleCanUpdateTicketStatus(currentUser?.role, currentUserId, ticket);
+  const canClaimTicket = (ticket) =>
+    workQueueProfile === "agent" &&
+    ticket &&
+    !ticket.assignedTo &&
+    !isCompleted(ticket);
 
   const openQueueDrawer = (ticket) => {
     if (isRequester) return;
@@ -469,8 +475,10 @@ function TicketTable({
       {!isRequester && (
         <WorkQueueTicketDrawer
           assignTicket={assignTicket}
+          claimTicket={claimTicket}
           addTicketComment={addTicketComment}
           assignableUsers={getAssignableUsersForTicket(assignableUsers, activeDrawerTicket)}
+          canClaimTicket={activeDrawerTicket ? canClaimTicket(activeDrawerTicket) : false}
           canDelete={canManageTickets}
           canManageTickets={canManageTickets}
           canUpdateStatus={activeDrawerTicket ? canUpdateTicketStatus(activeDrawerTicket) : false}
@@ -736,6 +744,7 @@ function buildQueueOptions(tickets, currentUserId, t, workQueueProfile) {
     const text = getStaffQueueText(t, workQueueProfile);
     return [
       { id: "assignedToMe", label: text.tabs.assignedToMe, count: count("assignedToMe"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+      { id: "availableToClaim", label: text.tabs.availableToClaim, count: count("availableToClaim"), activeClass: "border-emerald-600 bg-emerald-600 text-white" },
       { id: "dueSoon", label: text.tabs.dueSoon, count: count("dueSoon"), activeClass: "border-amber-500 bg-amber-500 text-white" },
       { id: "waitingRequester", label: text.tabs.waitingRequester, count: count("waitingRequester"), activeClass: "border-slate-700 bg-slate-700 text-white" },
       { id: "all", label: text.tabs.all, count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
@@ -784,6 +793,7 @@ function matchesQueue(ticket, queueId, currentUserId, workQueueProfile = "staff"
   if (workQueueProfile === "agent") {
     const assignedToMe = getEntityId(ticket.assignedTo) === currentUserId;
     if (queueId === "all") return true;
+    if (queueId === "availableToClaim") return !isCompleted(ticket) && !ticket.assignedTo;
     if (queueId === "dueSoon") return assignedToMe && (isDueSoon(ticket) || isOverdue(ticket));
     if (queueId === "waitingRequester") return assignedToMe && isWaitingRequester(ticket);
     return !isCompleted(ticket) && assignedToMe;
@@ -867,6 +877,7 @@ function getStaffQueueText(t, workQueueProfile) {
       },
       tabs: {
         assignedToMe: pickText(t, "agentQueue.tabs.assignedToMe", "My assigned"),
+        availableToClaim: pickText(t, "agentQueue.tabs.availableToClaim", "Available to claim"),
         dueSoon: pickText(t, "agentQueue.tabs.dueSoon", "Due soon"),
         waitingRequester: pickText(t, "agentQueue.tabs.waitingRequester", "Waiting requester"),
         all: pickText(t, "agentQueue.tabs.all", "All visible"),
@@ -879,6 +890,10 @@ function getStaffQueueText(t, workQueueProfile) {
         dueSoon: {
           title: pickText(t, "agentQueue.empty.dueSoonTitle", "Nothing due soon"),
           description: pickText(t, "agentQueue.empty.dueSoonDescription", "Assigned work is clear for the next few hours."),
+        },
+        availableToClaim: {
+          title: pickText(t, "agentQueue.empty.availableToClaimTitle", "No tickets available to claim"),
+          description: pickText(t, "agentQueue.empty.availableToClaimDescription", "Unassigned visible work will appear here when your team needs coverage."),
         },
         waitingRequester: {
           title: pickText(t, "agentQueue.empty.waitingRequesterTitle", "No tickets waiting for requester"),
