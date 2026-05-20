@@ -610,33 +610,50 @@ function QueueActionMenu({
       </button>
 
       {open && (
-        <div className="absolute right-0 top-10 z-20 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+        <>
           <button
             type="button"
-            onClick={onOpenDrawer}
-            className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
-          >
-            {t("common.view")}
-          </button>
-          <button
-            type="button"
-            disabled={!canOpenDetails}
-            onClick={onViewFullDetail}
-            className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-slate-800 dark:disabled:text-slate-600"
-          >
-            Full detail
-          </button>
-          {canDelete && (
+            aria-label={t("common.close")}
+            className="fixed inset-0 z-10 cursor-default bg-transparent"
+            onClick={onToggle}
+          />
+          <div className="absolute right-0 top-10 z-20 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
             <button
               type="button"
-              disabled={disabled}
-              onClick={onDelete}
-              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:text-slate-600"
+              onClick={() => {
+                onToggle();
+                onOpenDrawer();
+              }}
+              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
             >
-              {deleting ? t("common.deleting") : t("common.delete")}
+              {t("common.view")}
             </button>
-          )}
-        </div>
+            <button
+              type="button"
+              disabled={!canOpenDetails}
+              onClick={() => {
+                onToggle();
+                onViewFullDetail();
+              }}
+              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-slate-800 dark:disabled:text-slate-600"
+            >
+              Full detail
+            </button>
+            {canDelete && (
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => {
+                  onToggle();
+                  onDelete();
+                }}
+                className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:text-slate-600"
+              >
+                {deleting ? t("common.deleting") : t("common.delete")}
+              </button>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
