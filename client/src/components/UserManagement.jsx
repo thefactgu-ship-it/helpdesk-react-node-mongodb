@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { MoreVertical, X } from "lucide-react";
 import ThemedSelect from "./ThemedSelect";
 
 const emptyForm = {
@@ -16,6 +17,7 @@ const activeRoles = ["GroupAdmin", "HotelAdmin", "Manager", "Agent", "User"];
 const legacyRoles = new Set(["Admin", "RegionalManager"]);
 const staffRoles = new Set(["GroupAdmin", "RegionalManager", "HotelAdmin", "Admin", "Manager", "Agent"]);
 const multiHotelRoles = new Set(["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"]);
+const pageSizeOptions = [10, 25, 50];
 
 function UserManagement({
   currentUser,
@@ -37,6 +39,10 @@ function UserManagement({
   const [hotelFilter, setHotelFilter] = useState("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [setupFilter, setSetupFilter] = useState("all");
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [detailUser, setDetailUser] = useState(null);
+  const [openActionUserId, setOpenActionUserId] = useState(null);
   const isEditing = Boolean(editingUserId);
   const isGroupAdmin = currentUser?.role === "GroupAdmin";
   const activeDepartments = departments.filter((department) => {
@@ -65,6 +71,14 @@ function UserManagement({
       ),
     [baseVisibleUsers, departmentFilter, hotelFilter, roleFilter, search, setupFilter],
   );
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const pagedUsers = useMemo(() => {
+    const start = (safeCurrentPage - 1) * pageSize;
+    return filteredUsers.slice(start, start + pageSize);
+  }, [filteredUsers, pageSize, safeCurrentPage]);
+  const firstVisibleUser = filteredUsers.length ? (safeCurrentPage - 1) * pageSize + 1 : 0;
+  const lastVisibleUser = Math.min(safeCurrentPage * pageSize, filteredUsers.length);
   const roleOptions = useMemo(
     () => buildRoleFilterOptions(baseVisibleUsers),
     [baseVisibleUsers],
@@ -123,6 +137,8 @@ function UserManagement({
       hotelId: primaryHotelId,
       hotelAccess: normalizeHotelAccess(primaryHotelId, getHotelAccessIds(user), user.role || "User"),
     });
+    setDetailUser(null);
+    setOpenActionUserId(null);
   };
 
   const cancelEdit = () => {
@@ -134,6 +150,20 @@ function UserManagement({
     setRoleFilter("all");
     setDepartmentFilter("all");
     setSetupFilter("all");
+    setCurrentPage(1);
+    setOpenActionUserId(null);
+  };
+
+  const updateFilter = (setter, value) => {
+    setter(value);
+    setCurrentPage(1);
+    setOpenActionUserId(null);
+  };
+
+  const handleDeleteUser = (userId) => {
+    setOpenActionUserId(null);
+    setDetailUser(null);
+    onDeleteUser(userId);
   };
 
   return (
@@ -423,26 +453,26 @@ function UserManagement({
             <input
               type="text"
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => updateFilter(setSearch, event.target.value)}
               placeholder="Search name, email, team..."
               className="min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 lg:col-span-2"
             />
             <ThemedSelect
               size="sm"
               value={roleFilter}
-              onChange={setRoleFilter}
+              onChange={(value) => updateFilter(setRoleFilter, value)}
               options={roleOptions}
             />
             <ThemedSelect
               size="sm"
               value={hotelFilter}
-              onChange={setHotelFilter}
+              onChange={(value) => updateFilter(setHotelFilter, value)}
               options={hotelOptions}
             />
             <ThemedSelect
               size="sm"
               value={setupFilter}
-              onChange={setSetupFilter}
+              onChange={(value) => updateFilter(setSetupFilter, value)}
               options={[
                 { value: "all", label: "All setup states", prefix: "A" },
                 { value: "needs-review", label: "Needs review", prefix: "!" },
@@ -454,7 +484,7 @@ function UserManagement({
               <ThemedSelect
                 size="sm"
                 value={departmentFilter}
-                onChange={setDepartmentFilter}
+                onChange={(value) => updateFilter(setDepartmentFilter, value)}
                 options={departmentOptions}
               />
             </div>
@@ -462,7 +492,7 @@ function UserManagement({
         )}
 
         <div className="grid gap-3 md:hidden">
-          {filteredUsers.map((user) => {
+          {pagedUsers.map((user) => {
             const userId = user._id || user.id;
             const isSelf = userId === currentUser?.id || userId === currentUser?._id;
             const setupIssues = getUserSetupIssues(user);
@@ -481,39 +511,44 @@ function UserManagement({
                       {user.email}
                     </p>
                   </div>
-                  <RoleBadge role={user.role} />
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    <RoleBadge role={user.role} />
+                    <StatusChips issues={setupIssues} compact />
+                  </div>
                 </div>
-
-                <SetupBadges issues={setupIssues} />
 
                 <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <MobileMeta label="Team" value={user.departmentId?.name || user.departmentName || user.team || "-"} />
-                  <MobileMeta label="Primary Hotel" value={getHotelLabel(user.hotelId) || "-"} />
-                  <MobileMeta label="Access" value={getAccessSummary(user, hotels)} />
-                  <MobileMeta
-                    label="Created"
-                    value={user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}
-                  />
-                  <MobileMeta label="Account" value={isSelf ? "Current user" : "Managed"} />
+                  <MobileMeta label="Hotel scope" value={getAccessSummary(user, hotels)} />
                 </dl>
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <button
                     type="button"
-                    onClick={() => startEdit(user)}
+                    onClick={() => setDetailUser(user)}
                     className="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
                   >
-                    Edit
+                    Details
                   </button>
                   <button
                     type="button"
-                    disabled={isSelf || deletingUserId === userId}
-                    onClick={() => onDeleteUser(userId)}
-                    className="rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
+                    onClick={() => startEdit(user)}
+                    className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700"
                   >
-                    {deletingUserId === userId ? "Deleting..." : "Delete"}
+                    Edit
                   </button>
                 </div>
+
+                {!isSelf && (
+                  <button
+                    type="button"
+                    disabled={deletingUserId === userId}
+                    onClick={() => handleDeleteUser(userId)}
+                    className="mt-3 w-full rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-bold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-rose-500/30 dark:bg-slate-950 dark:text-rose-200 dark:hover:bg-rose-500/10"
+                  >
+                    {deletingUserId === userId ? "Deleting..." : "Delete account"}
+                  </button>
+                )}
               </article>
             );
           })}
@@ -525,21 +560,19 @@ function UserManagement({
           )}
         </div>
 
-        <div className="hidden overflow-x-auto md:block">
-          <table className="min-w-[64rem] w-full text-left text-sm">
+        <div className="hidden overflow-visible md:block">
+          <table className="w-full table-fixed text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                <th className="px-3 py-3">User</th>
-                <th className="px-3">Role</th>
-                <th className="px-3">Team</th>
-                <th className="px-3">Primary Hotel</th>
-                <th className="px-3">Access</th>
-                <th className="px-3">Created</th>
-                <th className="px-3 text-right">Actions</th>
+                <th className="w-[31%] px-3 py-3">User</th>
+                <th className="w-[21%] px-3">Role & status</th>
+                <th className="w-[18%] px-3">Department</th>
+                <th className="w-[22%] px-3">Hotel scope</th>
+                <th className="w-[8%] px-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user) => {
+              {pagedUsers.map((user) => {
                 const userId = user._id || user.id;
                 const isSelf = userId === currentUser?.id || userId === currentUser?._id;
                 const setupIssues = getUserSetupIssues(user);
@@ -549,52 +582,46 @@ function UserManagement({
                     key={userId}
                     className="border-b border-slate-100 last:border-0 dark:border-slate-800"
                   >
-                    <td className="max-w-56 px-3 py-4">
-                      <div className="line-clamp-2 break-words font-bold text-slate-900 dark:text-white">
+                    <td className="px-3 py-4">
+                      <div className="truncate font-bold text-slate-900 dark:text-white">
                         {user.name}
                       </div>
-                      <div className="break-words text-xs text-slate-500 dark:text-slate-400">
+                      <div className="truncate text-xs text-slate-500 dark:text-slate-400">
                         {user.email}
                       </div>
+                      {isSelf && (
+                        <div className="mt-1 text-[11px] font-bold text-blue-600 dark:text-blue-300">
+                          Current account
+                        </div>
+                      )}
                     </td>
                     <td className="px-3">
                       <div className="space-y-2">
                         <RoleBadge role={user.role} />
-                        <SetupBadges issues={setupIssues} compact />
+                        <StatusChips issues={setupIssues} compact />
                       </div>
                     </td>
-                    <td className="max-w-44 break-words px-3 text-slate-600 dark:text-slate-300">
+                    <td className="truncate px-3 text-slate-600 dark:text-slate-300">
                       {user.departmentId?.name || user.departmentName || user.team}
                     </td>
-                    <td className="max-w-48 break-words px-3 text-slate-600 dark:text-slate-300">
-                      {getHotelLabel(user.hotelId) || "-"}
-                    </td>
-                    <td className="max-w-56 break-words px-3 text-slate-600 dark:text-slate-300">
+                    <td className="truncate px-3 text-slate-600 dark:text-slate-300">
                       {getAccessSummary(user, hotels)}
                     </td>
-                    <td className="whitespace-nowrap px-3 text-slate-500 dark:text-slate-400">
-                      {user.createdAt
-                        ? new Date(user.createdAt).toLocaleDateString()
-                        : "-"}
-                    </td>
-                    <td className="px-3">
-                      <div className="flex justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => startEdit(user)}
-                          className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          disabled={isSelf || deletingUserId === userId}
-                          onClick={() => onDeleteUser(userId)}
-                          className="rounded-xl bg-rose-500 px-3 py-2 text-xs font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
-                        >
-                          {deletingUserId === userId ? "Deleting..." : "Delete"}
-                        </button>
-                      </div>
+                    <td className="relative px-3">
+                      <UserActionMenu
+                        deleting={deletingUserId === userId}
+                        disabledDelete={isSelf}
+                        open={openActionUserId === userId}
+                        onDelete={() => handleDeleteUser(userId)}
+                        onDetails={() => {
+                          setDetailUser(user);
+                          setOpenActionUserId(null);
+                        }}
+                        onEdit={() => startEdit(user)}
+                        onToggle={() =>
+                          setOpenActionUserId(openActionUserId === userId ? null : userId)
+                        }
+                      />
                     </td>
                   </tr>
                 );
@@ -602,7 +629,7 @@ function UserManagement({
 
               {!filteredUsers.length && (
                 <tr>
-                  <td colSpan="7" className="py-8 text-center text-slate-500">
+                  <td colSpan="5" className="py-8 text-center text-slate-500">
                     No users found
                   </td>
                 </tr>
@@ -610,6 +637,32 @@ function UserManagement({
             </tbody>
           </table>
         </div>
+
+        {!!filteredUsers.length && (
+          <PaginationControls
+            currentPage={safeCurrentPage}
+            firstItem={firstVisibleUser}
+            lastItem={lastVisibleUser}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(value) => {
+              setPageSize(value);
+              setCurrentPage(1);
+            }}
+            pageSize={pageSize}
+            totalItems={filteredUsers.length}
+            totalPages={totalPages}
+          />
+        )}
+
+        <UserDetailDrawer
+          currentUser={currentUser}
+          deleting={detailUser ? deletingUserId === (detailUser._id || detailUser.id) : false}
+          hotels={hotels}
+          onClose={() => setDetailUser(null)}
+          onDelete={handleDeleteUser}
+          onEdit={startEdit}
+          user={detailUser}
+        />
       </section>
     </div>
   );
@@ -807,6 +860,24 @@ function getAccessSummary(user, hotels) {
   return otherHotels.length ? `${primaryLabel} + ${otherHotels.length} more` : primaryLabel;
 }
 
+function getAccessHotelLabels(user, hotels) {
+  const primaryId = getEntityId(user.hotelId);
+  const hotelLookup = new Map(hotels.map((hotel) => [getEntityId(hotel), hotel]));
+  const accessIds = normalizeHotelAccess(primaryId, getHotelAccessIds(user), user.role);
+
+  return accessIds
+    .map((id) => {
+      const hotel = hotelLookup.get(id) || user.hotelAccess?.find((item) => getEntityId(item) === id);
+      const label = getHotelLabel(hotel) || id;
+      return id === primaryId ? `${label} (Primary)` : label;
+    })
+    .filter(Boolean);
+}
+
+function formatDate(value) {
+  return value ? new Date(value).toLocaleDateString() : "-";
+}
+
 const inputClass =
   "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400";
 
@@ -835,7 +906,7 @@ function AccountStat({ label, tone = "default", value }) {
   );
 }
 
-function SetupBadges({ compact = false, issues }) {
+function StatusChips({ compact = false, issues }) {
   if (!issues.length) {
     return (
       <div className={compact ? "flex flex-wrap gap-1" : "mt-3 flex flex-wrap gap-2"}>
@@ -849,6 +920,233 @@ function SetupBadges({ compact = false, issues }) {
       {issues.map((issue) => (
         <SetupBadge key={issue.label} {...issue} />
       ))}
+    </div>
+  );
+}
+
+function UserActionMenu({
+  deleting,
+  disabledDelete,
+  onDelete,
+  onDetails,
+  onEdit,
+  onToggle,
+  open,
+}) {
+  return (
+    <div className="flex justify-end">
+      <button
+        type="button"
+        aria-label="Open user actions"
+        aria-expanded={open}
+        onClick={onToggle}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+      >
+        <MoreVertical size={17} strokeWidth={2.4} />
+      </button>
+
+      {open && (
+        <div className="absolute right-3 top-10 z-20 w-40 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+          <button
+            type="button"
+            onClick={onDetails}
+            className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            View details
+          </button>
+          <button
+            type="button"
+            onClick={onEdit}
+            className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            Edit user
+          </button>
+          <button
+            type="button"
+            disabled={disabledDelete || deleting}
+            onClick={onDelete}
+            className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:text-slate-600"
+          >
+            {deleting ? "Deleting..." : "Delete account"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PaginationControls({
+  currentPage,
+  firstItem,
+  lastItem,
+  onPageChange,
+  onPageSizeChange,
+  pageSize,
+  totalItems,
+  totalPages,
+}) {
+  return (
+    <div className="mt-5 flex flex-col gap-3 border-t border-slate-100 pt-4 text-sm dark:border-slate-800 md:flex-row md:items-center md:justify-between">
+      <div className="text-slate-500 dark:text-slate-400">
+        Showing <span className="font-bold text-slate-700 dark:text-slate-200">{firstItem}-{lastItem}</span> of{" "}
+        <span className="font-bold text-slate-700 dark:text-slate-200">{totalItems}</span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+          Rows
+          <select
+            value={pageSize}
+            onChange={(event) => onPageSizeChange(Number(event.target.value))}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 font-bold text-slate-700 outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+          >
+            {pageSizeOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            disabled={currentPage <= 1}
+            onClick={() => onPageChange(currentPage - 1)}
+            className="rounded-xl border border-slate-200 px-3 py-2 font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+          >
+            Previous
+          </button>
+          <span className="min-w-20 text-center font-bold text-slate-700 dark:text-slate-200">
+            {currentPage} / {totalPages}
+          </span>
+          <button
+            type="button"
+            disabled={currentPage >= totalPages}
+            onClick={() => onPageChange(currentPage + 1)}
+            className="rounded-xl border border-slate-200 px-3 py-2 font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UserDetailDrawer({
+  currentUser,
+  deleting,
+  hotels,
+  onClose,
+  onDelete,
+  onEdit,
+  user,
+}) {
+  if (!user) return null;
+
+  const userId = user._id || user.id;
+  const isSelf = userId === currentUser?.id || userId === currentUser?._id;
+  const issues = getUserSetupIssues(user);
+  const accessHotels = getAccessHotelLabels(user, hotels);
+
+  return (
+    <div className="fixed inset-0 z-40 flex justify-end bg-slate-950/30 backdrop-blur-sm">
+      <button
+        type="button"
+        aria-label="Close user details"
+        className="absolute inset-0 h-full w-full cursor-default"
+        onClick={onClose}
+      />
+      <aside className="relative flex h-full w-full max-w-xl flex-col bg-white shadow-2xl dark:bg-slate-950">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-5 dark:border-slate-800">
+          <div className="min-w-0">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-600 dark:text-blue-300">
+              User details
+            </p>
+            <h3 className="mt-2 truncate text-2xl font-black text-slate-950 dark:text-white">
+              {user.name}
+            </h3>
+            <p className="mt-1 break-words text-sm text-slate-500 dark:text-slate-400">
+              {user.email}
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label="Close user details"
+            onClick={onClose}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+          >
+            <X size={18} strokeWidth={2.4} />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <RoleBadge role={user.role} />
+            <StatusChips issues={issues} compact />
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <DetailItem label="Department" value={user.departmentId?.name || user.departmentName || user.team || "-"} />
+            <DetailItem label="Primary Hotel" value={getHotelLabel(user.hotelId) || "-"} />
+            <DetailItem label="Created" value={formatDate(user.createdAt)} />
+            <DetailItem label="Updated" value={formatDate(user.updatedAt)} />
+          </div>
+
+          <section>
+            <h4 className="text-sm font-black text-slate-900 dark:text-white">
+              Hotel access
+            </h4>
+            <div className="mt-3 grid gap-2">
+              {accessHotels.map((label) => (
+                <div
+                  key={label}
+                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                >
+                  {label}
+                </div>
+              ))}
+              {!accessHotels.length && (
+                <div className="rounded-xl border border-dashed border-slate-300 px-3 py-3 text-sm text-slate-500 dark:border-slate-700">
+                  No hotel access configured
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+
+        <div className="grid gap-3 border-t border-slate-200 p-5 dark:border-slate-800 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => onEdit(user)}
+            className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700"
+          >
+            Edit user
+          </button>
+          <button
+            type="button"
+            disabled={isSelf || deleting}
+            onClick={() => onDelete(userId)}
+            className="rounded-xl border border-rose-200 px-4 py-3 text-sm font-black text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-transparent dark:border-rose-500/30 dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:border-slate-800 dark:disabled:text-slate-600"
+          >
+            {deleting ? "Deleting..." : "Delete account"}
+          </button>
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+function DetailItem({ label, value }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+      <div className="text-[11px] font-black uppercase tracking-wide text-slate-400">
+        {label}
+      </div>
+      <div className="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">
+        {value}
+      </div>
     </div>
   );
 }
