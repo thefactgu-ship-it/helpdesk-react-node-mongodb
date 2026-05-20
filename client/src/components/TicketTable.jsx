@@ -8,6 +8,12 @@ import StatusPill from "./StatusPill";
 import ThemedSelect from "./ThemedSelect";
 import WorkQueueTicketDrawer from "./WorkQueueTicketDrawer";
 import {
+  canManageTickets as roleCanManageTickets,
+  canUpdateTicketStatus as roleCanUpdateTicketStatus,
+  canUseGroupControlQueue,
+  getWorkQueueProfile,
+} from "../config/rolePolicy";
+import {
   buildGroupAdminOwnerOptions,
   buildGroupAdminQueueKpis,
   buildPriorityOptions,
@@ -42,6 +48,7 @@ function TicketTable({
   deletingTicketId,
   filterPriority = "all",
   updatePriority,
+  updateDueDate,
   updateStatus,
   deleteTicket,
   hotels = [],
@@ -60,11 +67,14 @@ function TicketTable({
   const [groupAdminOwnerFilter, setGroupAdminOwnerFilter] = useState("all");
   const [drawerTicket, setDrawerTicket] = useState(null);
   const [openActionTicketId, setOpenActionTicketId] = useState(null);
-  const canManageTickets = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"].includes(currentUser?.role);
-  const isGroupAdmin = currentUser?.role === "GroupAdmin";
-  const isRequester = currentUser?.role === "User";
+  const workQueueProfile = getWorkQueueProfile(currentUser?.role);
+  const canManageTickets = roleCanManageTickets(currentUser?.role);
+  const isGroupAdmin = canUseGroupControlQueue(currentUser?.role);
+  const isRequester = workQueueProfile === "requester";
+  const isAgentQueue = workQueueProfile === "agent";
   const requesterText = getRequesterQueueText(t);
   const groupAdminText = getGroupAdminQueueText(t);
+  const staffQueueText = getStaffQueueText(t, workQueueProfile);
   const assignableUsers = users.filter((user) =>
     ["admin", "manager", "agent", "staff"].includes(
       String(user.role || "").toLowerCase(),
@@ -72,18 +82,18 @@ function TicketTable({
   );
   const currentUserId = getEntityId(currentUser);
   const queueOptions = useMemo(
-    () => buildQueueOptions(tickets, currentUserId, t, isRequester, isGroupAdmin),
-    [currentUserId, isGroupAdmin, isRequester, tickets, t],
+    () => buildQueueOptions(tickets, currentUserId, t, workQueueProfile),
+    [currentUserId, tickets, t, workQueueProfile],
   );
   const validQueueIds = useMemo(
     () => queueOptions.map((queue) => queue.id),
     [queueOptions],
   );
-  const preferredQueue = isRequester ? "mine" : "now";
+  const preferredQueue = isRequester ? "mine" : isAgentQueue ? "assignedToMe" : "now";
   const activeQueueId = validQueueIds.includes(activeQueue) ? activeQueue : preferredQueue;
   const queueTickets = useMemo(
-    () => tickets.filter((ticket) => matchesQueue(ticket, activeQueueId, currentUserId, isRequester, isGroupAdmin)),
-    [activeQueueId, currentUserId, isGroupAdmin, isRequester, tickets],
+    () => tickets.filter((ticket) => matchesQueue(ticket, activeQueueId, currentUserId, workQueueProfile)),
+    [activeQueueId, currentUserId, tickets, workQueueProfile],
   );
   const displayTickets = useMemo(
     () =>
@@ -105,6 +115,7 @@ function TicketTable({
   const statusOptions = buildStatusOptions(t);
   const priorityOptions = buildPriorityOptions(t);
   const groupAdminKpis = useMemo(() => buildGroupAdminQueueKpis(tickets), [tickets]);
+  const staffKpis = useMemo(() => buildStaffQueueKpis(tickets, currentUserId, workQueueProfile), [currentUserId, tickets, workQueueProfile]);
   const groupAdminOwnerOptions = useMemo(
     () => buildGroupAdminOwnerOptions(tickets, users, groupAdminText),
     [groupAdminText, tickets, users],
@@ -121,9 +132,7 @@ function TicketTable({
     ],
     [hotels, t],
   );
-  const canUpdateTicketStatus = (ticket) =>
-    canManageTickets ||
-    (currentUser?.role === "Agent" && getEntityId(ticket.assignedTo) === currentUserId);
+  const canUpdateTicketStatus = (ticket) => roleCanUpdateTicketStatus(currentUser?.role, currentUserId, ticket);
 
   const openQueueDrawer = (ticket) => {
     if (isRequester) return;
@@ -150,10 +159,10 @@ function TicketTable({
       <div className="mb-5 flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0 lg:max-w-sm">
           <p className="text-sm font-black text-slate-900 dark:text-white">
-            {isGroupAdmin ? groupAdminText.heading : isRequester ? requesterText.heading : t("queue.heading")}
+            {isGroupAdmin ? groupAdminText.heading : isRequester ? requesterText.heading : staffQueueText.heading}
           </p>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            {isGroupAdmin ? groupAdminText.description : isRequester ? requesterText.description : t("queue.description")}
+            {isGroupAdmin ? groupAdminText.description : isRequester ? requesterText.description : staffQueueText.description}
           </p>
         </div>
 
@@ -228,6 +237,10 @@ function TicketTable({
 
       {isGroupAdmin && (
         <GroupAdminQueueKpis kpis={groupAdminKpis} text={groupAdminText} />
+      )}
+
+      {!isGroupAdmin && !isRequester && (
+        <StaffQueueKpis kpis={staffKpis} text={staffQueueText} />
       )}
 
       <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
@@ -330,7 +343,7 @@ function TicketTable({
         )}
 
         {!loading && queueTickets.length === 0 && (
-          <QueueEmptyState activeQueue={activeQueueId} t={t} />
+          <QueueEmptyState activeQueue={activeQueueId} staffQueueText={staffQueueText} t={t} />
         )}
 
         <PaginationControls
@@ -436,7 +449,7 @@ function TicketTable({
             {!loading && queueTickets.length === 0 && (
               <tr>
                 <td colSpan="7" className="py-8">
-                  <QueueEmptyState activeQueue={activeQueueId} t={t} />
+                  <QueueEmptyState activeQueue={activeQueueId} staffQueueText={staffQueueText} t={t} />
                 </td>
               </tr>
             )}
@@ -459,6 +472,7 @@ function TicketTable({
           canDelete={canManageTickets}
           canManageTickets={canManageTickets}
           canUpdateStatus={activeDrawerTicket ? canUpdateTicketStatus(activeDrawerTicket) : false}
+          workQueueProfile={workQueueProfile}
           deleting={activeDrawerTicket ? deletingTicketId === (activeDrawerTicket._id || activeDrawerTicket.id) : false}
           disabled={
             activeDrawerTicket
@@ -479,6 +493,7 @@ function TicketTable({
           t={t}
           ticket={activeDrawerTicket}
           updatePriority={updatePriority}
+          updateDueDate={updateDueDate}
           updateStatus={updateStatus}
         />
       )}
@@ -581,11 +596,13 @@ function MobileMeta({ label, value }) {
   );
 }
 
-function QueueEmptyState({ activeQueue, groupAdminText, requesterText, t }) {
+function QueueEmptyState({ activeQueue, groupAdminText, requesterText, staffQueueText, t }) {
   const message = requesterText
     ? getRequesterEmptyQueueMessage(activeQueue, requesterText)
     : groupAdminText
       ? getGroupAdminEmptyQueueMessage(activeQueue, groupAdminText)
+      : staffQueueText
+        ? getStaffEmptyQueueMessage(activeQueue, staffQueueText, t)
       : getEmptyQueueMessage(activeQueue, t);
 
   return (
@@ -597,6 +614,33 @@ function QueueEmptyState({ activeQueue, groupAdminText, requesterText, t }) {
       <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
         {message.description}
       </p>
+    </div>
+  );
+}
+
+function StaffQueueKpis({ kpis, text }) {
+  const items = [
+    { label: text.kpis.primary, value: kpis.primary, tone: kpis.primary ? "text-blue-700 dark:text-blue-200" : "" },
+    { label: text.kpis.overdue, value: kpis.overdue, tone: kpis.overdue ? "text-rose-700 dark:text-rose-200" : "" },
+    { label: text.kpis.dueSoon, value: kpis.dueSoon, tone: kpis.dueSoon ? "text-amber-700 dark:text-amber-200" : "" },
+    { label: text.kpis.waitingRequester, value: kpis.waitingRequester, tone: kpis.waitingRequester ? "text-slate-700 dark:text-slate-200" : "" },
+  ];
+
+  return (
+    <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      {items.map((item) => (
+        <div
+          key={item.label}
+          className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900"
+        >
+          <p className={`text-2xl font-black text-slate-950 dark:text-white ${item.tone}`}>
+            {item.value.toLocaleString()}
+          </p>
+          <p className="mt-1 break-words text-xs font-bold text-slate-500 dark:text-slate-400">
+            {item.label}
+          </p>
+        </div>
+      ))}
     </div>
   );
 }
@@ -660,11 +704,11 @@ function DueLabel({ ticket }) {
   return formatted;
 }
 
-function buildQueueOptions(tickets, currentUserId, t, isRequester, isGroupAdmin = false) {
+function buildQueueOptions(tickets, currentUserId, t, workQueueProfile) {
   const count = (queueId) =>
-    tickets.filter((ticket) => matchesQueue(ticket, queueId, currentUserId, isRequester, isGroupAdmin)).length;
+    tickets.filter((ticket) => matchesQueue(ticket, queueId, currentUserId, workQueueProfile)).length;
 
-  if (isRequester) {
+  if (workQueueProfile === "requester") {
     const requesterText = getRequesterQueueText(t);
     return [
       { id: "mine", label: requesterText.tabs.mine, count: count("mine"), activeClass: "border-blue-600 bg-blue-600 text-white" },
@@ -674,7 +718,7 @@ function buildQueueOptions(tickets, currentUserId, t, isRequester, isGroupAdmin 
     ];
   }
 
-  if (isGroupAdmin) {
+  if (workQueueProfile === "groupAdmin") {
     const text = getGroupAdminQueueText(t);
     return [
       { id: "now", label: text.tabs.now, count: count("now"), activeClass: "border-blue-600 bg-blue-600 text-white" },
@@ -682,6 +726,27 @@ function buildQueueOptions(tickets, currentUserId, t, isRequester, isGroupAdmin 
       { id: "urgent", label: text.tabs.urgent, count: count("urgent"), activeClass: "border-amber-500 bg-amber-500 text-white" },
       { id: "unassigned", label: text.tabs.unassigned, count: count("unassigned"), activeClass: "border-sky-600 bg-sky-600 text-white" },
       { id: "waitingRequester", label: text.tabs.waitingRequester, count: count("waitingRequester"), activeClass: "border-slate-700 bg-slate-700 text-white" },
+      { id: "all", label: text.tabs.all, count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+    ];
+  }
+
+  if (workQueueProfile === "agent") {
+    const text = getStaffQueueText(t, workQueueProfile);
+    return [
+      { id: "assignedToMe", label: text.tabs.assignedToMe, count: count("assignedToMe"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+      { id: "dueSoon", label: text.tabs.dueSoon, count: count("dueSoon"), activeClass: "border-amber-500 bg-amber-500 text-white" },
+      { id: "waitingRequester", label: text.tabs.waitingRequester, count: count("waitingRequester"), activeClass: "border-slate-700 bg-slate-700 text-white" },
+      { id: "all", label: text.tabs.all, count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+    ];
+  }
+
+  if (workQueueProfile === "manager") {
+    const text = getStaffQueueText(t, workQueueProfile);
+    return [
+      { id: "now", label: text.tabs.now, count: count("now"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+      { id: "unassigned", label: text.tabs.unassigned, count: count("unassigned"), activeClass: "border-sky-600 bg-sky-600 text-white" },
+      { id: "assignedToTeam", label: text.tabs.assignedToTeam, count: count("assignedToTeam"), activeClass: "border-indigo-600 bg-indigo-600 text-white" },
+      { id: "dueSoon", label: text.tabs.dueSoon, count: count("dueSoon"), activeClass: "border-amber-500 bg-amber-500 text-white" },
       { id: "all", label: text.tabs.all, count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
     ];
   }
@@ -697,21 +762,42 @@ function buildQueueOptions(tickets, currentUserId, t, isRequester, isGroupAdmin 
   ];
 }
 
-function matchesQueue(ticket, queueId, currentUserId, isRequester = false, isGroupAdmin = false) {
-  if (isRequester) {
+function matchesQueue(ticket, queueId, currentUserId, workQueueProfile = "staff") {
+  if (workQueueProfile === "requester") {
     if (queueId === "department") return !canViewTicketDetails(ticket, currentUserId) && !isCompleted(ticket);
     if (queueId === "feedback") return canViewTicketDetails(ticket, currentUserId) && isWaitingRequester(ticket);
     if (queueId === "all") return true;
     return canViewTicketDetails(ticket, currentUserId);
   }
 
-  if (isGroupAdmin) {
+  if (workQueueProfile === "groupAdmin") {
     if (queueId === "all") return true;
     if (queueId === "overdue") return isOverdue(ticket);
     if (queueId === "urgent") return !isCompleted(ticket) && ["critical", "high"].includes(ticket.priority);
     if (queueId === "unassigned") return !isCompleted(ticket) && !ticket.assignedTo;
     if (queueId === "waitingRequester") return isWaitingRequester(ticket);
     return isGroupAdminRiskTicket(ticket);
+  }
+
+  if (workQueueProfile === "agent") {
+    const assignedToMe = getEntityId(ticket.assignedTo) === currentUserId;
+    if (queueId === "all") return true;
+    if (queueId === "dueSoon") return assignedToMe && (isDueSoon(ticket) || isOverdue(ticket));
+    if (queueId === "waitingRequester") return assignedToMe && isWaitingRequester(ticket);
+    return !isCompleted(ticket) && assignedToMe;
+  }
+
+  if (workQueueProfile === "manager") {
+    if (queueId === "all") return true;
+    if (queueId === "unassigned") return !isCompleted(ticket) && !ticket.assignedTo;
+    if (queueId === "assignedToTeam") return !isCompleted(ticket) && Boolean(ticket.assignedTo);
+    if (queueId === "dueSoon") return isDueSoon(ticket) || isOverdue(ticket);
+    return (
+      isOverdue(ticket) ||
+      isDueSoon(ticket) ||
+      (!isCompleted(ticket) && !ticket.assignedTo) ||
+      (!isCompleted(ticket) && ["critical", "high"].includes(ticket.priority))
+    );
   }
 
   if (queueId === "all") return true;
@@ -728,6 +814,136 @@ function matchesQueue(ticket, queueId, currentUserId, isRequester = false, isGro
     (!isCompleted(ticket) && !ticket.assignedTo) ||
     (!isCompleted(ticket) && getEntityId(ticket.assignedTo) === currentUserId)
   );
+}
+
+function buildStaffQueueKpis(tickets, currentUserId, workQueueProfile) {
+  if (workQueueProfile === "agent") {
+    const assignedTickets = tickets.filter((ticket) => getEntityId(ticket.assignedTo) === currentUserId);
+    return {
+      primary: assignedTickets.filter((ticket) => !isCompleted(ticket)).length,
+      overdue: assignedTickets.filter(isOverdue).length,
+      dueSoon: assignedTickets.filter(isDueSoon).length,
+      waitingRequester: assignedTickets.filter(isWaitingRequester).length,
+    };
+  }
+
+  if (workQueueProfile === "manager") {
+    return {
+      primary: tickets.filter(
+        (ticket) =>
+          !isCompleted(ticket) &&
+          (!ticket.assignedTo || ["critical", "high"].includes(ticket.priority) || isOverdue(ticket) || isDueSoon(ticket)),
+      ).length,
+      overdue: tickets.filter(isOverdue).length,
+      dueSoon: tickets.filter(isDueSoon).length,
+      waitingRequester: tickets.filter(isWaitingRequester).length,
+    };
+  }
+
+  return {
+    primary: tickets.filter(isGroupAdminRiskTicket).length,
+    overdue: tickets.filter(isOverdue).length,
+    dueSoon: tickets.filter(isDueSoon).length,
+    waitingRequester: tickets.filter(isWaitingRequester).length,
+  };
+}
+
+function getStaffEmptyQueueMessage(activeQueue, staffQueueText, t) {
+  return staffQueueText.empty[activeQueue] || staffQueueText.empty.all || getEmptyQueueMessage(activeQueue, t);
+}
+
+function getStaffQueueText(t, workQueueProfile) {
+  if (workQueueProfile === "agent") {
+    return {
+      description: pickText(t, "agentQueue.description", "Focus on tickets assigned to you and keep requesters updated."),
+      heading: pickText(t, "agentQueue.heading", "My assigned work"),
+      kpis: {
+        primary: pickText(t, "agentQueue.kpis.primary", "Assigned active"),
+        overdue: pickText(t, "agentQueue.kpis.overdue", "Overdue"),
+        dueSoon: pickText(t, "agentQueue.kpis.dueSoon", "Due soon"),
+        waitingRequester: pickText(t, "agentQueue.kpis.waitingRequester", "Waiting requester"),
+      },
+      tabs: {
+        assignedToMe: pickText(t, "agentQueue.tabs.assignedToMe", "My assigned"),
+        dueSoon: pickText(t, "agentQueue.tabs.dueSoon", "Due soon"),
+        waitingRequester: pickText(t, "agentQueue.tabs.waitingRequester", "Waiting requester"),
+        all: pickText(t, "agentQueue.tabs.all", "All visible"),
+      },
+      empty: {
+        assignedToMe: {
+          title: pickText(t, "agentQueue.empty.assignedToMeTitle", "No assigned work right now"),
+          description: pickText(t, "agentQueue.empty.assignedToMeDescription", "New assigned tickets will appear here first."),
+        },
+        dueSoon: {
+          title: pickText(t, "agentQueue.empty.dueSoonTitle", "Nothing due soon"),
+          description: pickText(t, "agentQueue.empty.dueSoonDescription", "Assigned work is clear for the next few hours."),
+        },
+        waitingRequester: {
+          title: pickText(t, "agentQueue.empty.waitingRequesterTitle", "No tickets waiting for requester"),
+          description: pickText(t, "agentQueue.empty.waitingRequesterDescription", "Resolved assigned work waiting for feedback will appear here."),
+        },
+        all: {
+          title: pickText(t, "agentQueue.empty.allTitle", "No visible tickets"),
+          description: pickText(t, "agentQueue.empty.allDescription", "Tickets assigned to you or visible through your team will appear here."),
+        },
+      },
+    };
+  }
+
+  if (workQueueProfile === "manager") {
+    return {
+      description: pickText(t, "managerQueue.description", "Triage team workload, assign owners, and keep due work moving."),
+      heading: pickText(t, "managerQueue.heading", "Team triage queue"),
+      kpis: {
+        primary: pickText(t, "managerQueue.kpis.primary", "Needs triage"),
+        overdue: pickText(t, "managerQueue.kpis.overdue", "Overdue"),
+        dueSoon: pickText(t, "managerQueue.kpis.dueSoon", "Due soon"),
+        waitingRequester: pickText(t, "managerQueue.kpis.waitingRequester", "Waiting requester"),
+      },
+      tabs: {
+        now: pickText(t, "managerQueue.tabs.now", "Needs attention"),
+        unassigned: pickText(t, "managerQueue.tabs.unassigned", "Unassigned"),
+        assignedToTeam: pickText(t, "managerQueue.tabs.assignedToTeam", "Assigned to team"),
+        dueSoon: pickText(t, "managerQueue.tabs.dueSoon", "Due soon"),
+        all: pickText(t, "managerQueue.tabs.all", "All"),
+      },
+      empty: {
+        now: {
+          title: pickText(t, "managerQueue.empty.nowTitle", "No work needs triage right now"),
+          description: pickText(t, "managerQueue.empty.nowDescription", "The team queue is stable. Review All for routine follow-up."),
+        },
+        unassigned: {
+          title: pickText(t, "managerQueue.empty.unassignedTitle", "No unassigned work"),
+          description: pickText(t, "managerQueue.empty.unassignedDescription", "New tickets already have an owner."),
+        },
+        assignedToTeam: {
+          title: pickText(t, "managerQueue.empty.assignedToTeamTitle", "No active assigned work"),
+          description: pickText(t, "managerQueue.empty.assignedToTeamDescription", "Assigned active tickets will appear here."),
+        },
+        dueSoon: {
+          title: pickText(t, "managerQueue.empty.dueSoonTitle", "No due-soon work"),
+          description: pickText(t, "managerQueue.empty.dueSoonDescription", "There are no tickets close to their due time."),
+        },
+        all: {
+          title: pickText(t, "managerQueue.empty.allTitle", "No tickets in this queue"),
+          description: pickText(t, "managerQueue.empty.allDescription", "Clear filters or switch hotel scope to review more work."),
+        },
+      },
+    };
+  }
+
+  return {
+    description: t("queue.description"),
+    heading: t("queue.heading"),
+    kpis: {
+      primary: t("queue.tabs.now"),
+      overdue: t("queue.tabs.overdue"),
+      dueSoon: t("queue.tabs.dueSoon"),
+      waitingRequester: t("queue.tabs.waitingRequester"),
+    },
+    tabs: {},
+    empty: {},
+  };
 }
 
 function getGroupAdminQueueText(t) {

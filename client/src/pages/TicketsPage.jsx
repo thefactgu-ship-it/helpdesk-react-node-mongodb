@@ -21,6 +21,7 @@ function TicketsPage({
   tickets,
   ticketsPerPage,
   updatePriority,
+  updateDueDate,
   updateStatus,
   updatingTicketId,
   currentUser,
@@ -41,6 +42,7 @@ function TicketsPage({
       deletingTicketId={deletingTicketId}
       filterPriority={filterPriority}
       updatePriority={updatePriority}
+      updateDueDate={updateDueDate}
       updateStatus={updateStatus}
       deleteTicket={deleteTicket}
       hotels={hotels}

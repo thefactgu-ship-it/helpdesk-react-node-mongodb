@@ -450,6 +450,37 @@ function App() {
     }
   };
 
+  const updateTicketDueDate = async (id, dueDate) => {
+    if (!canManageTickets) {
+      toast.error("Only Admin or Manager can update due date");
+      return;
+    }
+    if (!dueDate) return;
+
+    try {
+      setUpdatingTicketId(id);
+      await axios.patch(
+        `${API_URL}/${id}`,
+        { dueDate: new Date(dueDate).toISOString() },
+        {
+          headers: authHeaders,
+          params: scopedParams,
+        },
+      );
+      toast.success("Due date updated");
+      await fetchTickets();
+      await fetchSummaryTickets();
+      if (selectedTicket && selectedTicket._id === id) {
+        await openTicketDetails(id);
+      }
+    } catch (error) {
+      console.error("Failed to update due date", error);
+      toast.error(getErrorMessage(error, "Failed to update due date"));
+    } finally {
+      setUpdatingTicketId(null);
+    }
+  };
+
   const assignTicket = async (id, assignedTo) => {
     if (!assignedTo) return;
     if (!canManageTickets) return;
@@ -1052,6 +1083,7 @@ function App() {
                   deletingTicketId={deletingTicketId}
                   updateStatus={updateStatus}
                   updatePriority={updateTicketPriority}
+                  updateDueDate={updateTicketDueDate}
                   deleteTicket={deleteTicket}
                   currentPage={currentPage}
                   setCurrentPage={setCurrentPage}

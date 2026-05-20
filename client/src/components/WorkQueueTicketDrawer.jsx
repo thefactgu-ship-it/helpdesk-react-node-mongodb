@@ -29,11 +29,14 @@ function WorkQueueTicketDrawer({
   t,
   ticket,
   updatePriority,
+  updateDueDate,
   updateStatus,
+  workQueueProfile,
 }) {
   if (!ticket) return null;
 
   const ticketId = ticket._id || ticket.id;
+  const drawerText = getDrawerText(t, workQueueProfile);
 
   return (
     <Drawer
@@ -44,7 +47,7 @@ function WorkQueueTicketDrawer({
             onClick={() => onViewFullDetail(ticketId)}
             className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700"
           >
-            Full detail
+            {drawerText.fullDetail}
           </button>
           {canDelete && (
             <button
@@ -65,6 +68,11 @@ function WorkQueueTicketDrawer({
       title={ticket.title}
     >
       <div className="space-y-5">
+        <section className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-blue-900 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
+          <p className="font-black">{drawerText.roleTitle}</p>
+          <p className="mt-1">{drawerText.roleDescription}</p>
+        </section>
+
         <div className="flex flex-wrap gap-2">
           {getQueueBadges(ticket, t).map((badge) => (
             <StatusPill key={badge.label} {...badge} />
@@ -122,7 +130,17 @@ function WorkQueueTicketDrawer({
           </DrawerField>
 
           <DrawerField label={t("queue.due")}>
-            <DueLabel ticket={ticket} />
+            {canManageTickets ? (
+              <input
+                type="datetime-local"
+                value={toDateTimeLocalValue(ticket.dueDate)}
+                disabled={disabled}
+                onChange={(event) => updateDueDate(ticketId, event.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950"
+              />
+            ) : (
+              <DueLabel ticket={ticket} />
+            )}
           </DrawerField>
         </section>
 
@@ -161,6 +179,15 @@ function DueLabel({ ticket }) {
   return formatted;
 }
 
+function toDateTimeLocalValue(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const timezoneOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 16);
+}
+
 function DrawerField({ children, label }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
@@ -183,6 +210,45 @@ function DrawerMeta({ label, value }) {
       </p>
     </div>
   );
+}
+
+function getDrawerText(t, workQueueProfile) {
+  const fullDetail = pickText(t, "queue.actions.fullDetail", "Full detail");
+
+  if (workQueueProfile === "agent") {
+    return {
+      fullDetail,
+      roleTitle: pickText(t, "agentQueue.drawer.title", "Agent actions"),
+      roleDescription: pickText(
+        t,
+        "agentQueue.drawer.description",
+        "You can update status for tickets assigned to you. Assignment, priority, due date, and delete are manager actions.",
+      ),
+    };
+  }
+
+  if (workQueueProfile === "manager") {
+    return {
+      fullDetail,
+      roleTitle: pickText(t, "managerQueue.drawer.title", "Manager triage"),
+      roleDescription: pickText(
+        t,
+        "managerQueue.drawer.description",
+        "Assign the owner, adjust priority, update status, and use the full detail view for comments or attachments.",
+      ),
+    };
+  }
+
+  return {
+    fullDetail,
+    roleTitle: pickText(t, "queue.drawer.title", "Ticket actions"),
+    roleDescription: pickText(t, "queue.drawer.description", "Review the ticket and update the fields available to your role."),
+  };
+}
+
+function pickText(t, key, fallback) {
+  const value = t?.(key);
+  return value && value !== key ? value : fallback;
 }
 
 export default WorkQueueTicketDrawer;

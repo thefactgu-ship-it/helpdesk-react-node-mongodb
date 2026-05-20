@@ -12,6 +12,8 @@ function QueueActionMenu({
   open,
   t,
 }) {
+  const fullDetailLabel = pickText(t, "queue.actions.fullDetail", "Full detail");
+
   return (
     <div className="flex justify-end">
       <button
@@ -52,7 +54,7 @@ function QueueActionMenu({
               }}
               className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-slate-800 dark:disabled:text-slate-600"
             >
-              Full detail
+              {fullDetailLabel}
             </button>
             {canDelete && (
               <button
@@ -72,6 +74,11 @@ function QueueActionMenu({
       )}
     </div>
   );
+}
+
+function pickText(t, key, fallback) {
+  const value = t?.(key);
+  return value && value !== key ? value : fallback;
 }
 
 export default QueueActionMenu;
