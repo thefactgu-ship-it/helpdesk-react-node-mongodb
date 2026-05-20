@@ -411,15 +411,15 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
           </div>
 
           <div className="hidden overflow-x-auto md:block">
-            <table className="w-full text-left text-sm">
+            <table className="min-w-[58rem] w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                  <th className="py-3">Asset</th>
-                  <th>Serial</th>
-                  <th>Owner</th>
-                  <th>Life Cycle</th>
-                  <th>Status</th>
-                  <th className="text-right">Action</th>
+                  <th className="px-3 py-3">Asset</th>
+                  <th className="px-3">Serial</th>
+                  <th className="px-3">Owner</th>
+                  <th className="px-3">Life Cycle</th>
+                  <th className="px-3">Status</th>
+                  <th className="px-3 text-right">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -431,21 +431,21 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
                       key={assetId}
                       className="border-b border-slate-100 last:border-0 dark:border-slate-800"
                     >
-                      <td className="py-4">
-                        <div className="font-bold text-slate-900 dark:text-white">
+                      <td className="max-w-64 px-3 py-4">
+                        <div className="line-clamp-2 break-words font-bold text-slate-900 dark:text-white">
                           {asset.assetName}
                         </div>
-                        <div className="text-xs text-slate-500 dark:text-slate-400">
+                        <div className="break-words text-xs text-slate-500 dark:text-slate-400">
                           {asset.assetType} / {asset.department}
                         </div>
                       </td>
-                      <td className="font-semibold text-blue-700 dark:text-blue-300">
+                      <td className="max-w-44 break-words px-3 font-semibold text-blue-700 dark:text-blue-300">
                         {asset.serialNumber}
                       </td>
-                      <td className="text-slate-600 dark:text-slate-300">
+                      <td className="max-w-44 break-words px-3 text-slate-600 dark:text-slate-300">
                         {asset.owner || "-"}
                       </td>
-                      <td>
+                      <td className="px-3">
                         <div className="space-y-1">
                           <RecommendationBadge value={asset.lifeCycle?.recommendation} />
                           <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -453,10 +453,10 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
                           </p>
                         </div>
                       </td>
-                      <td>
+                      <td className="px-3">
                         <StatusBadge status={asset.status} />
                       </td>
-                      <td className="text-right">
+                      <td className="px-3 text-right">
                         <div className="flex justify-end gap-2">
                           <button
                             type="button"

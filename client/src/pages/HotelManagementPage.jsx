@@ -282,14 +282,14 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
           </div>
 
           <div className="hidden overflow-x-auto md:block">
-            <table className="w-full text-left text-sm">
+            <table className="min-w-[48rem] w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                  <th className="py-3">Hotel</th>
-                  <th>Region</th>
-                  <th>Timezone</th>
-                  <th>Status</th>
-                  <th className="text-right">Actions</th>
+                  <th className="px-3 py-3">Hotel</th>
+                  <th className="px-3">Region</th>
+                  <th className="px-3">Timezone</th>
+                  <th className="px-3">Status</th>
+                  <th className="px-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -302,24 +302,24 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
                       key={hotelId}
                       className="border-b border-slate-100 last:border-0 dark:border-slate-800"
                     >
-                      <td className="py-4">
-                        <div className="font-bold text-slate-900 dark:text-white">
+                      <td className="max-w-64 px-3 py-4">
+                        <div className="line-clamp-2 break-words font-bold text-slate-900 dark:text-white">
                           {hotel.name}
                         </div>
-                        <div className="text-xs font-semibold text-blue-700 dark:text-blue-300">
+                        <div className="break-words text-xs font-semibold text-blue-700 dark:text-blue-300">
                           {hotel.code}
                         </div>
                       </td>
-                      <td className="text-slate-600 dark:text-slate-300">
+                      <td className="max-w-40 break-words px-3 text-slate-600 dark:text-slate-300">
                         {hotel.region || "-"}
                       </td>
-                      <td className="text-slate-600 dark:text-slate-300">
+                      <td className="max-w-48 break-words px-3 text-slate-600 dark:text-slate-300">
                         {hotel.timezone || "-"}
                       </td>
-                      <td>
+                      <td className="px-3">
                         <StatusBadge active={isActive} />
                       </td>
-                      <td>
+                      <td className="px-3">
                         <div className="flex justify-end gap-2">
                           <button
                             type="button"

@@ -419,13 +419,13 @@ function UserManagement({
         </div>
 
         {isGroupAdmin && (
-          <div className="mb-5 grid gap-3 lg:grid-cols-5">
+          <div className="mb-5 grid min-w-0 gap-3 lg:grid-cols-5">
             <input
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search name, email, team..."
-              className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 lg:col-span-2"
+              className="min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 lg:col-span-2"
             />
             <ThemedSelect
               size="sm"
@@ -526,16 +526,16 @@ function UserManagement({
         </div>
 
         <div className="hidden overflow-x-auto md:block">
-          <table className="w-full text-left text-sm">
+          <table className="min-w-[64rem] w-full text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                <th className="py-3">User</th>
-                <th>Role</th>
-                <th>Team</th>
-                <th>Primary Hotel</th>
-                <th>Access</th>
-                <th>Created</th>
-                <th className="text-right">Actions</th>
+                <th className="px-3 py-3">User</th>
+                <th className="px-3">Role</th>
+                <th className="px-3">Team</th>
+                <th className="px-3">Primary Hotel</th>
+                <th className="px-3">Access</th>
+                <th className="px-3">Created</th>
+                <th className="px-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -549,35 +549,35 @@ function UserManagement({
                     key={userId}
                     className="border-b border-slate-100 last:border-0 dark:border-slate-800"
                   >
-                    <td className="py-4">
-                      <div className="font-bold text-slate-900 dark:text-white">
+                    <td className="max-w-56 px-3 py-4">
+                      <div className="line-clamp-2 break-words font-bold text-slate-900 dark:text-white">
                         {user.name}
                       </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                      <div className="break-words text-xs text-slate-500 dark:text-slate-400">
                         {user.email}
                       </div>
                     </td>
-                    <td>
+                    <td className="px-3">
                       <div className="space-y-2">
                         <RoleBadge role={user.role} />
                         <SetupBadges issues={setupIssues} compact />
                       </div>
                     </td>
-                    <td className="text-slate-600 dark:text-slate-300">
+                    <td className="max-w-44 break-words px-3 text-slate-600 dark:text-slate-300">
                       {user.departmentId?.name || user.departmentName || user.team}
                     </td>
-                    <td className="text-slate-600 dark:text-slate-300">
+                    <td className="max-w-48 break-words px-3 text-slate-600 dark:text-slate-300">
                       {getHotelLabel(user.hotelId) || "-"}
                     </td>
-                    <td className="text-slate-600 dark:text-slate-300">
+                    <td className="max-w-56 break-words px-3 text-slate-600 dark:text-slate-300">
                       {getAccessSummary(user, hotels)}
                     </td>
-                    <td className="text-slate-500 dark:text-slate-400">
+                    <td className="whitespace-nowrap px-3 text-slate-500 dark:text-slate-400">
                       {user.createdAt
                         ? new Date(user.createdAt).toLocaleDateString()
                         : "-"}
                     </td>
-                    <td>
+                    <td className="px-3">
                       <div className="flex justify-end gap-2">
                         <button
                           type="button"

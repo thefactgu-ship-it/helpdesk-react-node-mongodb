@@ -964,15 +964,15 @@ function App() {
             t={t}
           />
           <main className="min-h-[calc(100vh-3rem)] min-w-0 flex-1 overflow-y-auto bg-slate-50/90 p-4 pb-28 dark:bg-slate-900 md:p-6">
-            <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">{currentPageMeta.title}</h2>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+            <header className="mb-6 flex min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div className="min-w-0">
+                <h2 className="break-words text-2xl font-bold">{currentPageMeta.title}</h2>
+                <p className="break-words text-sm text-slate-500 dark:text-slate-400">
                   {currentPageMeta.subtitle}
                 </p>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
                 <div className="self-start sm:self-auto">
                   <NotificationBell
                     token={token}
@@ -984,7 +984,7 @@ function App() {
                 </div>
                 {canSelectHotel && (
                   <ThemedSelect
-                    className="w-full min-w-[15rem] sm:w-72"
+                    className="w-full min-w-0 sm:w-72"
                     value={selectedHotelId}
                     onChange={handleSelectedHotelChange}
                     variant="pill"

@@ -48,16 +48,16 @@ function RequestUsersPage({ users }) {
       </section>
 
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
-        <div className="mb-5 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="mb-5 flex min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <input
             type="text"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search requesters..."
-            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400 md:w-80"
+            className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400 md:w-80"
           />
           <ThemedSelect
-            className="w-full md:w-56"
+            className="w-full min-w-0 md:w-56"
             value={teamFilter}
             onChange={setTeamFilter}
             options={teams.map((team) => ({
@@ -109,14 +109,14 @@ function RequestUsersPage({ users }) {
         </div>
 
         <div className="hidden overflow-x-auto md:block">
-          <table className="w-full text-left text-sm">
+          <table className="min-w-[52rem] w-full text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                <th className="py-3">Requester</th>
-                <th>Email</th>
-                <th>Department</th>
-                <th>Role</th>
-                <th>Created</th>
+                <th className="px-3 py-3">Requester</th>
+                <th className="px-3">Email</th>
+                <th className="px-3">Department</th>
+                <th className="px-3">Role</th>
+                <th className="px-3">Created</th>
               </tr>
             </thead>
             <tbody>
@@ -125,26 +125,26 @@ function RequestUsersPage({ users }) {
                   key={user._id || user.id}
                   className="border-b border-slate-100 last:border-0 dark:border-slate-800"
                 >
-                  <td className="py-4">
-                    <div className="font-bold text-slate-900 dark:text-white">
+                  <td className="max-w-56 px-3 py-4">
+                    <div className="line-clamp-2 break-words font-bold text-slate-900 dark:text-white">
                       {user.name}
                     </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                    <div className="break-words text-xs text-slate-500 dark:text-slate-400">
                       ID: {user._id || user.id}
                     </div>
                   </td>
-                  <td className="font-semibold text-blue-700 dark:text-blue-300">
+                  <td className="max-w-64 break-words px-3 font-semibold text-blue-700 dark:text-blue-300">
                     {user.email}
                   </td>
-                  <td className="text-slate-600 dark:text-slate-300">
+                  <td className="max-w-56 break-words px-3 text-slate-600 dark:text-slate-300">
                     {user.departmentId?.name || user.departmentName || user.team || "Support"}
                   </td>
-                  <td>
+                  <td className="px-3">
                     <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/20 dark:text-blue-200">
                       {user.role}
                     </span>
                   </td>
-                  <td className="text-slate-500 dark:text-slate-400">
+                  <td className="whitespace-nowrap px-3 text-slate-500 dark:text-slate-400">
                     {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "-"}
                   </td>
                 </tr>

@@ -103,6 +103,7 @@ function ThemedSelect({
           openUp ? Math.min(menuHeight, spaceAbove - 8) : Math.min(menuHeight, spaceBelow - 8),
         ),
         top,
+        maxWidth,
         width,
       });
     };
@@ -226,7 +227,7 @@ function ThemedSelect({
                   {prefix}
                 </span>
               )}
-              <span className="min-w-0 flex-1">
+              <span className="min-w-0 flex-1 overflow-hidden">
                 <span className={`${isSmall ? "text-xs" : "text-sm"} block truncate font-bold`}>
                   {option.label}
                 </span>
@@ -269,7 +270,7 @@ function ThemedSelect({
           }
         }}
         onKeyDown={handleTriggerKeyDown}
-        className={`flex w-full items-center justify-between border bg-white text-left font-bold shadow-sm outline-none transition disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-950 ${
+      className={`flex w-full min-w-0 items-center justify-between border bg-white text-left font-bold shadow-sm outline-none transition disabled:cursor-not-allowed disabled:opacity-60 dark:bg-slate-950 ${
           isPill
             ? `${isSmall ? "min-h-11 px-3 text-xs" : "min-h-11 px-4 text-sm"} gap-2 rounded-full`
             : `${isSmall ? "min-h-11 rounded-xl px-3 py-2 text-xs" : "min-h-12 rounded-2xl px-4 py-3 text-sm"} gap-3`

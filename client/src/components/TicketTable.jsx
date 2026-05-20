@@ -105,7 +105,7 @@ function TicketTable({
 
   return (
     <section className="mt-6 min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
-      <div className="mb-5 flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="mb-5 flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0 lg:max-w-sm">
           <p className="text-sm font-black text-slate-900 dark:text-white">
             {isGroupAdmin ? groupAdminText.heading : isRequester ? requesterText.heading : t("queue.heading")}
@@ -115,18 +115,18 @@ function TicketTable({
           </p>
         </div>
 
-        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap lg:justify-end">
+        <div className="grid w-full min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:max-w-4xl xl:flex-1 2xl:grid-cols-3">
           <input
             type="text"
             placeholder={t("queue.searchPlaceholder")}
             value={search}
             disabled={loading}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 md:w-80"
+            className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900"
           />
 
           <ThemedSelect
-            className="w-full md:w-56"
+            className="w-full min-w-0"
             size="sm"
             value={filterStatus}
             disabled={loading}
@@ -135,7 +135,7 @@ function TicketTable({
           />
           {isGroupAdmin && setFilterPriority && (
             <ThemedSelect
-              className="w-full md:w-44"
+              className="w-full min-w-0"
               size="sm"
               value={filterPriority}
               disabled={loading}
@@ -145,7 +145,7 @@ function TicketTable({
           )}
           {isGroupAdmin && setSelectedHotelId && (
             <ThemedSelect
-              className="w-full md:w-56"
+              className="w-full min-w-0"
               size="sm"
               value={selectedHotelId}
               disabled={loading}
@@ -155,7 +155,7 @@ function TicketTable({
           )}
           {isGroupAdmin && (
             <ThemedSelect
-              className="w-full md:w-48"
+              className="w-full min-w-0"
               size="sm"
               value={activeQueueId}
               disabled={loading}
@@ -170,7 +170,7 @@ function TicketTable({
           )}
           {isGroupAdmin && (
             <ThemedSelect
-              className="w-full md:w-52"
+              className="w-full min-w-0"
               size="sm"
               value={groupAdminOwnerFilter}
               disabled={loading}
@@ -301,16 +301,16 @@ function TicketTable({
       </div>
 
       <div className="hidden overflow-x-auto md:block">
-        <table className="w-full text-left text-sm">
+        <table className="min-w-[58rem] w-full text-left text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-700 dark:text-slate-400">
-              <th className="py-3 font-semibold">{t("queue.ticketNumber")}</th>
-              <th className="font-semibold">{t("queue.issue")}</th>
-              <th className="font-semibold">{t("queue.priority")}</th>
-              <th className="font-semibold">{t("queue.statusLabel")}</th>
-              <th className="font-semibold">{t("queue.assign")}</th>
-              <th className="font-semibold">{t("queue.due")}</th>
-              <th className="font-semibold">{t("queue.action")}</th>
+              <th className="px-3 py-3 font-semibold">{t("queue.ticketNumber")}</th>
+              <th className="px-3 font-semibold">{t("queue.issue")}</th>
+              <th className="px-3 font-semibold">{t("queue.priority")}</th>
+              <th className="px-3 font-semibold">{t("queue.statusLabel")}</th>
+              <th className="px-3 font-semibold">{t("queue.assign")}</th>
+              <th className="px-3 font-semibold">{t("queue.due")}</th>
+              <th className="px-3 font-semibold">{t("queue.action")}</th>
             </tr>
           </thead>
 
@@ -334,12 +334,12 @@ function TicketTable({
                     key={ticket._id}
                     className="border-b last:border-0 dark:border-slate-700"
                   >
-                    <td className="py-4 font-semibold text-blue-700">
+                    <td className="max-w-36 break-words px-3 py-4 font-semibold text-blue-700">
                       {ticket.ticketNumber}
                     </td>
-                    <td className="py-4">
+                    <td className="min-w-0 px-3 py-4">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-semibold text-slate-900 dark:text-white">{ticket.title}</span>
+                        <span className="min-w-0 line-clamp-2 break-words font-semibold text-slate-900 dark:text-white">{ticket.title}</span>
                         {getQueueBadges(ticket, t).map((badge) => (
                           <StatusPill key={badge.label} {...badge} />
                         ))}
@@ -352,7 +352,7 @@ function TicketTable({
                         {ticket.requester ? ` / ${ticket.requester}` : ""}
                       </div>
                     </td>
-                    <td>
+                    <td className="px-3">
                       <div className="flex flex-wrap gap-2">
                         {canManageTickets ? (
                           <ThemedSelect
@@ -373,7 +373,7 @@ function TicketTable({
                         )}
                       </div>
                     </td>
-                    <td>
+                    <td className="px-3">
                       {canUpdateTicketStatus(ticket) ? (
                         <ThemedSelect
                           className="w-36"
@@ -389,7 +389,7 @@ function TicketTable({
                         <Badge text={getStatusLabel(ticket.status, t)} />
                       )}
                     </td>
-                    <td className="text-slate-500 dark:text-slate-400">
+                    <td className="px-3 text-slate-500 dark:text-slate-400">
                       {canManageTickets ? (
                         <ThemedSelect
                           className="w-40"
@@ -414,10 +414,10 @@ function TicketTable({
                         ticket.assignedTo?.name || t("common.unassigned")
                       )}
                     </td>
-                    <td className="text-slate-500 dark:text-slate-400">
+                    <td className="px-3 text-slate-500 dark:text-slate-400">
                       <DueLabel ticket={ticket} />
                     </td>
-                    <td className="space-x-2 whitespace-nowrap">
+                    <td className="space-x-2 whitespace-nowrap px-3">
                       <button
                         type="button"
                         onClick={() => onViewTicket(ticket._id)}
@@ -703,7 +703,7 @@ function GroupAdminMobileControlCard(props) {
   return (
     <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-xs font-black text-blue-700 dark:text-blue-300">{ticket.ticketNumber}</p>
           <h4 className="mt-1 line-clamp-2 break-words text-base font-black text-slate-950 dark:text-white">
             {ticket.title}
@@ -719,7 +719,7 @@ function GroupAdminMobileControlCard(props) {
         </div>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+      <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-3">
         <ThemedSelect
           compactOptions
           size="sm"
@@ -751,7 +751,7 @@ function GroupAdminMobileControlCard(props) {
         <p className="text-sm text-slate-500 dark:text-slate-400">
           {text.dueLabel}: <DueLabel ticket={ticket} />
         </p>
-        <div className="flex gap-2">
+        <div className="flex shrink-0 gap-2">
           <button
             type="button"
             onClick={() => onViewTicket(ticketId)}
@@ -791,7 +791,7 @@ function GroupAdminQueueKpis({ kpis, text }) {
           <p className={`text-2xl font-black text-slate-950 dark:text-white ${item.tone}`}>
             {item.value.toLocaleString()}
           </p>
-          <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">
+          <p className="mt-1 break-words text-xs font-bold text-slate-500 dark:text-slate-400">
             {item.label}
           </p>
         </div>
@@ -946,7 +946,7 @@ function RequesterMeta({ label, value }) {
   return (
     <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-900">
       <dt className="text-[11px] font-bold text-slate-400">{label}</dt>
-      <dd className="mt-1 truncate font-semibold text-slate-800 dark:text-slate-100">
+      <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
         {value}
       </dd>
     </div>
@@ -974,11 +974,11 @@ function TicketMobileCard({
   return (
     <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <p className="text-xs font-bold text-blue-600 dark:text-blue-300">
             {ticket.ticketNumber}
           </p>
-          <h4 className="mt-1 break-words text-base font-black text-slate-950 dark:text-white">
+          <h4 className="mt-1 line-clamp-2 break-words text-base font-black text-slate-950 dark:text-white">
             {ticket.title}
           </h4>
           <p className="mt-1 break-words text-sm text-slate-500 dark:text-slate-400">
@@ -986,7 +986,7 @@ function TicketMobileCard({
             {ticket.requester ? ` / ${ticket.requester}` : ""}
           </p>
         </div>
-        <div className="flex shrink-0 flex-col items-end gap-2">
+        <div className="flex w-32 shrink-0 flex-col items-end gap-2">
           {canManageTickets ? (
             <ThemedSelect
               compactOptions
@@ -1126,7 +1126,7 @@ function PaginationControls({ currentPage, setCurrentPage, totalPages, t }) {
   if (totalPages <= 1) return null;
 
   return (
-    <div className="mt-5 flex items-center justify-between gap-3">
+    <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
       <button
         type="button"
         disabled={currentPage === 1}
@@ -1176,7 +1176,7 @@ function StatusPill({ label, tone = "info" }) {
   }[tone];
 
   return (
-    <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${className}`}>
+    <span className={`inline-flex max-w-full shrink-0 items-center break-words rounded-full px-2.5 py-1 text-[11px] font-bold ring-1 ${className}`}>
       {label}
     </span>
   );

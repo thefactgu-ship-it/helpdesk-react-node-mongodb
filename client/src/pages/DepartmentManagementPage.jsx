@@ -309,14 +309,14 @@ function DepartmentManagementPage({
           </div>
 
           <div className="hidden overflow-x-auto md:block">
-            <table className="w-full text-left text-sm">
+            <table className="min-w-[48rem] w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                  <th className="py-3">Department</th>
-                  <th>Hotel</th>
-                  <th>Sort</th>
-                  <th>Status</th>
-                  <th className="text-right">Actions</th>
+                  <th className="px-3 py-3">Department</th>
+                  <th className="px-3">Hotel</th>
+                  <th className="px-3">Sort</th>
+                  <th className="px-3">Status</th>
+                  <th className="px-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -329,24 +329,24 @@ function DepartmentManagementPage({
                       key={departmentId}
                       className="border-b border-slate-100 last:border-0 dark:border-slate-800"
                     >
-                      <td className="py-4">
-                        <div className="font-bold text-slate-900 dark:text-white">
+                      <td className="max-w-64 px-3 py-4">
+                        <div className="line-clamp-2 break-words font-bold text-slate-900 dark:text-white">
                           {department.name}
                         </div>
-                        <div className="text-xs font-semibold text-blue-700 dark:text-blue-300">
+                        <div className="break-words text-xs font-semibold text-blue-700 dark:text-blue-300">
                           {department.code}
                         </div>
                       </td>
-                      <td className="text-slate-600 dark:text-slate-300">
+                      <td className="max-w-56 break-words px-3 text-slate-600 dark:text-slate-300">
                         {department.hotelId?.code || department.hotelId?.name || "-"}
                       </td>
-                      <td className="text-slate-600 dark:text-slate-300">
+                      <td className="whitespace-nowrap px-3 text-slate-600 dark:text-slate-300">
                         {department.sortOrder ?? 100}
                       </td>
-                      <td>
+                      <td className="px-3">
                         <StatusBadge active={isActive} />
                       </td>
-                      <td>
+                      <td className="px-3">
                         <div className="flex justify-end gap-2">
                           <button
                             type="button"
