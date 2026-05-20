@@ -1,4 +1,5 @@
 import DashboardAnalytics from "../components/DashboardAnalytics";
+import ManagerOperationsDashboard from "../components/ManagerOperationsDashboard";
 import {
   AlertTriangle,
   BarChart3,
@@ -71,6 +72,18 @@ function DashboardPage({
         loading={loading}
         onNavigate={onNavigate}
         selectedHotelId={selectedHotelId}
+        t={t}
+        tickets={tickets}
+      />
+    );
+  }
+
+  if (currentUser?.role === "Manager") {
+    return (
+      <ManagerOperationsDashboard
+        darkMode={darkMode}
+        loading={loading}
+        onNavigate={onNavigate}
         t={t}
         tickets={tickets}
       />
