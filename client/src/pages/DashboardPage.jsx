@@ -1,3 +1,4 @@
+import AgentWorkDashboard from "../components/AgentWorkDashboard";
 import DashboardAnalytics from "../components/DashboardAnalytics";
 import ManagerOperationsDashboard from "../components/ManagerOperationsDashboard";
 import {
@@ -82,6 +83,18 @@ function DashboardPage({
     return (
       <ManagerOperationsDashboard
         darkMode={darkMode}
+        loading={loading}
+        onNavigate={onNavigate}
+        t={t}
+        tickets={tickets}
+      />
+    );
+  }
+
+  if (currentUser?.role === "Agent") {
+    return (
+      <AgentWorkDashboard
+        currentUser={currentUser}
         loading={loading}
         onNavigate={onNavigate}
         t={t}
