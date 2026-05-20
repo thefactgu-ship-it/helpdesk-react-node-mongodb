@@ -181,7 +181,7 @@ function ManagerOperationsDashboard({
 
       {isAnalyticsView && (
         <section className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600 dark:text-blue-300">
                 {text.analyticsEyebrow}
@@ -190,13 +190,6 @@ function ManagerOperationsDashboard({
                 {text.analyticsTitle}
               </h3>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveView("operations")}
-              className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-            >
-              {text.operationsView}
-            </button>
           </div>
           <DashboardAnalytics darkMode={darkMode} tickets={tickets} />
         </section>
