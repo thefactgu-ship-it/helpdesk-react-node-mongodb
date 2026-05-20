@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import ActionMenu from "../components/ActionMenu";
 import ConfirmModal from "../components/ConfirmModal";
+import Drawer from "../components/Drawer";
 import {
   createHotel,
   deactivateHotel,
@@ -21,6 +23,8 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const [formDrawerOpen, setFormDrawerOpen] = useState(false);
+  const [openActionHotelId, setOpenActionHotelId] = useState(null);
   const isEditing = Boolean(editingHotelId);
   const activeHotels = useMemo(
     () => hotels.filter((hotel) => hotel.active !== false),
@@ -62,6 +66,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
 
       setForm(emptyForm);
       setEditingHotelId(null);
+      setFormDrawerOpen(false);
       await onHotelsChange();
     } catch (error) {
       console.error("Failed to save hotel", error);
@@ -80,11 +85,20 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
       timezone: hotel.timezone || "Asia/Bangkok",
       active: hotel.active !== false,
     });
+    setOpenActionHotelId(null);
+    setFormDrawerOpen(true);
   };
 
   const cancelEdit = () => {
     setEditingHotelId(null);
     setForm(emptyForm);
+    setFormDrawerOpen(false);
+  };
+
+  const openCreateDrawer = () => {
+    setEditingHotelId(null);
+    setForm(emptyForm);
+    setFormDrawerOpen(true);
   };
 
   const confirmDeactivate = async () => {
@@ -129,29 +143,35 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
         </p>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6 xl:col-span-5">
-          <div className="mb-5 flex items-start justify-between gap-4">
-            <div>
-              <h4 className="text-lg font-black text-slate-950 dark:text-white">
-                {isEditing ? "Edit Hotel" : "Add Hotel"}
-              </h4>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Hotel code is used in selectors and reporting.
-              </p>
-            </div>
-            {isEditing && (
-              <button
-                type="button"
-                onClick={cancelEdit}
-                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
-              >
-                Cancel
-              </button>
-            )}
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h4 className="text-lg font-black text-slate-950 dark:text-white">
+              Hotel setup
+            </h4>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Add or update hotel records from a focused drawer.
+            </p>
           </div>
+          <button
+            type="button"
+            onClick={openCreateDrawer}
+            className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700"
+          >
+            Add Hotel
+          </button>
+        </div>
+      </section>
 
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
+      <Drawer
+        eyebrow="System setup"
+        onClose={cancelEdit}
+        open={formDrawerOpen}
+        subtitle="Hotel code is used in selectors and reporting."
+        title={isEditing ? "Edit Hotel" : "Add Hotel"}
+        widthClass="max-w-2xl"
+      >
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Hotel Name">
               <input
                 value={form.name}
@@ -206,14 +226,14 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400"
+              className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400 sm:col-span-2"
             >
               {saving ? "Saving..." : isEditing ? "Save Hotel" : "Create Hotel"}
             </button>
           </form>
-        </div>
+      </Drawer>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6 xl:col-span-7">
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
           <div className="mb-5">
             <h4 className="text-lg font-black text-slate-950 dark:text-white">
               Hotels
@@ -251,33 +271,29 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
                     <MobileMeta label="Timezone" value={hotel.timezone || "-"} />
                   </dl>
 
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => startEdit(hotel)}
-                      className="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                    >
-                      Edit
-                    </button>
-                    {isActive && (
-                      <button
-                        type="button"
-                        disabled={deletingId === hotelId}
-                        onClick={() => setPendingDeleteId(hotelId)}
-                        className="rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
-                      >
-                        {deletingId === hotelId ? "Saving..." : "Deactivate"}
-                      </button>
-                    )}
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      {hotel.region || "-"} / {hotel.timezone || "-"}
+                    </p>
+                    <div className="relative" onClick={(event) => event.stopPropagation()}>
+                      <HotelActions
+                        deleting={deletingId === hotelId}
+                        isActive={isActive}
+                        onDeactivate={() => setPendingDeleteId(hotelId)}
+                        onEdit={() => startEdit(hotel)}
+                        open={openActionHotelId === hotelId}
+                        onToggle={() =>
+                          setOpenActionHotelId(openActionHotelId === hotelId ? null : hotelId)
+                        }
+                      />
+                    </div>
                   </div>
                 </article>
               );
             })}
 
             {!hotels.length && (
-              <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500 dark:border-slate-700">
-                No hotels found
-              </div>
+              <SystemEmptyState title="No hotels found" description="Add the first hotel to enable scoped helpdesk data, users, reports, and assets." />
             )}
           </div>
 
@@ -321,23 +337,18 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
                       </td>
                       <td className="px-3">
                         <div className="flex justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(hotel)}
-                            className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-                          >
-                            Edit
-                          </button>
-                          {isActive && (
-                            <button
-                              type="button"
-                              disabled={deletingId === hotelId}
-                              onClick={() => setPendingDeleteId(hotelId)}
-                              className="rounded-xl bg-rose-500 px-3 py-2 text-xs font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
-                            >
-                              {deletingId === hotelId ? "Saving..." : "Deactivate"}
-                            </button>
-                          )}
+                          <div className="relative">
+                            <HotelActions
+                              deleting={deletingId === hotelId}
+                              isActive={isActive}
+                              onDeactivate={() => setPendingDeleteId(hotelId)}
+                              onEdit={() => startEdit(hotel)}
+                              open={openActionHotelId === hotelId}
+                              onToggle={() =>
+                                setOpenActionHotelId(openActionHotelId === hotelId ? null : hotelId)
+                              }
+                            />
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -346,15 +357,14 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
 
                 {!hotels.length && (
                   <tr>
-                    <td colSpan="5" className="py-8 text-center text-slate-500">
-                      No hotels found
+                    <td colSpan="5" className="py-8">
+                      <SystemEmptyState title="No hotels found" description="Add the first hotel to enable scoped helpdesk data, users, reports, and assets." />
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-        </div>
       </section>
     </div>
   );
@@ -397,6 +407,38 @@ function MobileMeta({ label, value }) {
       <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
         {value}
       </dd>
+    </div>
+  );
+}
+
+function HotelActions({ deleting, isActive, onDeactivate, onEdit, onToggle, open }) {
+  return (
+    <ActionMenu
+      open={open}
+      onToggle={onToggle}
+      actions={[
+        { label: "Edit", onClick: onEdit },
+        isActive && {
+          label: deleting ? "Saving..." : "Deactivate",
+          danger: true,
+          disabled: deleting,
+          onClick: onDeactivate,
+        },
+      ]}
+    />
+  );
+}
+
+function SystemEmptyState({ description, title }) {
+  return (
+    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900">
+      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-black text-blue-600 shadow-sm dark:bg-slate-950 dark:text-blue-300">
+        0
+      </div>
+      <p className="mt-3 font-bold text-slate-800 dark:text-slate-100">{title}</p>
+      <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
+        {description}
+      </p>
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import toast from "react-hot-toast";
+import ActionMenu from "../components/ActionMenu";
 import ConfirmModal from "../components/ConfirmModal";
+import Drawer from "../components/Drawer";
 import ThemedSelect from "../components/ThemedSelect";
 import {
   createDepartment,
@@ -33,6 +35,8 @@ function DepartmentManagementPage({
   const [deletingId, setDeletingId] = useState(null);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [formDrawerOpen, setFormDrawerOpen] = useState(false);
+  const [openActionDepartmentId, setOpenActionDepartmentId] = useState(null);
   const isEditing = Boolean(editingDepartmentId);
   const activeDepartments = useMemo(
     () => departments.filter((department) => department.active !== false),
@@ -77,6 +81,7 @@ function DepartmentManagementPage({
 
       setForm({ ...emptyForm, hotelId: selectedHotelId === "all" ? "" : selectedHotelId });
       setEditingDepartmentId(null);
+      setFormDrawerOpen(false);
       setCurrentPage(1);
       await onDepartmentsChange();
     } catch (error) {
@@ -96,11 +101,20 @@ function DepartmentManagementPage({
       sortOrder: department.sortOrder || 100,
       active: department.active !== false,
     });
+    setOpenActionDepartmentId(null);
+    setFormDrawerOpen(true);
   };
 
   const cancelEdit = () => {
     setEditingDepartmentId(null);
     setForm({ ...emptyForm, hotelId: selectedHotelId === "all" ? "" : selectedHotelId });
+    setFormDrawerOpen(false);
+  };
+
+  const openCreateDrawer = () => {
+    setEditingDepartmentId(null);
+    setForm({ ...emptyForm, hotelId: selectedHotelId === "all" ? "" : selectedHotelId });
+    setFormDrawerOpen(true);
   };
 
   const confirmDeactivate = async () => {
@@ -148,29 +162,35 @@ function DepartmentManagementPage({
         </p>
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6 xl:col-span-5">
-          <div className="mb-5 flex items-start justify-between gap-4">
-            <div>
-              <h4 className="text-lg font-black text-slate-950 dark:text-white">
-                {isEditing ? "Edit Department" : "Add Department"}
-              </h4>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Department code keeps reporting and filters consistent.
-              </p>
-            </div>
-            {isEditing && (
-              <button
-                type="button"
-                onClick={cancelEdit}
-                className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
-              >
-                Cancel
-              </button>
-            )}
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h4 className="text-lg font-black text-slate-950 dark:text-white">
+              Department setup
+            </h4>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Add or update hotel-scoped departments from a focused drawer.
+            </p>
           </div>
+          <button
+            type="button"
+            onClick={openCreateDrawer}
+            className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700"
+          >
+            Add Department
+          </button>
+        </div>
+      </section>
 
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4">
+      <Drawer
+        eyebrow="System setup"
+        onClose={cancelEdit}
+        open={formDrawerOpen}
+        subtitle="Department code keeps reporting and filters consistent."
+        title={isEditing ? "Edit Department" : "Add Department"}
+        widthClass="max-w-2xl"
+      >
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Department Name">
               <input
                 value={form.name}
@@ -234,14 +254,14 @@ function DepartmentManagementPage({
             <button
               type="submit"
               disabled={saving}
-              className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400"
+              className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400 sm:col-span-2"
             >
               {saving ? "Saving..." : isEditing ? "Save Department" : "Create Department"}
             </button>
           </form>
-        </div>
+      </Drawer>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6 xl:col-span-7">
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
           <div className="mb-5">
             <h4 className="text-lg font-black text-slate-950 dark:text-white">
               Departments
@@ -278,33 +298,29 @@ function DepartmentManagementPage({
                     <MobileMeta label="Sort" value={department.sortOrder ?? 100} />
                   </dl>
 
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => startEdit(department)}
-                      className="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                    >
-                      Edit
-                    </button>
-                    {isActive && (
-                      <button
-                        type="button"
-                        disabled={deletingId === departmentId}
-                        onClick={() => setPendingDeleteId(departmentId)}
-                        className="rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
-                      >
-                        {deletingId === departmentId ? "Saving..." : "Deactivate"}
-                      </button>
-                    )}
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Sort {department.sortOrder ?? 100}
+                    </p>
+                    <div className="relative" onClick={(event) => event.stopPropagation()}>
+                      <DepartmentActions
+                        deleting={deletingId === departmentId}
+                        isActive={isActive}
+                        onDeactivate={() => setPendingDeleteId(departmentId)}
+                        onEdit={() => startEdit(department)}
+                        open={openActionDepartmentId === departmentId}
+                        onToggle={() =>
+                          setOpenActionDepartmentId(openActionDepartmentId === departmentId ? null : departmentId)
+                        }
+                      />
+                    </div>
                   </div>
                 </article>
               );
             })}
 
             {!departments.length && (
-              <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500 dark:border-slate-700">
-                No departments found
-              </div>
+              <SystemEmptyState title="No departments found" description="Add departments so requesters and staff can route tickets cleanly." />
             )}
           </div>
 
@@ -348,23 +364,18 @@ function DepartmentManagementPage({
                       </td>
                       <td className="px-3">
                         <div className="flex justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => startEdit(department)}
-                            className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-                          >
-                            Edit
-                          </button>
-                          {isActive && (
-                            <button
-                              type="button"
-                              disabled={deletingId === departmentId}
-                              onClick={() => setPendingDeleteId(departmentId)}
-                              className="rounded-xl bg-rose-500 px-3 py-2 text-xs font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
-                            >
-                              {deletingId === departmentId ? "Saving..." : "Deactivate"}
-                            </button>
-                          )}
+                          <div className="relative">
+                            <DepartmentActions
+                              deleting={deletingId === departmentId}
+                              isActive={isActive}
+                              onDeactivate={() => setPendingDeleteId(departmentId)}
+                              onEdit={() => startEdit(department)}
+                              open={openActionDepartmentId === departmentId}
+                              onToggle={() =>
+                                setOpenActionDepartmentId(openActionDepartmentId === departmentId ? null : departmentId)
+                              }
+                            />
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -373,8 +384,8 @@ function DepartmentManagementPage({
 
                 {!departments.length && (
                   <tr>
-                    <td colSpan="5" className="py-8 text-center text-slate-500">
-                      No departments found
+                    <td colSpan="5" className="py-8">
+                      <SystemEmptyState title="No departments found" description="Add departments so requesters and staff can route tickets cleanly." />
                     </td>
                   </tr>
                 )}
@@ -387,7 +398,6 @@ function DepartmentManagementPage({
             onPageChange={setCurrentPage}
             totalPages={totalPages}
           />
-        </div>
       </section>
     </div>
   );
@@ -430,6 +440,38 @@ function MobileMeta({ label, value }) {
       <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
         {value}
       </dd>
+    </div>
+  );
+}
+
+function DepartmentActions({ deleting, isActive, onDeactivate, onEdit, onToggle, open }) {
+  return (
+    <ActionMenu
+      open={open}
+      onToggle={onToggle}
+      actions={[
+        { label: "Edit", onClick: onEdit },
+        isActive && {
+          label: deleting ? "Saving..." : "Deactivate",
+          danger: true,
+          disabled: deleting,
+          onClick: onDeactivate,
+        },
+      ]}
+    />
+  );
+}
+
+function SystemEmptyState({ description, title }) {
+  return (
+    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900">
+      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-black text-blue-600 shadow-sm dark:bg-slate-950 dark:text-blue-300">
+        0
+      </div>
+      <p className="mt-3 font-bold text-slate-800 dark:text-slate-100">{title}</p>
+      <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
+        {description}
+      </p>
     </div>
   );
 }

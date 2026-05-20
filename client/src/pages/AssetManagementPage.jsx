@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
+import ActionMenu from "../components/ActionMenu";
 import ConfirmModal from "../components/ConfirmModal";
+import Drawer from "../components/Drawer";
 import ThemedSelect from "../components/ThemedSelect";
 import {
   createAsset,
@@ -44,6 +45,8 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
   const [deletingId, setDeletingId] = useState(null);
   const [deleteAssetId, setDeleteAssetId] = useState(null);
   const [selectedAsset, setSelectedAsset] = useState(null);
+  const [formDrawerOpen, setFormDrawerOpen] = useState(false);
+  const [openActionAssetId, setOpenActionAssetId] = useState(null);
   const isAdmin = ["GroupAdmin", "Admin", "HotelAdmin"].includes(currentUser?.role);
   const scopedParams = useMemo(
     () => (hotelId && hotelId !== "all" ? { hotelId } : undefined),
@@ -102,6 +105,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
       await createAsset(token, buildPayload(form), scopedParams);
       toast.success("Asset created");
       setForm(emptyAssetForm);
+      setFormDrawerOpen(false);
       await fetchAssets();
     } catch (error) {
       console.error("Failed to create asset", error);
@@ -134,6 +138,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
   };
 
   const openAssetDetail = (asset) => {
+    setOpenActionAssetId(null);
     setSelectedAsset(asset);
     setEditForm(assetToForm(asset));
   };
@@ -166,6 +171,16 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
     } finally {
       setUpdating(false);
     }
+  };
+
+  const openCreateDrawer = () => {
+    setForm(emptyAssetForm);
+    setFormDrawerOpen(true);
+  };
+
+  const closeCreateDrawer = () => {
+    setForm(emptyAssetForm);
+    setFormDrawerOpen(false);
   };
 
   return (
@@ -208,16 +223,36 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
         )}
       </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6 xl:col-span-5">
-          <h4 className="text-lg font-black text-slate-950 dark:text-white">
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h4 className="text-lg font-black text-slate-950 dark:text-white">
+              Asset setup
+            </h4>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Add new equipment from a focused drawer; review and edit life cycle details from the asset list.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={openCreateDrawer}
+            disabled={!isAdmin}
+            className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
             Add Asset
-          </h4>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Life cycle is used to estimate whether an asset is healthy, should be monitored, repaired, or replaced.
-          </p>
+          </button>
+        </div>
+      </section>
 
-          <form onSubmit={handleSubmit} className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
+      <Drawer
+        eyebrow="System setup"
+        onClose={closeCreateDrawer}
+        open={formDrawerOpen}
+        subtitle="Life cycle helps plan repair, spare, and replacement work."
+        title="Add Asset"
+        widthClass="max-w-3xl"
+      >
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Field label="Asset Name">
               <input
                 value={form.assetName}
@@ -310,7 +345,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
               />
             </Field>
 
-            <Field className="md:col-span-2 xl:col-span-1" label="Life Cycle Notes">
+            <Field className="md:col-span-2" label="Life Cycle Notes">
               <textarea
                 rows="3"
                 value={form.lifeCycle.notes}
@@ -326,14 +361,14 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
             <button
               type="submit"
               disabled={saving || !isAdmin}
-              className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400 md:col-span-2 xl:col-span-1"
+              className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400 md:col-span-2"
             >
               {saving ? "Saving..." : "Create Asset"}
             </button>
           </form>
-        </div>
+      </Drawer>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6 xl:col-span-7">
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
           <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <h4 className="text-lg font-black text-slate-950 dark:text-white">
@@ -380,33 +415,29 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
                     </div>
                   </dl>
 
-                  <div className="mt-4 grid grid-cols-2 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => openAssetDetail(asset)}
-                      className="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
-                    >
-                      View
-                    </button>
-                    {isAdmin && (
-                      <button
-                        type="button"
-                        disabled={deletingId === assetId}
-                        onClick={() => requestDelete(assetId)}
-                        className="rounded-xl bg-rose-500 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
-                      >
-                        {deletingId === assetId ? "Deleting..." : "Delete"}
-                      </button>
-                    )}
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      {asset.owner || "No owner"}
+                    </p>
+                    <div className="relative" onClick={(event) => event.stopPropagation()}>
+                      <AssetActions
+                        deleting={deletingId === assetId}
+                        isAdmin={isAdmin}
+                        onDelete={() => requestDelete(assetId)}
+                        onView={() => openAssetDetail(asset)}
+                        open={openActionAssetId === assetId}
+                        onToggle={() =>
+                          setOpenActionAssetId(openActionAssetId === assetId ? null : assetId)
+                        }
+                      />
+                    </div>
                   </div>
                 </article>
               );
             })}
 
             {!loading && !assets.length && (
-              <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500 dark:border-slate-700">
-                No assets found
-              </div>
+              <SystemEmptyState title="No assets found" description="Add the first asset to start tracking ownership, status, and life cycle." />
             )}
           </div>
 
@@ -458,23 +489,18 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
                       </td>
                       <td className="px-3 text-right">
                         <div className="flex justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => openAssetDetail(asset)}
-                            className="rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-                          >
-                            View
-                          </button>
-                          {isAdmin && (
-                            <button
-                              type="button"
-                              disabled={deletingId === assetId}
-                              onClick={() => requestDelete(assetId)}
-                              className="rounded-xl bg-rose-500 px-3 py-2 text-xs font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
-                            >
-                              {deletingId === assetId ? "Deleting..." : "Delete"}
-                            </button>
-                          )}
+                          <div className="relative">
+                            <AssetActions
+                              deleting={deletingId === assetId}
+                              isAdmin={isAdmin}
+                              onDelete={() => requestDelete(assetId)}
+                              onView={() => openAssetDetail(asset)}
+                              open={openActionAssetId === assetId}
+                              onToggle={() =>
+                                setOpenActionAssetId(openActionAssetId === assetId ? null : assetId)
+                              }
+                            />
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -483,15 +509,14 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
 
                 {!loading && !assets.length && (
                   <tr>
-                    <td colSpan="6" className="py-8 text-center text-slate-500">
-                      No assets found
+                    <td colSpan="6" className="py-8">
+                      <SystemEmptyState title="No assets found" description="Add the first asset to start tracking ownership, status, and life cycle." />
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-        </div>
       </section>
     </div>
   );
@@ -509,60 +534,17 @@ function AssetDetailModal({
   onSubmit,
   updating,
 }) {
-  useEffect(() => {
-    if (!asset) return undefined;
-
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [asset, onClose]);
-
   if (!asset) return null;
 
-  return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-3 pb-3 pt-16 backdrop-blur-sm sm:items-center sm:py-4">
-      <button
-        type="button"
-        aria-label="Close asset details"
-        className="absolute inset-0 h-full w-full cursor-default"
-        onClick={onClose}
-      />
-      <div
-        aria-labelledby="asset-detail-title"
-        aria-modal="true"
-        className="relative max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-t-2xl bg-white p-5 shadow-2xl dark:bg-slate-900 sm:rounded-2xl"
-        role="dialog"
-      >
-        <div className="mb-5 flex items-start justify-between gap-4">
-          <div>
-            <h2 id="asset-detail-title" className="text-xl font-black text-slate-950 dark:text-white">
-              Asset Details
-            </h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {asset.serialNumber} / {asset.assetType} / {asset.department}
-            </p>
-          </div>
-          <button
-            type="button"
-            aria-label="Close asset details"
-            onClick={onClose}
-            className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-          >
-            Close
-          </button>
-        </div>
-
+  return (
+    <Drawer
+      eyebrow="Asset details"
+      onClose={onClose}
+      open={Boolean(asset)}
+      subtitle={`${asset.serialNumber} / ${asset.assetType} / ${asset.department}`}
+      title={asset.assetName}
+      widthClass="max-w-4xl"
+    >
         <div className="grid gap-4 lg:grid-cols-2">
           <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
             <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
@@ -709,9 +691,7 @@ function AssetDetailModal({
             </form>
           </section>
         </div>
-      </div>
-    </div>,
-    document.body,
+    </Drawer>
   );
 }
 
@@ -812,6 +792,38 @@ function MobileMeta({ label, value }) {
       <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
         {value}
       </dd>
+    </div>
+  );
+}
+
+function AssetActions({ deleting, isAdmin, onDelete, onToggle, onView, open }) {
+  return (
+    <ActionMenu
+      open={open}
+      onToggle={onToggle}
+      actions={[
+        { label: "View / Edit", onClick: onView },
+        isAdmin && {
+          label: deleting ? "Deleting..." : "Delete",
+          danger: true,
+          disabled: deleting,
+          onClick: onDelete,
+        },
+      ]}
+    />
+  );
+}
+
+function SystemEmptyState({ description, title }) {
+  return (
+    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900">
+      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-black text-blue-600 shadow-sm dark:bg-slate-950 dark:text-blue-300">
+        0
+      </div>
+      <p className="mt-3 font-bold text-slate-800 dark:text-slate-100">{title}</p>
+      <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
+        {description}
+      </p>
     </div>
   );
 }
