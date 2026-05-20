@@ -17,7 +17,7 @@ const emptyForm = {
   active: true,
 };
 
-function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
+function HotelManagementPage({ hotels = [], onHotelsChange, t = (key) => key, token }) {
   const [form, setForm] = useState(emptyForm);
   const [editingHotelId, setEditingHotelId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -121,12 +121,12 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
   return (
     <div className="space-y-5">
       <ConfirmModal
-        confirmLabel="Deactivate"
+        confirmLabel={t("settings.actions.deactivate")}
         open={!!pendingDeleteId}
-        title="Deactivate Hotel"
-        message={`Deactivate ${
-          pendingDeleteHotel?.name || "this hotel"
-        }? Existing records stay safe, but users should stop selecting it for new work.`}
+        title={t("settings.hotel.deactivateTitle")}
+        message={t("settings.hotel.deactivateMessage", {
+          name: pendingDeleteHotel?.name || "this hotel",
+        })}
         onCancel={() => setPendingDeleteId(null)}
         onConfirm={confirmDeactivate}
       />
@@ -147,10 +147,10 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h4 className="text-lg font-black text-slate-950 dark:text-white">
-              Hotel setup
+              {t("settings.hotel.setupTitle")}
             </h4>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Add or update hotel records from a focused drawer.
+              {t("settings.hotel.setupDescription")}
             </p>
           </div>
           <button
@@ -158,21 +158,21 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
             onClick={openCreateDrawer}
             className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700"
           >
-            Add Hotel
+            {t("settings.hotel.add")}
           </button>
         </div>
       </section>
 
       <Drawer
-        eyebrow="System setup"
+        eyebrow={t("settings.eyebrow")}
         onClose={cancelEdit}
         open={formDrawerOpen}
-        subtitle="Hotel code is used in selectors and reporting."
-        title={isEditing ? "Edit Hotel" : "Add Hotel"}
+        subtitle={t("settings.hotel.drawerHint")}
+        title={isEditing ? t("settings.hotel.edit") : t("settings.hotel.add")}
         widthClass="max-w-2xl"
       >
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Hotel Name">
+            <Field label={t("settings.hotel.name")}>
               <input
                 value={form.name}
                 disabled={saving}
@@ -182,7 +182,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
               />
             </Field>
 
-            <Field label="Code">
+            <Field label={t("settings.hotel.code")}>
               <input
                 value={form.code}
                 disabled={saving || isEditing}
@@ -192,7 +192,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
               />
             </Field>
 
-            <Field label="Region">
+            <Field label={t("settings.hotel.region")}>
               <input
                 value={form.region}
                 disabled={saving}
@@ -202,7 +202,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
               />
             </Field>
 
-            <Field label="Timezone">
+            <Field label={t("settings.hotel.timezone")}>
               <input
                 value={form.timezone}
                 disabled={saving}
@@ -220,7 +220,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
                 onChange={(event) => setForm({ ...form, active: event.target.checked })}
                 className="h-4 w-4 accent-blue-600"
               />
-              Active hotel
+              {t("settings.hotel.activeToggle")}
             </label>
 
             <button
@@ -228,7 +228,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
               disabled={saving}
               className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400 sm:col-span-2"
             >
-              {saving ? "Saving..." : isEditing ? "Save Hotel" : "Create Hotel"}
+              {saving ? t("settings.actions.saving") : isEditing ? t("settings.hotel.save") : t("settings.hotel.create")}
             </button>
           </form>
       </Drawer>
@@ -236,11 +236,11 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
           <div className="mb-5">
             <h4 className="text-lg font-black text-slate-950 dark:text-white">
-              Hotels
+              {t("settings.hotel.listTitle")}
             </h4>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              {activeHotels.length} active hotels
-              {inactiveHotels.length ? ` / ${inactiveHotels.length} inactive` : ""}
+              {t("settings.hotel.activeSummary", { active: activeHotels.length })}
+              {inactiveHotels.length ? t("settings.hotel.inactiveSummary", { inactive: inactiveHotels.length }) : ""}
             </p>
           </div>
 
@@ -263,7 +263,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
                         {hotel.code}
                       </p>
                     </div>
-                    <StatusBadge active={isActive} />
+                    <StatusBadge active={isActive} t={t} />
                   </div>
 
                   <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
@@ -285,6 +285,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
                         onToggle={() =>
                           setOpenActionHotelId(openActionHotelId === hotelId ? null : hotelId)
                         }
+                        t={t}
                       />
                     </div>
                   </div>
@@ -293,7 +294,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
             })}
 
             {!hotels.length && (
-              <SystemEmptyState title="No hotels found" description="Add the first hotel to enable scoped helpdesk data, users, reports, and assets." />
+              <SystemEmptyState title={t("settings.hotel.emptyTitle")} description={t("settings.hotel.emptyDescription")} />
             )}
           </div>
 
@@ -333,7 +334,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
                         {hotel.timezone || "-"}
                       </td>
                       <td className="px-3">
-                        <StatusBadge active={isActive} />
+                        <StatusBadge active={isActive} t={t} />
                       </td>
                       <td className="px-3">
                         <div className="flex justify-end gap-2">
@@ -347,6 +348,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
                               onToggle={() =>
                                 setOpenActionHotelId(openActionHotelId === hotelId ? null : hotelId)
                               }
+                              t={t}
                             />
                           </div>
                         </div>
@@ -358,7 +360,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, token }) {
                 {!hotels.length && (
                   <tr>
                     <td colSpan="5" className="py-8">
-                      <SystemEmptyState title="No hotels found" description="Add the first hotel to enable scoped helpdesk data, users, reports, and assets." />
+                      <SystemEmptyState title={t("settings.hotel.emptyTitle")} description={t("settings.hotel.emptyDescription")} />
                     </td>
                   </tr>
                 )}
@@ -384,7 +386,7 @@ function Field({ children, label }) {
   );
 }
 
-function StatusBadge({ active }) {
+function StatusBadge({ active, t = (key) => key }) {
   return (
     <span
       className={`rounded-full px-3 py-1 text-xs font-bold ${
@@ -393,7 +395,7 @@ function StatusBadge({ active }) {
           : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
       }`}
     >
-      {active ? "Active" : "Inactive"}
+      {active ? t("settings.active") : t("settings.inactive")}
     </span>
   );
 }
@@ -411,15 +413,15 @@ function MobileMeta({ label, value }) {
   );
 }
 
-function HotelActions({ deleting, isActive, onDeactivate, onEdit, onToggle, open }) {
+function HotelActions({ deleting, isActive, onDeactivate, onEdit, onToggle, open, t }) {
   return (
     <ActionMenu
       open={open}
       onToggle={onToggle}
       actions={[
-        { label: "Edit", onClick: onEdit },
+        { label: t("settings.actions.edit"), onClick: onEdit },
         isActive && {
-          label: deleting ? "Saving..." : "Deactivate",
+          label: deleting ? t("settings.actions.saving") : t("settings.actions.deactivate"),
           danger: true,
           disabled: deleting,
           onClick: onDeactivate,

@@ -35,7 +35,7 @@ const departmentOptions = departments.map((department) => ({ value: department, 
 const statusOptions = statuses.map((status) => ({ value: status, label: status, prefix: status.slice(0, 2).toUpperCase() }));
 const conditionOptions = conditions.map((condition) => ({ value: condition, label: condition, prefix: condition.slice(0, 2).toUpperCase() }));
 
-function AssetManagementPage({ currentUser, hotelId = "all", token }) {
+function AssetManagementPage({ currentUser, hotelId = "all", t = (key) => key, token }) {
   const [assets, setAssets] = useState([]);
   const [form, setForm] = useState(emptyAssetForm);
   const [editForm, setEditForm] = useState(emptyAssetForm);
@@ -203,6 +203,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
         onClose={closeAssetDetail}
         onEditFormChange={setEditForm}
         onSubmit={handleUpdate}
+        t={t}
         updating={updating}
       />
 
@@ -227,10 +228,10 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h4 className="text-lg font-black text-slate-950 dark:text-white">
-              Asset setup
+              {t("settings.asset.setupTitle")}
             </h4>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Add new equipment from a focused drawer; review and edit life cycle details from the asset list.
+              {t("settings.asset.setupDescription")}
             </p>
           </div>
           <button
@@ -239,21 +240,21 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
             disabled={!isAdmin}
             className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Add Asset
+            {t("settings.asset.add")}
           </button>
         </div>
       </section>
 
       <Drawer
-        eyebrow="System setup"
+        eyebrow={t("settings.eyebrow")}
         onClose={closeCreateDrawer}
         open={formDrawerOpen}
-        subtitle="Life cycle helps plan repair, spare, and replacement work."
-        title="Add Asset"
+        subtitle={t("settings.asset.drawerHint")}
+        title={t("settings.asset.add")}
         widthClass="max-w-3xl"
       >
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Field label="Asset Name">
+            <Field label={t("settings.asset.name")}>
               <input
                 value={form.assetName}
                 disabled={saving || !isAdmin}
@@ -263,7 +264,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
               />
             </Field>
 
-            <Field label="Asset Type">
+            <Field label={t("settings.asset.type")}>
               <ThemedSelect
                 value={form.assetType}
                 disabled={saving || !isAdmin}
@@ -272,7 +273,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
               />
             </Field>
 
-            <Field label="Serial Number">
+            <Field label={t("settings.asset.serial")}>
               <input
                 value={form.serialNumber}
                 disabled={saving || !isAdmin}
@@ -282,7 +283,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
               />
             </Field>
 
-            <Field label="Owner">
+            <Field label={t("settings.asset.owner")}>
               <input
                 value={form.owner}
                 disabled={saving || !isAdmin}
@@ -292,7 +293,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
               />
             </Field>
 
-            <Field label="Department">
+            <Field label={t("settings.asset.department")}>
               <ThemedSelect
                 value={form.department}
                 disabled={saving || !isAdmin}
@@ -301,7 +302,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
               />
             </Field>
 
-            <Field label="Status">
+            <Field label={t("settings.asset.status")}>
               <ThemedSelect
                 value={form.status}
                 disabled={saving || !isAdmin}
@@ -310,7 +311,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
               />
             </Field>
 
-            <Field label="Purchase Date">
+            <Field label={t("settings.asset.purchaseDate")}>
               <input
                 type="date"
                 value={form.lifeCycle.purchaseDate}
@@ -322,7 +323,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
               />
             </Field>
 
-            <Field label="Expected Life (months)">
+            <Field label={t("settings.asset.expectedLifeMonths")}>
               <input
                 type="number"
                 min="1"
@@ -336,7 +337,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
               />
             </Field>
 
-            <Field label="Condition">
+            <Field label={t("settings.asset.condition")}>
               <ThemedSelect
                 value={form.lifeCycle.condition}
                 disabled={saving || !isAdmin}
@@ -345,7 +346,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
               />
             </Field>
 
-            <Field className="md:col-span-2" label="Life Cycle Notes">
+            <Field className="md:col-span-2" label={t("settings.asset.notes")}>
               <textarea
                 rows="3"
                 value={form.lifeCycle.notes}
@@ -363,7 +364,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
               disabled={saving || !isAdmin}
               className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400 md:col-span-2"
             >
-              {saving ? "Saving..." : "Create Asset"}
+              {saving ? t("settings.actions.saving") : t("settings.asset.create")}
             </button>
           </form>
       </Drawer>
@@ -372,10 +373,10 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
           <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <h4 className="text-lg font-black text-slate-950 dark:text-white">
-                Asset List
+                {t("settings.asset.listTitle")}
               </h4>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                {loading ? "Loading assets..." : `${assets.length} assets in inventory`}
+                {loading ? t("settings.asset.loading") : t("settings.asset.inventorySummary", { count: assets.length })}
               </p>
             </div>
           </div>
@@ -402,12 +403,12 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
                   </div>
 
                   <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
-                    <MobileMeta label="Serial" value={asset.serialNumber} />
-                    <MobileMeta label="Owner" value={asset.owner || "-"} />
-                    <MobileMeta label="Age" value={formatAge(asset.lifeCycle?.ageMonths)} />
+                    <MobileMeta label={t("settings.asset.serial")} value={asset.serialNumber} />
+                    <MobileMeta label={t("settings.asset.owner")} value={asset.owner || "-"} />
+                    <MobileMeta label={t("settings.asset.age")} value={formatAge(asset.lifeCycle?.ageMonths, t)} />
                     <div className="rounded-lg bg-white p-3 dark:bg-slate-950">
                       <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
-                        Life Cycle
+                        {t("settings.asset.lifecycle")}
                       </dt>
                       <dd className="mt-1">
                         <RecommendationBadge value={asset.lifeCycle?.recommendation} />
@@ -417,7 +418,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
 
                   <div className="mt-4 flex items-center justify-between gap-3">
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                      {asset.owner || "No owner"}
+                      {asset.owner || t("settings.asset.noOwner")}
                     </p>
                     <div className="relative" onClick={(event) => event.stopPropagation()}>
                       <AssetActions
@@ -429,6 +430,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
                         onToggle={() =>
                           setOpenActionAssetId(openActionAssetId === assetId ? null : assetId)
                         }
+                        t={t}
                       />
                     </div>
                   </div>
@@ -437,7 +439,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
             })}
 
             {!loading && !assets.length && (
-              <SystemEmptyState title="No assets found" description="Add the first asset to start tracking ownership, status, and life cycle." />
+              <SystemEmptyState title={t("settings.asset.emptyTitle")} description={t("settings.asset.emptyDescription")} />
             )}
           </div>
 
@@ -448,7 +450,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
                   <th className="px-3 py-3">Asset</th>
                   <th className="px-3">Serial</th>
                   <th className="px-3">Owner</th>
-                  <th className="px-3">Life Cycle</th>
+                  <th className="px-3">{t("settings.asset.lifecycle")}</th>
                   <th className="px-3">Status</th>
                   <th className="px-3 text-right">Action</th>
                 </tr>
@@ -480,7 +482,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
                         <div className="space-y-1">
                           <RecommendationBadge value={asset.lifeCycle?.recommendation} />
                           <p className="text-xs text-slate-500 dark:text-slate-400">
-                            {formatAge(asset.lifeCycle?.ageMonths)}
+                            {formatAge(asset.lifeCycle?.ageMonths, t)}
                           </p>
                         </div>
                       </td>
@@ -499,6 +501,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
                               onToggle={() =>
                                 setOpenActionAssetId(openActionAssetId === assetId ? null : assetId)
                               }
+                              t={t}
                             />
                           </div>
                         </div>
@@ -510,7 +513,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", token }) {
                 {!loading && !assets.length && (
                   <tr>
                     <td colSpan="6" className="py-8">
-                      <SystemEmptyState title="No assets found" description="Add the first asset to start tracking ownership, status, and life cycle." />
+                      <SystemEmptyState title={t("settings.asset.emptyTitle")} description={t("settings.asset.emptyDescription")} />
                     </td>
                   </tr>
                 )}
@@ -532,13 +535,14 @@ function AssetDetailModal({
   onClose,
   onEditFormChange,
   onSubmit,
+  t,
   updating,
 }) {
   if (!asset) return null;
 
   return (
     <Drawer
-      eyebrow="Asset details"
+      eyebrow={t("settings.asset.details")}
       onClose={onClose}
       open={Boolean(asset)}
       subtitle={`${asset.serialNumber} / ${asset.assetType} / ${asset.department}`}
@@ -551,22 +555,22 @@ function AssetDetailModal({
               Summary
             </h3>
             <div className="grid gap-3 sm:grid-cols-2">
-              <InfoItem label="Asset Name" value={asset.assetName} />
-              <InfoItem label="Serial Number" value={asset.serialNumber} />
-              <InfoItem label="Owner" value={asset.owner || "-"} />
-              <InfoItem label="Department" value={asset.department} />
-              <InfoItem label="Status" value={asset.status} />
-              <InfoItem label="Condition" value={asset.lifeCycle?.condition || "Good"} />
-              <InfoItem label="Age" value={formatAge(asset.lifeCycle?.ageMonths)} />
+              <InfoItem label={t("settings.asset.name")} value={asset.assetName} />
+              <InfoItem label={t("settings.asset.serial")} value={asset.serialNumber} />
+              <InfoItem label={t("settings.asset.owner")} value={asset.owner || "-"} />
+              <InfoItem label={t("settings.asset.department")} value={asset.department} />
+              <InfoItem label={t("settings.asset.status")} value={asset.status} />
+              <InfoItem label={t("settings.asset.condition")} value={asset.lifeCycle?.condition || "Good"} />
+              <InfoItem label={t("settings.asset.age")} value={formatAge(asset.lifeCycle?.ageMonths, t)} />
               <InfoItem
-                label="Recommendation"
+                label={t("settings.asset.recommendation")}
                 value={asset.lifeCycle?.recommendation || "Good"}
               />
             </div>
             {asset.lifeCycle?.notes && (
               <div className="mt-3 rounded-xl bg-white p-3 text-sm text-slate-600 shadow-sm dark:bg-slate-800 dark:text-slate-300">
                 <p className="mb-1 text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                  Notes
+                  {t("settings.asset.notes")}
                 </p>
                 {asset.lifeCycle.notes}
               </div>
@@ -575,11 +579,11 @@ function AssetDetailModal({
 
           <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
             <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
-              {isAdmin ? "Edit Asset" : "Read Only"}
+              {isAdmin ? t("settings.asset.edit") : t("settings.asset.readOnly")}
             </h3>
 
             <form onSubmit={onSubmit} className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field label="Asset Name">
+              <Field label={t("settings.asset.name")}>
                 <input
                   value={editForm.assetName}
                   disabled={!isAdmin || updating}
@@ -589,7 +593,7 @@ function AssetDetailModal({
                   className={inputClass}
                 />
               </Field>
-              <Field label="Asset Type">
+              <Field label={t("settings.asset.type")}>
                 <ThemedSelect
                   value={editForm.assetType}
                   disabled={!isAdmin || updating}
@@ -597,7 +601,7 @@ function AssetDetailModal({
                   options={assetTypeOptions}
                 />
               </Field>
-              <Field label="Serial Number">
+              <Field label={t("settings.asset.serial")}>
                 <input
                   value={editForm.serialNumber}
                   disabled={!isAdmin || updating}
@@ -607,7 +611,7 @@ function AssetDetailModal({
                   className={inputClass}
                 />
               </Field>
-              <Field label="Owner">
+              <Field label={t("settings.asset.owner")}>
                 <input
                   value={editForm.owner}
                   disabled={!isAdmin || updating}
@@ -617,7 +621,7 @@ function AssetDetailModal({
                   className={inputClass}
                 />
               </Field>
-              <Field label="Department">
+              <Field label={t("settings.asset.department")}>
                 <ThemedSelect
                   value={editForm.department}
                   disabled={!isAdmin || updating}
@@ -625,7 +629,7 @@ function AssetDetailModal({
                   options={departmentOptions}
                 />
               </Field>
-              <Field label="Status">
+              <Field label={t("settings.asset.status")}>
                 <ThemedSelect
                   value={editForm.status}
                   disabled={!isAdmin || updating}
@@ -633,7 +637,7 @@ function AssetDetailModal({
                   options={statusOptions}
                 />
               </Field>
-              <Field label="Purchase Date">
+              <Field label={t("settings.asset.purchaseDate")}>
                 <input
                   type="date"
                   value={editForm.lifeCycle.purchaseDate}
@@ -644,7 +648,7 @@ function AssetDetailModal({
                   className={inputClass}
                 />
               </Field>
-              <Field label="Expected Life">
+              <Field label={t("settings.asset.expectedLife")}>
                 <input
                   type="number"
                   min="1"
@@ -657,7 +661,7 @@ function AssetDetailModal({
                   className={inputClass}
                 />
               </Field>
-              <Field label="Condition">
+              <Field label={t("settings.asset.condition")}>
                 <ThemedSelect
                   value={editForm.lifeCycle.condition}
                   disabled={!isAdmin || updating}
@@ -667,7 +671,7 @@ function AssetDetailModal({
                   options={conditionOptions}
                 />
               </Field>
-              <Field className="sm:col-span-2" label="Notes">
+              <Field className="sm:col-span-2" label={t("settings.asset.notes")}>
                 <textarea
                   rows="3"
                   value={editForm.lifeCycle.notes}
@@ -685,7 +689,7 @@ function AssetDetailModal({
                   disabled={updating}
                   className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400 sm:col-span-2"
                 >
-                  {updating ? "Saving..." : "Save Changes"}
+                  {updating ? t("settings.actions.saving") : t("settings.asset.saveChanges")}
                 </button>
               )}
             </form>
@@ -750,13 +754,15 @@ function getErrorMessage(error, fallback) {
   return error?.response?.data?.message || error?.message || fallback;
 }
 
-function formatAge(ageMonths) {
-  if (ageMonths === null || ageMonths === undefined) return "No purchase date";
-  if (ageMonths < 12) return `${ageMonths} months used`;
+function formatAge(ageMonths, t = (key) => key) {
+  if (ageMonths === null || ageMonths === undefined) return t("settings.asset.noPurchaseDate");
+  if (ageMonths < 12) return t("settings.asset.monthsUsed", { months: ageMonths });
 
   const years = Math.floor(ageMonths / 12);
   const months = ageMonths % 12;
-  return months ? `${years}y ${months}m used` : `${years}y used`;
+  return months
+    ? t("settings.asset.yearsMonthsUsed", { years, months })
+    : t("settings.asset.yearsUsed", { years });
 }
 
 function Field({ children, className = "", label }) {
@@ -796,15 +802,15 @@ function MobileMeta({ label, value }) {
   );
 }
 
-function AssetActions({ deleting, isAdmin, onDelete, onToggle, onView, open }) {
+function AssetActions({ deleting, isAdmin, onDelete, onToggle, onView, open, t }) {
   return (
     <ActionMenu
       open={open}
       onToggle={onToggle}
       actions={[
-        { label: "View / Edit", onClick: onView },
+        { label: t("settings.actions.viewEdit"), onClick: onView },
         isAdmin && {
-          label: deleting ? "Deleting..." : "Delete",
+          label: deleting ? t("settings.actions.deleting") : t("settings.actions.delete"),
           danger: true,
           disabled: deleting,
           onClick: onDelete,

@@ -1098,6 +1098,7 @@ function App() {
                 <AssetManagementPage
                   currentUser={currentUser}
                   hotelId={selectedHotelId}
+                  t={t}
                   token={token}
                 />
               )}
@@ -1108,6 +1109,7 @@ function App() {
                   hotels={hotels}
                   onDepartmentsChange={fetchDepartments}
                   selectedHotelId={selectedHotelId}
+                  t={t}
                   token={token}
                 />
               )}
@@ -1116,6 +1118,7 @@ function App() {
                 <HotelManagementPage
                   hotels={hotels}
                   onHotelsChange={fetchHotels}
+                  t={t}
                   token={token}
                 />
               )}

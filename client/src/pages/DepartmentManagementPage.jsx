@@ -24,6 +24,7 @@ function DepartmentManagementPage({
   hotels = [],
   onDepartmentsChange,
   selectedHotelId = "all",
+  t = (key) => key,
   token,
 }) {
   const [form, setForm] = useState({
@@ -140,12 +141,12 @@ function DepartmentManagementPage({
   return (
     <div className="space-y-5">
       <ConfirmModal
-        confirmLabel="Deactivate"
+        confirmLabel={t("settings.actions.deactivate")}
         open={!!pendingDeleteId}
-        title="Deactivate Department"
-        message={`Deactivate ${
-          pendingDeleteDepartment?.name || "this department"
-        }? Existing tickets keep their history, but it will stop appearing in new forms.`}
+        title={t("settings.department.deactivateTitle")}
+        message={t("settings.department.deactivateMessage", {
+          name: pendingDeleteDepartment?.name || "this department",
+        })}
         onCancel={() => setPendingDeleteId(null)}
         onConfirm={confirmDeactivate}
       />
@@ -166,10 +167,10 @@ function DepartmentManagementPage({
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h4 className="text-lg font-black text-slate-950 dark:text-white">
-              Department setup
+              {t("settings.department.setupTitle")}
             </h4>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Add or update hotel-scoped departments from a focused drawer.
+              {t("settings.department.setupDescription")}
             </p>
           </div>
           <button
@@ -177,21 +178,21 @@ function DepartmentManagementPage({
             onClick={openCreateDrawer}
             className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700"
           >
-            Add Department
+            {t("settings.department.add")}
           </button>
         </div>
       </section>
 
       <Drawer
-        eyebrow="System setup"
+        eyebrow={t("settings.eyebrow")}
         onClose={cancelEdit}
         open={formDrawerOpen}
-        subtitle="Department code keeps reporting and filters consistent."
-        title={isEditing ? "Edit Department" : "Add Department"}
+        subtitle={t("settings.department.drawerHint")}
+        title={isEditing ? t("settings.department.edit") : t("settings.department.add")}
         widthClass="max-w-2xl"
       >
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Department Name">
+            <Field label={t("settings.department.name")}>
               <input
                 value={form.name}
                 disabled={saving}
@@ -201,7 +202,7 @@ function DepartmentManagementPage({
               />
             </Field>
 
-            <Field label="Code">
+            <Field label={t("settings.department.code")}>
               <input
                 value={form.code}
                 disabled={saving}
@@ -211,13 +212,13 @@ function DepartmentManagementPage({
               />
             </Field>
 
-            <Field label="Hotel">
+            <Field label={t("settings.department.hotel")}>
               <ThemedSelect
                 value={form.hotelId}
                 disabled={saving || isEditing}
                 onChange={(value) => setForm({ ...form, hotelId: value })}
                 options={[
-                  { value: "", label: "Current hotel scope", prefix: "-" },
+                  { value: "", label: t("settings.department.currentHotelScope"), prefix: "-" },
                   ...hotels.map((hotel) => ({
                     value: hotel._id || hotel.id,
                     label: `${hotel.code} / ${hotel.name}`,
@@ -228,7 +229,7 @@ function DepartmentManagementPage({
               />
             </Field>
 
-            <Field label="Sort Order">
+            <Field label={t("settings.department.sortOrder")}>
               <input
                 type="number"
                 min="0"
@@ -248,7 +249,7 @@ function DepartmentManagementPage({
                 onChange={(event) => setForm({ ...form, active: event.target.checked })}
                 className="h-4 w-4 accent-blue-600"
               />
-              Active department
+              {t("settings.department.activeToggle")}
             </label>
 
             <button
@@ -256,7 +257,7 @@ function DepartmentManagementPage({
               disabled={saving}
               className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400 sm:col-span-2"
             >
-              {saving ? "Saving..." : isEditing ? "Save Department" : "Create Department"}
+              {saving ? t("settings.actions.saving") : isEditing ? t("settings.department.save") : t("settings.department.create")}
             </button>
           </form>
       </Drawer>
@@ -264,10 +265,10 @@ function DepartmentManagementPage({
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
           <div className="mb-5">
             <h4 className="text-lg font-black text-slate-950 dark:text-white">
-              Departments
+              {t("settings.department.listTitle")}
             </h4>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              {activeDepartments.length} active / {departments.length} total departments
+              {t("settings.department.summary", { active: activeDepartments.length, total: departments.length })}
             </p>
           </div>
 
@@ -290,7 +291,7 @@ function DepartmentManagementPage({
                         {department.code}
                       </p>
                     </div>
-                    <StatusBadge active={isActive} />
+                    <StatusBadge active={isActive} t={t} />
                   </div>
 
                   <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
@@ -300,7 +301,7 @@ function DepartmentManagementPage({
 
                   <div className="mt-4 flex items-center justify-between gap-3">
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Sort {department.sortOrder ?? 100}
+                      {t("settings.department.sortShort", { sort: department.sortOrder ?? 100 })}
                     </p>
                     <div className="relative" onClick={(event) => event.stopPropagation()}>
                       <DepartmentActions
@@ -312,6 +313,7 @@ function DepartmentManagementPage({
                         onToggle={() =>
                           setOpenActionDepartmentId(openActionDepartmentId === departmentId ? null : departmentId)
                         }
+                        t={t}
                       />
                     </div>
                   </div>
@@ -320,7 +322,7 @@ function DepartmentManagementPage({
             })}
 
             {!departments.length && (
-              <SystemEmptyState title="No departments found" description="Add departments so requesters and staff can route tickets cleanly." />
+              <SystemEmptyState title={t("settings.department.emptyTitle")} description={t("settings.department.emptyDescription")} />
             )}
           </div>
 
@@ -360,7 +362,7 @@ function DepartmentManagementPage({
                         {department.sortOrder ?? 100}
                       </td>
                       <td className="px-3">
-                        <StatusBadge active={isActive} />
+                        <StatusBadge active={isActive} t={t} />
                       </td>
                       <td className="px-3">
                         <div className="flex justify-end gap-2">
@@ -374,6 +376,7 @@ function DepartmentManagementPage({
                               onToggle={() =>
                                 setOpenActionDepartmentId(openActionDepartmentId === departmentId ? null : departmentId)
                               }
+                              t={t}
                             />
                           </div>
                         </div>
@@ -385,7 +388,7 @@ function DepartmentManagementPage({
                 {!departments.length && (
                   <tr>
                     <td colSpan="5" className="py-8">
-                      <SystemEmptyState title="No departments found" description="Add departments so requesters and staff can route tickets cleanly." />
+                      <SystemEmptyState title={t("settings.department.emptyTitle")} description={t("settings.department.emptyDescription")} />
                     </td>
                   </tr>
                 )}
@@ -417,7 +420,7 @@ function Field({ children, label }) {
   );
 }
 
-function StatusBadge({ active }) {
+function StatusBadge({ active, t = (key) => key }) {
   return (
     <span
       className={`rounded-full px-3 py-1 text-xs font-bold ${
@@ -426,7 +429,7 @@ function StatusBadge({ active }) {
           : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
       }`}
     >
-      {active ? "Active" : "Inactive"}
+      {active ? t("settings.active") : t("settings.inactive")}
     </span>
   );
 }
@@ -444,15 +447,15 @@ function MobileMeta({ label, value }) {
   );
 }
 
-function DepartmentActions({ deleting, isActive, onDeactivate, onEdit, onToggle, open }) {
+function DepartmentActions({ deleting, isActive, onDeactivate, onEdit, onToggle, open, t }) {
   return (
     <ActionMenu
       open={open}
       onToggle={onToggle}
       actions={[
-        { label: "Edit", onClick: onEdit },
+        { label: t("settings.actions.edit"), onClick: onEdit },
         isActive && {
-          label: deleting ? "Saving..." : "Deactivate",
+          label: deleting ? t("settings.actions.saving") : t("settings.actions.deactivate"),
           danger: true,
           disabled: deleting,
           onClick: onDeactivate,
