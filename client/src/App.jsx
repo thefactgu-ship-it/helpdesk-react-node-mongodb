@@ -953,7 +953,7 @@ function App() {
         t={t}
       />
       <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-white md:p-6">
-        <div className="mx-auto flex min-h-screen max-w-7xl flex-col bg-white dark:bg-slate-900 md:min-h-[calc(100vh-3rem)] md:overflow-hidden md:rounded-2xl md:border md:border-slate-200 md:shadow-xl md:dark:border-slate-800 md:flex-row">
+        <div className="mx-auto flex min-h-screen w-full max-w-[96rem] flex-col bg-white dark:bg-slate-900 md:min-h-[calc(100vh-3rem)] md:overflow-hidden md:rounded-2xl md:border md:border-slate-200 md:shadow-xl md:dark:border-slate-800 md:flex-row">
           <Sidebar
             activePage={visibleActivePage}
             currentUser={currentUser}
@@ -963,7 +963,7 @@ function App() {
             onOpenProfile={() => openProfilePage("profile")}
             t={t}
           />
-          <main className="min-h-[calc(100vh-3rem)] flex-1 bg-slate-50/90 p-4 pb-28 dark:bg-slate-900 md:p-6">
+          <main className="min-h-[calc(100vh-3rem)] min-w-0 flex-1 overflow-y-auto bg-slate-50/90 p-4 pb-28 dark:bg-slate-900 md:p-6">
             <header className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-2xl font-bold">{currentPageMeta.title}</h2>

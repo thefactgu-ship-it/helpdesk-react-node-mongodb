@@ -104,9 +104,9 @@ function TicketTable({
   };
 
   return (
-    <section className="mt-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
-      <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
+    <section className="mt-6 min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+      <div className="mb-5 flex min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 lg:max-w-sm">
           <p className="text-sm font-black text-slate-900 dark:text-white">
             {isGroupAdmin ? groupAdminText.heading : isRequester ? requesterText.heading : t("queue.heading")}
           </p>
@@ -115,7 +115,7 @@ function TicketTable({
           </p>
         </div>
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:justify-end">
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap lg:justify-end">
           <input
             type="text"
             placeholder={t("queue.searchPlaceholder")}
@@ -504,7 +504,7 @@ function GroupAdminControlView({
 
   return (
     <>
-      <div className="space-y-3 xl:hidden">
+      <div className="space-y-3 2xl:hidden">
         {visibleTickets.map((ticket) => (
           <GroupAdminMobileControlCard
             key={ticket._id || ticket.id}
@@ -526,18 +526,18 @@ function GroupAdminControlView({
         ))}
       </div>
 
-      <div className="hidden overflow-x-auto xl:block">
-        <table className="w-full text-left text-sm">
+      <div className="hidden overflow-x-auto 2xl:block">
+        <table className="min-w-[78rem] w-full text-left text-sm">
           <thead>
             <tr className="border-b border-slate-200 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
-              <th className="py-3 font-black">{text.ticketColumn}</th>
-              <th className="font-black">{text.hotelColumn}</th>
-              <th className="font-black">{text.riskColumn}</th>
-              <th className="font-black">{t("queue.priority")}</th>
-              <th className="font-black">{t("queue.statusLabel")}</th>
-              <th className="font-black">{text.ownerColumn}</th>
-              <th className="font-black">{t("queue.due")}</th>
-              <th className="font-black">{t("queue.action")}</th>
+              <th className="px-3 py-3 font-black">{text.ticketColumn}</th>
+              <th className="px-3 font-black">{text.hotelColumn}</th>
+              <th className="px-3 font-black">{text.riskColumn}</th>
+              <th className="px-3 font-black">{t("queue.priority")}</th>
+              <th className="px-3 font-black">{t("queue.statusLabel")}</th>
+              <th className="px-3 font-black">{text.ownerColumn}</th>
+              <th className="px-3 font-black">{t("queue.due")}</th>
+              <th className="px-3 font-black">{t("queue.action")}</th>
             </tr>
           </thead>
           <tbody>
@@ -597,26 +597,26 @@ function GroupAdminControlRow({
   const isBusy = isUpdating || isAssigning || isDeleting;
 
   return (
-    <tr className="border-b last:border-0 dark:border-slate-700">
-      <td className="max-w-xs py-4">
+    <tr className="border-b border-slate-200 last:border-0 dark:border-slate-700">
+      <td className="max-w-xs px-3 py-4">
         <p className="text-xs font-black text-blue-700 dark:text-blue-300">{ticket.ticketNumber}</p>
         <p className="mt-1 line-clamp-2 font-black text-slate-900 dark:text-white">{ticket.title}</p>
         <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
           {ticket.category || "-"}
         </p>
       </td>
-      <td className="min-w-44 text-xs text-slate-500 dark:text-slate-400">
+      <td className="min-w-44 px-3 text-xs text-slate-500 dark:text-slate-400">
         <p className="font-black text-slate-700 dark:text-slate-200">{getTicketHotelLabel(ticket, text.unknownHotel)}</p>
         <p className="mt-1">{ticket.departmentName || ticket.department || "-"}</p>
       </td>
-      <td className="min-w-40">
+      <td className="min-w-40 px-3">
         <div className="flex flex-wrap gap-2">
           {getGroupAdminRiskBadges(ticket, text, t).map((badge) => (
             <StatusPill key={badge.label} {...badge} />
           ))}
         </div>
       </td>
-      <td>
+      <td className="px-3">
         <ThemedSelect
           className="w-32"
           compactOptions
@@ -628,7 +628,7 @@ function GroupAdminControlRow({
           options={priorityOptions}
         />
       </td>
-      <td>
+      <td className="px-3">
         <ThemedSelect
           className="w-36"
           compactOptions
@@ -640,7 +640,7 @@ function GroupAdminControlRow({
           options={statusOptions.filter((option) => option.value !== "all")}
         />
       </td>
-      <td>
+      <td className="px-3">
         <ThemedSelect
           className="w-40"
           compactOptions
@@ -653,10 +653,10 @@ function GroupAdminControlRow({
           options={buildAssignableOptions(assignableUsers, isAssigning, t)}
         />
       </td>
-      <td className="min-w-28 text-slate-500 dark:text-slate-400">
+      <td className="min-w-28 px-3 text-slate-500 dark:text-slate-400">
         <DueLabel ticket={ticket} />
       </td>
-      <td className="space-x-2 whitespace-nowrap">
+      <td className="space-x-2 whitespace-nowrap px-3">
         <button
           type="button"
           onClick={() => onViewTicket(ticketId)}
