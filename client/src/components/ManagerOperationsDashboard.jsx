@@ -24,9 +24,10 @@ function ManagerOperationsDashboard({
   t,
   tickets = [],
 }) {
-  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [activeView, setActiveView] = useState("operations");
   const text = getManagerDashboardText(t);
   const data = buildManagerDashboardData(tickets, text);
+  const isAnalyticsView = activeView === "analytics";
 
   return (
     <div className="space-y-5">
@@ -45,130 +46,158 @@ function ManagerOperationsDashboard({
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[30rem]">
+          <div className="flex flex-col gap-3 xl:min-w-[30rem]">
+            <div className="grid grid-cols-2 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-900">
+              {[
+                { id: "operations", label: text.operationsView },
+                { id: "analytics", label: text.analyticsView },
+              ].map((view) => {
+                const active = activeView === view.id;
+                return (
+                  <button
+                    key={view.id}
+                    type="button"
+                    onClick={() => setActiveView(view.id)}
+                    className={`rounded-lg px-3 py-2 text-sm font-black transition ${
+                      active
+                        ? "bg-white text-blue-700 shadow-sm dark:bg-slate-950 dark:text-blue-200"
+                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
+                    }`}
+                  >
+                    {view.label}
+                  </button>
+                );
+              })}
+            </div>
             <button
               type="button"
               onClick={() => onNavigate("tickets")}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 sm:col-span-2"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700"
             >
               <ClipboardList className="h-5 w-5" aria-hidden="true" />
               {text.openQueue}
             </button>
-            <button
-              type="button"
-              onClick={() => setShowAnalytics((value) => !value)}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <BarChart3 className="h-4 w-4" aria-hidden="true" />
-              {showAnalytics ? text.hideAnalytics : text.viewAnalytics}
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate("monthly-report")}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-              {text.monthlyReport}
-            </button>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setActiveView("analytics")}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              >
+                <BarChart3 className="h-4 w-4" aria-hidden="true" />
+                {text.viewAnalytics}
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate("monthly-report")}
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+              >
+                <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+                {text.monthlyReport}
+              </button>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
-        <ManagerKpi
-          detail={text.needsTriageDetail}
-          icon={ShieldAlert}
-          label={text.needsTriage}
-          tone={data.needsTriage.length ? "amber" : "blue"}
-          value={data.needsTriage.length}
-        />
-        <ManagerKpi
-          detail={text.unassignedUrgentDetail}
-          icon={UserRoundX}
-          label={text.unassignedUrgent}
-          tone={data.unassignedUrgent.length ? "rose" : "blue"}
-          value={data.unassignedUrgent.length}
-        />
-        <ManagerKpi
-          detail={text.overdueDetail}
-          icon={AlertTriangle}
-          label={text.overdue}
-          tone={data.overdue.length ? "rose" : "blue"}
-          value={data.overdue.length}
-        />
-        <ManagerKpi
-          detail={text.dueSoonDetail}
-          icon={TimerReset}
-          label={text.dueSoon}
-          tone={data.dueSoon.length ? "amber" : "blue"}
-          value={data.dueSoon.length}
-        />
-        <ManagerKpi
-          detail={text.activeDetail}
-          icon={Clock3}
-          label={text.active}
-          value={data.active.length}
-        />
-      </section>
+      {!isAnalyticsView && (
+        <>
+          <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <ManagerKpi
+              detail={text.needsTriageDetail}
+              icon={ShieldAlert}
+              label={text.needsTriage}
+              tone={data.needsTriage.length ? "amber" : "blue"}
+              value={data.needsTriage.length}
+            />
+            <ManagerKpi
+              detail={text.unassignedUrgentDetail}
+              icon={UserRoundX}
+              label={text.unassignedUrgent}
+              tone={data.unassignedUrgent.length ? "rose" : "blue"}
+              value={data.unassignedUrgent.length}
+            />
+            <ManagerKpi
+              detail={text.overdueDetail}
+              icon={AlertTriangle}
+              label={text.overdue}
+              tone={data.overdue.length ? "rose" : "blue"}
+              value={data.overdue.length}
+            />
+            <ManagerKpi
+              detail={text.dueSoonDetail}
+              icon={TimerReset}
+              label={text.dueSoon}
+              tone={data.dueSoon.length ? "amber" : "blue"}
+              value={data.dueSoon.length}
+            />
+            <ManagerKpi
+              detail={text.activeDetail}
+              icon={Clock3}
+              label={text.active}
+              value={data.active.length}
+            />
+          </section>
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-        <ManagerPanel
-          actionLabel={text.openQueue}
-          className="xl:col-span-7"
-          icon={TimerReset}
-          onAction={() => onNavigate("tickets")}
-          title={text.focusQueue}
-        >
-          {data.focusTickets.length ? (
-            <div className="space-y-3">
-              {data.focusTickets.map((ticket) => (
-                <ManagerTicketItem key={ticket._id || ticket.id} text={text} ticket={ticket} />
-              ))}
-            </div>
-          ) : (
-            <ManagerEmptyState loading={loading} loadingLabel={text.loading} message={text.noFocusTickets} />
-          )}
-        </ManagerPanel>
+          <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+            <ManagerPanel
+              actionLabel={text.openQueue}
+              className="xl:col-span-7"
+              icon={TimerReset}
+              onAction={() => onNavigate("tickets")}
+              title={text.focusQueue}
+            >
+              {data.focusTickets.length ? (
+                <div className="space-y-3">
+                  {data.focusTickets.map((ticket) => (
+                    <ManagerTicketItem key={ticket._id || ticket.id} text={text} ticket={ticket} />
+                  ))}
+                </div>
+              ) : (
+                <ManagerEmptyState loading={loading} loadingLabel={text.loading} message={text.noFocusTickets} />
+              )}
+            </ManagerPanel>
 
-        <ManagerPanel
-          className="xl:col-span-5"
-          icon={UsersRound}
-          title={text.teamLoad}
-        >
-          <ManagerRankList
-            empty={text.noWorkloadData}
-            items={data.workloadData}
-            total={data.active.length}
-          />
-        </ManagerPanel>
+            <ManagerPanel
+              className="xl:col-span-5"
+              icon={UsersRound}
+              title={text.teamLoad}
+            >
+              <ManagerRankList
+                empty={text.noWorkloadData}
+                items={data.workloadData}
+                total={data.active.length}
+              />
+            </ManagerPanel>
 
-        <ManagerPanel
-          className="xl:col-span-6"
-          icon={BarChart3}
-          title={text.recurringIssues}
-        >
-          <ManagerRankList
-            empty={text.noCategoryData}
-            items={data.categoryData}
-            total={tickets.length}
-          />
-        </ManagerPanel>
+            <ManagerPanel
+              className="xl:col-span-6"
+              icon={BarChart3}
+              title={text.recurringIssues}
+            >
+              <ManagerRankList
+                empty={text.noCategoryData}
+                items={data.categoryData}
+                total={tickets.length}
+              />
+            </ManagerPanel>
 
-        <ManagerPanel
-          className="xl:col-span-6"
-          icon={ClipboardList}
-          title={text.statusMix}
-        >
-          <ManagerRankList
-            empty={text.noStatusData}
-            items={data.statusData}
-            total={tickets.length}
-          />
-        </ManagerPanel>
-      </section>
+            <ManagerPanel
+              className="xl:col-span-6"
+              icon={ClipboardList}
+              title={text.statusMix}
+            >
+              <ManagerRankList
+                empty={text.noStatusData}
+                items={data.statusData}
+                total={tickets.length}
+              />
+            </ManagerPanel>
+          </section>
+        </>
+      )}
 
-      {showAnalytics && (
-        <section className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/60 md:p-5">
+      {isAnalyticsView && (
+        <section className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600 dark:text-blue-300">
@@ -180,10 +209,10 @@ function ManagerOperationsDashboard({
             </div>
             <button
               type="button"
-              onClick={() => setShowAnalytics(false)}
+              onClick={() => setActiveView("operations")}
               className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
             >
-              {text.hideAnalytics}
+              {text.operationsView}
             </button>
           </div>
           <DashboardAnalytics darkMode={darkMode} tickets={tickets} />
@@ -449,6 +478,7 @@ function getManagerDashboardText(t) {
     noStatusData: pickText(t, "managerDashboard.noStatusData", "No status data yet."),
     noWorkloadData: pickText(t, "managerDashboard.noWorkloadData", "No active tickets for workload view yet."),
     openQueue: pickText(t, "managerDashboard.openQueue", "Open work queue"),
+    operationsView: pickText(t, "managerDashboard.operationsView", "Operations"),
     overdue: pickText(t, "managerDashboard.overdue", "Overdue"),
     overdueDetail: pickText(t, "managerDashboard.overdueDetail", "Active tickets past due"),
     overdueRisk: pickText(t, "managerDashboard.overdueRisk", "Overdue"),
@@ -468,6 +498,7 @@ function getManagerDashboardText(t) {
     unknownStatus: pickText(t, "managerDashboard.unknownStatus", "Unknown"),
     urgentRisk: pickText(t, "managerDashboard.urgentRisk", "Urgent work"),
     viewAnalytics: pickText(t, "managerDashboard.viewAnalytics", "View analytics"),
+    analyticsView: pickText(t, "managerDashboard.analyticsView", "Analytics"),
   };
 }
 
