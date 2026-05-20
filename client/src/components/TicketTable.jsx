@@ -263,12 +263,13 @@ function TicketTable({
             const isAssigning = assigningTicketId === ticket._id;
             const isDeleting = deletingTicketId === ticket._id;
             const isBusy = isUpdating || isAssigning || isDeleting;
+            const ticketAssignableUsers = getAssignableUsersForTicket(assignableUsers, ticket);
 
             return (
               <TicketMobileCard
                 key={ticket._id}
                 assignTicket={assignTicket}
-                assignableUsers={assignableUsers}
+                assignableUsers={ticketAssignableUsers}
                 canManageTickets={canManageTickets}
                 canUpdateStatus={canUpdateTicketStatus(ticket)}
                 canViewTicket={canManageTickets || canViewTicketDetails(ticket, currentUserId)}
@@ -328,6 +329,7 @@ function TicketTable({
                 const isDeleting = deletingTicketId === ticket._id;
                 const isBusy = isUpdating || isAssigning || isDeleting;
                 const canOpenDetails = canManageTickets || canViewTicketDetails(ticket, currentUserId);
+                const ticketAssignableUsers = getAssignableUsersForTicket(assignableUsers, ticket);
 
                 return (
                   <tr
@@ -397,12 +399,12 @@ function TicketTable({
                           menuWidth={180}
                           size="sm"
                           value={ticket.assignedTo?._id || ""}
-                          disabled={isBusy || !assignableUsers.length}
+                          disabled={isBusy || !ticketAssignableUsers.length}
                           emptyLabel={isAssigning ? t("addTicket.assigning") : t("common.unassigned")}
                           onChange={(value) => assignTicket(ticket._id, value)}
                           options={[
                             { value: "", label: isAssigning ? t("addTicket.assigning") : t("common.unassigned"), prefix: "-" },
-                            ...assignableUsers.map((user) => ({
+                            ...ticketAssignableUsers.map((user) => ({
                               value: user._id || user.id,
                               label: user.name,
                               meta: user.role,
@@ -595,6 +597,7 @@ function GroupAdminControlRow({
   const isAssigning = assigningTicketId === ticketId;
   const isDeleting = deletingTicketId === ticketId;
   const isBusy = isUpdating || isAssigning || isDeleting;
+  const ticketAssignableUsers = getAssignableUsersForTicket(assignableUsers, ticket);
 
   return (
     <tr className="border-b border-slate-200 last:border-0 dark:border-slate-700">
@@ -647,10 +650,10 @@ function GroupAdminControlRow({
           menuWidth={180}
           size="sm"
           value={getEntityId(ticket.assignedTo)}
-          disabled={isBusy || !assignableUsers.length}
+          disabled={isBusy || !ticketAssignableUsers.length}
           emptyLabel={isAssigning ? t("addTicket.assigning") : t("common.unassigned")}
           onChange={(value) => assignTicket(ticketId, value)}
-          options={buildAssignableOptions(assignableUsers, isAssigning, t)}
+          options={buildAssignableOptions(ticketAssignableUsers, isAssigning, t)}
         />
       </td>
       <td className="min-w-28 px-3 text-slate-500 dark:text-slate-400">
@@ -699,6 +702,7 @@ function GroupAdminMobileControlCard(props) {
   const isAssigning = assigningTicketId === ticketId;
   const isDeleting = deletingTicketId === ticketId;
   const isBusy = isUpdating || isAssigning || isDeleting;
+  const ticketAssignableUsers = getAssignableUsersForTicket(assignableUsers, ticket);
 
   return (
     <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
@@ -740,10 +744,10 @@ function GroupAdminMobileControlCard(props) {
           compactOptions
           size="sm"
           value={getEntityId(ticket.assignedTo)}
-          disabled={isBusy || !assignableUsers.length}
+          disabled={isBusy || !ticketAssignableUsers.length}
           emptyLabel={isAssigning ? t("addTicket.assigning") : t("common.unassigned")}
           onChange={(value) => assignTicket(ticketId, value)}
-          options={buildAssignableOptions(assignableUsers, isAssigning, t)}
+          options={buildAssignableOptions(ticketAssignableUsers, isAssigning, t)}
         />
       </div>
 
@@ -1335,6 +1339,20 @@ function buildAssignableOptions(assignableUsers, isAssigning, t) {
       prefix: getInitials(user.name),
     })),
   ];
+}
+
+function getAssignableUsersForTicket(assignableUsers, ticket) {
+  const ticketHotelId = getEntityId(ticket?.hotelId);
+  if (!ticketHotelId) return assignableUsers;
+
+  return assignableUsers.filter((user) => {
+    const primaryHotelId = getEntityId(user.hotelId);
+    const hotelAccessIds = Array.isArray(user.hotelAccess)
+      ? user.hotelAccess.map((hotel) => getEntityId(hotel)).filter(Boolean)
+      : [];
+
+    return primaryHotelId === ticketHotelId || hotelAccessIds.includes(ticketHotelId);
+  });
 }
 
 function getEmptyQueueMessage(activeQueue, t) {
