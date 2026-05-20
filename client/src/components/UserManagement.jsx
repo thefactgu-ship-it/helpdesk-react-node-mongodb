@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
-import { MoreVertical, X } from "lucide-react";
+import { MoreVertical } from "lucide-react";
+import Drawer from "./Drawer";
 import ThemedSelect from "./ThemedSelect";
 
 const emptyForm = {
@@ -51,6 +52,7 @@ function UserManagement({
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [detailUser, setDetailUser] = useState(null);
+  const [formDrawerOpen, setFormDrawerOpen] = useState(false);
   const [openActionUserId, setOpenActionUserId] = useState(null);
   const isEditing = Boolean(editingUserId);
   const isGroupAdmin = currentUser?.role === "GroupAdmin";
@@ -130,7 +132,14 @@ function UserManagement({
     if (success) {
       setForm(getEmptyUserForm(selectedHotelId));
       setEditingUserId(null);
+      setFormDrawerOpen(false);
     }
+  };
+
+  const openCreateUserDrawer = () => {
+    setEditingUserId(null);
+    setForm(getEmptyUserForm(selectedHotelId));
+    setFormDrawerOpen(true);
   };
 
   const startEdit = (user) => {
@@ -148,11 +157,13 @@ function UserManagement({
     });
     setDetailUser(null);
     setOpenActionUserId(null);
+    setFormDrawerOpen(true);
   };
 
   const cancelEdit = () => {
     setEditingUserId(null);
     setForm(getEmptyUserForm(selectedHotelId));
+    setFormDrawerOpen(false);
   };
   const handleAccountViewChange = (view) => {
     setAccountView(view);
@@ -204,27 +215,33 @@ function UserManagement({
       )}
 
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
-        <div className="mb-6 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h3 className="text-xl font-black text-slate-950 dark:text-white">
-              {isEditing ? "Edit User" : "Create User"}
+              Account setup
             </h3>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Admins can create accounts and control access roles.
+              Create users from a focused drawer so the directory stays easy to scan.
             </p>
           </div>
-
-          {isEditing && (
-            <button
-              type="button"
-              onClick={cancelEdit}
-              className="rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
-            >
-              Cancel edit
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={openCreateUserDrawer}
+            className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700"
+          >
+            Create User
+          </button>
         </div>
+      </section>
 
+      <Drawer
+        eyebrow="Access control"
+        onClose={cancelEdit}
+        open={formDrawerOpen}
+        subtitle="Create accounts, assign roles, and control hotel access."
+        title={isEditing ? "Edit User" : "Create User"}
+        widthClass="max-w-3xl"
+      >
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 lg:grid-cols-6">
           <Field label="Name" className="lg:col-span-2">
             <input
@@ -417,7 +434,7 @@ function UserManagement({
             </button>
           </div>
         </form>
-      </section>
+      </Drawer>
 
       <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
         <div className="mb-5">
@@ -565,9 +582,7 @@ function UserManagement({
           })}
 
           {!filteredUsers.length && (
-            <div className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500 dark:border-slate-700">
-              No users found
-            </div>
+            <UserEmptyState />
           )}
         </div>
 
@@ -642,8 +657,8 @@ function UserManagement({
 
               {!filteredUsers.length && (
                 <tr>
-                  <td colSpan="5" className="py-8 text-center text-slate-500">
-                    No users found
+                  <td colSpan="5" className="py-8">
+                    <UserEmptyState />
                   </td>
                 </tr>
               )}
@@ -1092,37 +1107,34 @@ function UserDetailDrawer({
   const accessHotels = getAccessHotelLabels(user, hotels);
 
   return (
-    <div className="fixed inset-0 z-40 flex justify-end bg-slate-950/30 backdrop-blur-sm">
-      <button
-        type="button"
-        aria-label="Close user details"
-        className="absolute inset-0 h-full w-full cursor-default"
-        onClick={onClose}
-      />
-      <aside className="relative flex h-full w-full max-w-xl flex-col bg-white shadow-2xl dark:bg-slate-950">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-5 dark:border-slate-800">
-          <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-600 dark:text-blue-300">
-              User details
-            </p>
-            <h3 className="mt-2 truncate text-2xl font-black text-slate-950 dark:text-white">
-              {user.name}
-            </h3>
-            <p className="mt-1 break-words text-sm text-slate-500 dark:text-slate-400">
-              {user.email}
-            </p>
-          </div>
+    <Drawer
+      actions={
+        <div className="grid gap-3 sm:grid-cols-2">
           <button
             type="button"
-            aria-label="Close user details"
-            onClick={onClose}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+            disabled={!canManageThisUser}
+            onClick={() => onEdit(user)}
+            className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
           >
-            <X size={18} strokeWidth={2.4} />
+            Edit user
+          </button>
+          <button
+            type="button"
+            disabled={isSelf || deleting || !canManageThisUser}
+            onClick={() => onDelete(userId)}
+            className="rounded-xl border border-rose-200 px-4 py-3 text-sm font-black text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-transparent dark:border-rose-500/30 dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:border-slate-800 dark:disabled:text-slate-600"
+          >
+            {deleting ? "Deleting..." : "Delete account"}
           </button>
         </div>
-
-        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
+      }
+      eyebrow="User details"
+      onClose={onClose}
+      open={Boolean(user)}
+      subtitle={user.email}
+      title={user.name}
+    >
+        <div className="space-y-5">
           <div className="flex flex-wrap items-center gap-2">
             <RoleBadge role={user.role} />
             <StatusChips issues={issues} compact />
@@ -1156,27 +1168,7 @@ function UserDetailDrawer({
             </div>
           </section>
         </div>
-
-        <div className="grid gap-3 border-t border-slate-200 p-5 dark:border-slate-800 sm:grid-cols-2">
-          <button
-            type="button"
-            disabled={!canManageThisUser}
-            onClick={() => onEdit(user)}
-            className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
-          >
-            Edit user
-          </button>
-          <button
-            type="button"
-            disabled={isSelf || deleting || !canManageThisUser}
-            onClick={() => onDelete(userId)}
-            className="rounded-xl border border-rose-200 px-4 py-3 text-sm font-black text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-transparent dark:border-rose-500/30 dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:border-slate-800 dark:disabled:text-slate-600"
-          >
-            {deleting ? "Deleting..." : "Delete account"}
-          </button>
-        </div>
-      </aside>
-    </div>
+    </Drawer>
   );
 }
 
@@ -1236,6 +1228,22 @@ function MobileMeta({ label, value }) {
       <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
         {value}
       </dd>
+    </div>
+  );
+}
+
+function UserEmptyState() {
+  return (
+    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900">
+      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-black text-blue-600 shadow-sm dark:bg-slate-950 dark:text-blue-300">
+        0
+      </div>
+      <p className="mt-3 font-bold text-slate-800 dark:text-slate-100">
+        No users found
+      </p>
+      <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
+        Try another search, role, hotel, department, or setup state.
+      </p>
     </div>
   );
 }
