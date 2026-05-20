@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Badge from "./Badge";
 import Drawer from "./Drawer";
 import StatusPill from "./StatusPill";
@@ -14,6 +15,7 @@ import {
 } from "../utils/ticketQueueUtils";
 
 function WorkQueueTicketDrawer({
+  addTicketComment,
   assignTicket,
   assignableUsers,
   canDelete,
@@ -37,6 +39,7 @@ function WorkQueueTicketDrawer({
 
   const ticketId = ticket._id || ticket.id;
   const drawerText = getDrawerText(t, workQueueProfile);
+  const isAgentQueue = workQueueProfile === "agent";
 
   return (
     <Drawer
@@ -81,6 +84,19 @@ function WorkQueueTicketDrawer({
             <StatusPill label={t("queue.criticalReview")} tone="warning" />
           )}
         </div>
+
+        {isAgentQueue && (
+          <AgentQuickUpdatePanel
+            key={ticketId}
+            addTicketComment={addTicketComment}
+            canUpdateStatus={canUpdateStatus}
+            disabled={disabled}
+            drawerText={drawerText}
+            ticket={ticket}
+            ticketId={ticketId}
+            updateStatus={updateStatus}
+          />
+        )}
 
         <section className="grid gap-3 sm:grid-cols-2">
           <DrawerField label={t("queue.priority")}>
@@ -188,6 +204,83 @@ function toDateTimeLocalValue(value) {
   return new Date(date.getTime() - timezoneOffset).toISOString().slice(0, 16);
 }
 
+function AgentQuickUpdatePanel({
+  addTicketComment,
+  canUpdateStatus,
+  disabled,
+  drawerText,
+  ticket,
+  ticketId,
+  updateStatus,
+}) {
+  const [quickComment, setQuickComment] = useState("");
+  const [commenting, setCommenting] = useState(false);
+  const agentQuickActions = getAgentQuickActions(ticket, drawerText);
+
+  const submitQuickComment = async () => {
+    const text = quickComment.trim();
+    if (!text || !addTicketComment || !canUpdateStatus) return;
+
+    setCommenting(true);
+    const ok = await addTicketComment(ticketId, text, { openDetails: false });
+    if (ok) setQuickComment("");
+    setCommenting(false);
+  };
+
+  return (
+    <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-wide text-slate-400">
+            {drawerText.quickActionTitle}
+          </p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            {canUpdateStatus ? drawerText.quickActionHelp : drawerText.readOnlyHelp}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {agentQuickActions.map((action) => (
+            <button
+              key={action.status}
+              type="button"
+              disabled={disabled || !canUpdateStatus || ticket.status === action.status}
+              onClick={() => updateStatus(ticketId, action.status)}
+              className={`rounded-xl px-3 py-2 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-45 ${action.className}`}
+            >
+              {action.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4">
+        <label className="text-xs font-black uppercase tracking-wide text-slate-400" htmlFor={`quick-comment-${ticketId}`}>
+          {drawerText.quickCommentLabel}
+        </label>
+        <textarea
+          id={`quick-comment-${ticketId}`}
+          value={quickComment}
+          disabled={!canUpdateStatus || commenting}
+          onChange={(event) => setQuickComment(event.target.value)}
+          placeholder={drawerText.quickCommentPlaceholder}
+          rows={3}
+          className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-6 outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950"
+        />
+        <div className="mt-3 flex justify-end">
+          <button
+            type="button"
+            disabled={!quickComment.trim() || !canUpdateStatus || commenting}
+            onClick={submitQuickComment}
+            className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-black text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+          >
+            {commenting ? drawerText.quickCommentSending : drawerText.quickCommentSubmit}
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function DrawerField({ children, label }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
@@ -224,6 +317,16 @@ function getDrawerText(t, workQueueProfile) {
         "agentQueue.drawer.description",
         "You can update status for tickets assigned to you. Assignment, priority, due date, and delete are manager actions.",
       ),
+      quickActionTitle: pickText(t, "agentQueue.quick.title", "Quick update"),
+      quickActionHelp: pickText(t, "agentQueue.quick.help", "Use the fastest status action, then leave a short work note."),
+      readOnlyHelp: pickText(t, "agentQueue.quick.readOnlyHelp", "This ticket is visible to you, but it is not assigned to you yet."),
+      startWork: pickText(t, "agentQueue.quick.startWork", "Start work"),
+      markResolved: pickText(t, "agentQueue.quick.markResolved", "Mark resolved"),
+      reopenWork: pickText(t, "agentQueue.quick.reopenWork", "Reopen"),
+      quickCommentLabel: pickText(t, "agentQueue.quick.commentLabel", "Work update"),
+      quickCommentPlaceholder: pickText(t, "agentQueue.quick.commentPlaceholder", "Add a short update for the requester or manager..."),
+      quickCommentSubmit: pickText(t, "agentQueue.quick.commentSubmit", "Add update"),
+      quickCommentSending: pickText(t, "agentQueue.quick.commentSending", "Adding..."),
     };
   }
 
@@ -244,6 +347,41 @@ function getDrawerText(t, workQueueProfile) {
     roleTitle: pickText(t, "queue.drawer.title", "Ticket actions"),
     roleDescription: pickText(t, "queue.drawer.description", "Review the ticket and update the fields available to your role."),
   };
+}
+
+function getAgentQuickActions(ticket, drawerText) {
+  if (ticket.status === "open") {
+    return [
+      {
+        className: "bg-blue-600 text-white hover:bg-blue-700",
+        label: drawerText.startWork,
+        status: "in_progress",
+      },
+      {
+        className: "border border-emerald-200 bg-white text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500/30 dark:bg-slate-950 dark:text-emerald-300 dark:hover:bg-emerald-500/10",
+        label: drawerText.markResolved,
+        status: "resolved",
+      },
+    ];
+  }
+
+  if (ticket.status === "in_progress") {
+    return [
+      {
+        className: "bg-emerald-600 text-white hover:bg-emerald-700",
+        label: drawerText.markResolved,
+        status: "resolved",
+      },
+    ];
+  }
+
+  return [
+    {
+      className: "border border-blue-200 bg-white text-blue-700 hover:bg-blue-50 dark:border-blue-500/30 dark:bg-slate-950 dark:text-blue-300 dark:hover:bg-blue-500/10",
+      label: drawerText.reopenWork,
+      status: "in_progress",
+    },
+  ];
 }
 
 function pickText(t, key, fallback) {

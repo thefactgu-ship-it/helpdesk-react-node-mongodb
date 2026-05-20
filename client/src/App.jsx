@@ -547,7 +547,9 @@ function App() {
     }
   };
 
-  const addTicketComment = async (ticketId, text) => {
+  const addTicketComment = async (ticketId, text, options = {}) => {
+    const { openDetails = true } = options;
+
     try {
       await axios.post(
         `${API_URL}/${ticketId}/comment`,
@@ -560,10 +562,14 @@ function App() {
       toast.success("Comment added");
       await fetchTickets();
       await fetchSummaryTickets();
-      await openTicketDetails(ticketId);
+      if (openDetails) {
+        await openTicketDetails(ticketId);
+      }
+      return true;
     } catch (error) {
       console.error("Failed to add comment", error);
       toast.error(getErrorMessage(error, "Failed to add comment"));
+      return false;
     }
   };
 
@@ -1084,6 +1090,7 @@ function App() {
                   updateStatus={updateStatus}
                   updatePriority={updateTicketPriority}
                   updateDueDate={updateTicketDueDate}
+                  addTicketComment={addTicketComment}
                   deleteTicket={deleteTicket}
                   currentPage={currentPage}
                   setCurrentPage={setCurrentPage}

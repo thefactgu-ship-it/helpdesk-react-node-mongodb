@@ -3,6 +3,7 @@ import TicketTable from "../components/TicketTable";
 function TicketsPage({
   assigningTicketId,
   assignTicket,
+  addTicketComment,
   currentPage,
   deleteTicket,
   deletingTicketId,
@@ -32,6 +33,7 @@ function TicketsPage({
     <TicketTable
       assigningTicketId={assigningTicketId}
       assignTicket={assignTicket}
+      addTicketComment={addTicketComment}
       tickets={tickets}
       loading={loading}
       search={search}

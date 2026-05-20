@@ -38,6 +38,7 @@ import {
 function TicketTable({
   assigningTicketId,
   assignTicket,
+  addTicketComment,
   tickets,
   loading,
   search,
@@ -468,6 +469,7 @@ function TicketTable({
       {!isRequester && (
         <WorkQueueTicketDrawer
           assignTicket={assignTicket}
+          addTicketComment={addTicketComment}
           assignableUsers={getAssignableUsersForTicket(assignableUsers, activeDrawerTicket)}
           canDelete={canManageTickets}
           canManageTickets={canManageTickets}

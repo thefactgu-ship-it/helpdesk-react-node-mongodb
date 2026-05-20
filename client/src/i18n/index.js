@@ -258,6 +258,18 @@ export const translations = {
         title: "Action สำหรับ Agent",
         description: "คุณอัปเดตสถานะได้เฉพาะงานที่มอบหมายให้คุณ ส่วนการมอบหมาย ความเร่งด่วน กำหนดเสร็จ และการลบ เป็น action ของ Manager",
       },
+      quick: {
+        title: "อัปเดตเร็ว",
+        help: "เลือกสถานะที่ใช้บ่อย แล้วฝาก note สั้น ๆ ให้ผู้แจ้งหรือ Manager เห็นต่อได้ทันที",
+        readOnlyHelp: "ticket นี้คุณเห็นได้ แต่ยังไม่ได้มอบหมายให้คุณ จึงแก้สถานะหรือเพิ่มอัปเดตไม่ได้",
+        startWork: "เริ่มทำงาน",
+        markResolved: "แก้ไขแล้ว",
+        reopenWork: "กลับไปทำต่อ",
+        commentLabel: "อัปเดตงาน",
+        commentPlaceholder: "เขียนอัปเดตสั้น ๆ เช่น ตรวจสอบแล้ว กำลังประสาน vendor หรือรออะไหล่...",
+        commentSubmit: "เพิ่มอัปเดต",
+        commentSending: "กำลังเพิ่ม...",
+      },
       empty: {
         assignedToMeTitle: "ตอนนี้ยังไม่มีงานที่มอบหมายให้คุณ",
         assignedToMeDescription: "เมื่อมี ticket ที่ถูกมอบหมาย งานจะขึ้นที่นี่ก่อน",
@@ -683,6 +695,18 @@ export const translations = {
       drawer: {
         title: "Agent actions",
         description: "You can update status for tickets assigned to you. Assignment, priority, due date, and delete are manager actions.",
+      },
+      quick: {
+        title: "Quick update",
+        help: "Use a common status action, then leave a short note for the requester or manager.",
+        readOnlyHelp: "This ticket is visible to you, but it is not assigned to you yet.",
+        startWork: "Start work",
+        markResolved: "Mark resolved",
+        reopenWork: "Reopen",
+        commentLabel: "Work update",
+        commentPlaceholder: "Add a short update, such as checked, coordinating vendor, or waiting for parts...",
+        commentSubmit: "Add update",
+        commentSending: "Adding...",
       },
       empty: {
         assignedToMeTitle: "No assigned work right now",
