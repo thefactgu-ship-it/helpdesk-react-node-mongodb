@@ -18,6 +18,15 @@ const legacyRoles = new Set(["Admin", "RegionalManager"]);
 const staffRoles = new Set(["GroupAdmin", "RegionalManager", "HotelAdmin", "Admin", "Manager", "Agent"]);
 const multiHotelRoles = new Set(["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"]);
 const pageSizeOptions = [10, 25, 50];
+const roleRank = {
+  User: 10,
+  Agent: 20,
+  Manager: 30,
+  HotelAdmin: 40,
+  RegionalManager: 45,
+  Admin: 50,
+  GroupAdmin: 60,
+};
 
 function UserManagement({
   currentUser,
@@ -495,6 +504,7 @@ function UserManagement({
           {pagedUsers.map((user) => {
             const userId = user._id || user.id;
             const isSelf = userId === currentUser?.id || userId === currentUser?._id;
+            const canManageThisUser = canManageUserRole(currentUser, user);
             const setupIssues = getUserSetupIssues(user);
 
             return (
@@ -532,14 +542,15 @@ function UserManagement({
                   </button>
                   <button
                     type="button"
+                    disabled={!canManageThisUser}
                     onClick={() => startEdit(user)}
-                    className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700"
+                    className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
                   >
                     Edit
                   </button>
                 </div>
 
-                {!isSelf && (
+                {!isSelf && canManageThisUser && (
                   <button
                     type="button"
                     disabled={deletingUserId === userId}
@@ -575,6 +586,7 @@ function UserManagement({
               {pagedUsers.map((user) => {
                 const userId = user._id || user.id;
                 const isSelf = userId === currentUser?.id || userId === currentUser?._id;
+                const canManageThisUser = canManageUserRole(currentUser, user);
                 const setupIssues = getUserSetupIssues(user);
 
                 return (
@@ -610,7 +622,8 @@ function UserManagement({
                     <td className="relative px-3">
                       <UserActionMenu
                         deleting={deletingUserId === userId}
-                        disabledDelete={isSelf}
+                        disabledDelete={isSelf || !canManageThisUser}
+                        disabledEdit={!canManageThisUser}
                         open={openActionUserId === userId}
                         onDelete={() => handleDeleteUser(userId)}
                         onDetails={() => {
@@ -670,6 +683,14 @@ function UserManagement({
 
 function canUseMultiHotelAccess(role) {
   return multiHotelRoles.has(role);
+}
+
+function getRoleRank(role) {
+  return roleRank[role] || 0;
+}
+
+function canManageUserRole(currentUser, targetUser) {
+  return getRoleRank(currentUser?.role) >= getRoleRank(targetUser?.role);
 }
 
 function buildAccountStats(users) {
@@ -927,6 +948,7 @@ function StatusChips({ compact = false, issues }) {
 function UserActionMenu({
   deleting,
   disabledDelete,
+  disabledEdit,
   onDelete,
   onDetails,
   onEdit,
@@ -956,8 +978,9 @@ function UserActionMenu({
           </button>
           <button
             type="button"
+            disabled={disabledEdit}
             onClick={onEdit}
-            className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-slate-800 dark:disabled:text-slate-600"
           >
             Edit user
           </button>
@@ -1047,6 +1070,7 @@ function UserDetailDrawer({
 
   const userId = user._id || user.id;
   const isSelf = userId === currentUser?.id || userId === currentUser?._id;
+  const canManageThisUser = canManageUserRole(currentUser, user);
   const issues = getUserSetupIssues(user);
   const accessHotels = getAccessHotelLabels(user, hotels);
 
@@ -1119,14 +1143,15 @@ function UserDetailDrawer({
         <div className="grid gap-3 border-t border-slate-200 p-5 dark:border-slate-800 sm:grid-cols-2">
           <button
             type="button"
+            disabled={!canManageThisUser}
             onClick={() => onEdit(user)}
-            className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700"
+            className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
           >
             Edit user
           </button>
           <button
             type="button"
-            disabled={isSelf || deleting}
+            disabled={isSelf || deleting || !canManageThisUser}
             onClick={() => onDelete(userId)}
             className="rounded-xl border border-rose-200 px-4 py-3 text-sm font-black text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-transparent dark:border-rose-500/30 dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:border-slate-800 dark:disabled:text-slate-600"
           >

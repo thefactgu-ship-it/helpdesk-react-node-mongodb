@@ -12,6 +12,7 @@ const authRoutes = require("../routes/authRoutes");
 const notificationRoutes = require("../routes/notificationRoutes");
 const ticketRoutes = require("../routes/ticketRoutes");
 const errorHandler = require("../middleware/errorHandler");
+const { canManageRole } = require("../utils/roleHierarchy");
 
 function createTestApp() {
   const app = express();
@@ -143,4 +144,11 @@ test("auth middleware rejects expired bearer tokens", async () => {
   assert.equal(nextCalled, false);
   assert.equal(res.statusCode, 401);
   assert.equal(res.body.message, "Token expired");
+});
+
+test("role hierarchy blocks lower roles from managing higher roles", () => {
+  assert.equal(canManageRole("HotelAdmin", "Manager"), true);
+  assert.equal(canManageRole("HotelAdmin", "GroupAdmin"), false);
+  assert.equal(canManageRole("Manager", "HotelAdmin"), false);
+  assert.equal(canManageRole("GroupAdmin", "Admin"), true);
 });

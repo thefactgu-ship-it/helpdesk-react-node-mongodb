@@ -6,6 +6,7 @@ const Department = require("../models/Department");
 const { sanitizeUser, normalizeRole } = require("../utils/userSanitizer");
 const { GROUP_ROLES, MANAGER_ROLES, PUBLIC_USER_FIELDS } = require("../constants");
 const { buildHotelScopeQuery, canManageHotels, getAllowedHotelIds, getUserHotelId } = require("../utils/tenantScope");
+const { canManageRole } = require("../utils/roleHierarchy");
 const auditLog = require("../utils/auditLogger");
 
 const MULTI_HOTEL_ACCESS_ROLES = new Set(["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"]);
@@ -401,6 +402,14 @@ async function updateUser(req, res) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    if (!canManageRole(req.user.role, targetUser.role)) {
+      return res.status(403).json({ message: "You cannot edit a user with a higher role" });
+    }
+
+    if (updateFields.role && !canManageRole(req.user.role, updateFields.role)) {
+      return res.status(403).json({ message: "You cannot assign a role higher than your own" });
+    }
+
     if (departmentId) {
       const department = await resolveDepartment(departmentId, updateFields.hotelId || targetUser.hotelId);
       updateFields.departmentId = department._id;
@@ -475,6 +484,10 @@ async function deleteUser(req, res) {
     const targetUser = await User.findOne({ _id: req.params.id, ...hotelScope });
     if (!targetUser) {
       return res.status(404).json({ message: "User not found" });
+    }
+
+    if (!canManageRole(req.user.role, targetUser.role)) {
+      return res.status(403).json({ message: "You cannot delete a user with a higher role" });
     }
 
     // Prevent deletion of last admin
