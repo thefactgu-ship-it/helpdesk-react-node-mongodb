@@ -47,28 +47,6 @@ function ManagerOperationsDashboard({
           </div>
 
           <div className="flex flex-col gap-3 xl:min-w-[30rem]">
-            <div className="grid grid-cols-2 rounded-xl border border-slate-200 bg-slate-50 p-1 dark:border-slate-700 dark:bg-slate-900">
-              {[
-                { id: "operations", label: text.operationsView },
-                { id: "analytics", label: text.analyticsView },
-              ].map((view) => {
-                const active = activeView === view.id;
-                return (
-                  <button
-                    key={view.id}
-                    type="button"
-                    onClick={() => setActiveView(view.id)}
-                    className={`rounded-lg px-3 py-2 text-sm font-black transition ${
-                      active
-                        ? "bg-white text-blue-700 shadow-sm dark:bg-slate-950 dark:text-blue-200"
-                        : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-                    }`}
-                  >
-                    {view.label}
-                  </button>
-                );
-              })}
-            </div>
             <button
               type="button"
               onClick={() => onNavigate("tickets")}
@@ -80,11 +58,16 @@ function ManagerOperationsDashboard({
             <div className="grid gap-3 sm:grid-cols-2">
               <button
                 type="button"
-                onClick={() => setActiveView("analytics")}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                aria-pressed={isAnalyticsView}
+                onClick={() => setActiveView(isAnalyticsView ? "operations" : "analytics")}
+                className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border px-4 py-2 text-xs font-black shadow-sm transition ${
+                  isAnalyticsView
+                    ? "border-blue-600 bg-blue-600 text-white hover:bg-blue-700"
+                    : "border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                }`}
               >
                 <BarChart3 className="h-4 w-4" aria-hidden="true" />
-                {text.viewAnalytics}
+                {isAnalyticsView ? text.operationsView : text.viewAnalytics}
               </button>
               <button
                 type="button"
@@ -498,7 +481,6 @@ function getManagerDashboardText(t) {
     unknownStatus: pickText(t, "managerDashboard.unknownStatus", "Unknown"),
     urgentRisk: pickText(t, "managerDashboard.urgentRisk", "Urgent work"),
     viewAnalytics: pickText(t, "managerDashboard.viewAnalytics", "View analytics"),
-    analyticsView: pickText(t, "managerDashboard.analyticsView", "Analytics"),
   };
 }
 
