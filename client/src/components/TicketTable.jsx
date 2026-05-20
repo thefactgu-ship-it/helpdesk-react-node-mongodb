@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { MoreVertical, X } from "lucide-react";
 import Badge from "./Badge";
 import SkeletonRow from "./SkeletonRow";
 import ThemedSelect from "./ThemedSelect";
@@ -32,6 +33,8 @@ function TicketTable({
 }) {
   const [activeQueue, setActiveQueue] = useState("now");
   const [groupAdminOwnerFilter, setGroupAdminOwnerFilter] = useState("all");
+  const [drawerTicket, setDrawerTicket] = useState(null);
+  const [openActionTicketId, setOpenActionTicketId] = useState(null);
   const canManageTickets = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"].includes(currentUser?.role);
   const isGroupAdmin = currentUser?.role === "GroupAdmin";
   const isRequester = currentUser?.role === "User";
@@ -64,6 +67,11 @@ function TicketTable({
         : queueTickets,
     [groupAdminOwnerFilter, isGroupAdmin, queueTickets],
   );
+  const activeDrawerTicket = useMemo(() => {
+    if (!drawerTicket) return null;
+    const drawerTicketId = drawerTicket._id || drawerTicket.id;
+    return tickets.find((ticket) => (ticket._id || ticket.id) === drawerTicketId) || drawerTicket;
+  }, [drawerTicket, tickets]);
   const totalPages = Math.max(1, Math.ceil(displayTickets.length / ticketsPerPage));
   const visibleTickets = displayTickets.slice(
     (currentPage - 1) * ticketsPerPage,
@@ -92,6 +100,14 @@ function TicketTable({
     canManageTickets ||
     (currentUser?.role === "Agent" && getEntityId(ticket.assignedTo) === currentUserId);
 
+  const openQueueDrawer = (ticket) => {
+    if (isRequester) return;
+    setDrawerTicket(ticket);
+    setOpenActionTicketId(null);
+  };
+
+  const closeQueueDrawer = () => setDrawerTicket(null);
+
   useEffect(() => {
     if (currentPage > totalPages) {
       setCurrentPage(totalPages);
@@ -101,6 +117,7 @@ function TicketTable({
   const handleQueueChange = (queueId) => {
     setActiveQueue(queueId);
     setCurrentPage(1);
+    setOpenActionTicketId(null);
   };
 
   return (
@@ -222,9 +239,12 @@ function TicketTable({
           deletingTicketId={deletingTicketId}
           loading={loading}
           onViewTicket={onViewTicket}
+          onOpenDrawer={openQueueDrawer}
+          openActionTicketId={openActionTicketId}
           priorityOptions={priorityOptions}
           queueTickets={displayTickets}
           setCurrentPage={setCurrentPage}
+          setOpenActionTicketId={setOpenActionTicketId}
           statusOptions={statusOptions}
           t={t}
           text={groupAdminText}
@@ -329,12 +349,13 @@ function TicketTable({
                 const isDeleting = deletingTicketId === ticket._id;
                 const isBusy = isUpdating || isAssigning || isDeleting;
                 const canOpenDetails = canManageTickets || canViewTicketDetails(ticket, currentUserId);
-                const ticketAssignableUsers = getAssignableUsersForTicket(assignableUsers, ticket);
+                const ticketId = ticket._id || ticket.id;
 
                 return (
                   <tr
-                    key={ticket._id}
-                    className="border-b last:border-0 dark:border-slate-700"
+                    key={ticketId}
+                    className="cursor-pointer border-b last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900/70"
+                    onClick={() => openQueueDrawer(ticket)}
                   >
                     <td className="max-w-36 break-words px-3 py-4 font-semibold text-blue-700">
                       {ticket.ticketNumber}
@@ -356,88 +377,36 @@ function TicketTable({
                     </td>
                     <td className="px-3">
                       <div className="flex flex-wrap gap-2">
-                        {canManageTickets ? (
-                          <ThemedSelect
-                            className="w-32"
-                            compactOptions
-                            menuWidth={150}
-                            size="sm"
-                            value={ticket.priority}
-                            disabled={isBusy}
-                            onChange={(value) => updatePriority(ticket._id, value)}
-                            options={priorityOptions}
-                          />
-                        ) : (
-                          <Badge text={getPriorityLabel(ticket.priority, t)} />
-                        )}
+                        <Badge text={getPriorityLabel(ticket.priority, t)} />
                         {ticket.criticalRequested && (
                           <StatusPill label={t("queue.criticalReview")} tone="warning" />
                         )}
                       </div>
                     </td>
                     <td className="px-3">
-                      {canUpdateTicketStatus(ticket) ? (
-                        <ThemedSelect
-                          className="w-36"
-                          compactOptions
-                          menuWidth={160}
-                          size="sm"
-                          value={ticket.status}
-                          disabled={isBusy}
-                          onChange={(value) => updateStatus(ticket._id, value)}
-                          options={statusOptions.filter((option) => option.value !== "all")}
-                        />
-                      ) : (
-                        <Badge text={getStatusLabel(ticket.status, t)} />
-                      )}
+                      <Badge text={getStatusLabel(ticket.status, t)} />
                     </td>
                     <td className="px-3 text-slate-500 dark:text-slate-400">
-                      {canManageTickets ? (
-                        <ThemedSelect
-                          className="w-40"
-                          compactOptions
-                          menuWidth={180}
-                          size="sm"
-                          value={ticket.assignedTo?._id || ""}
-                          disabled={isBusy || !ticketAssignableUsers.length}
-                          emptyLabel={isAssigning ? t("addTicket.assigning") : t("common.unassigned")}
-                          onChange={(value) => assignTicket(ticket._id, value)}
-                          options={[
-                            { value: "", label: isAssigning ? t("addTicket.assigning") : t("common.unassigned"), prefix: "-" },
-                            ...ticketAssignableUsers.map((user) => ({
-                              value: user._id || user.id,
-                              label: user.name,
-                              meta: user.role,
-                              prefix: getInitials(user.name),
-                            })),
-                          ]}
-                        />
-                      ) : (
-                        ticket.assignedTo?.name || t("common.unassigned")
-                      )}
+                      {ticket.assignedTo?.name || t("common.unassigned")}
                     </td>
                     <td className="px-3 text-slate-500 dark:text-slate-400">
                       <DueLabel ticket={ticket} />
                     </td>
-                    <td className="space-x-2 whitespace-nowrap px-3">
-                      <button
-                        type="button"
-                        onClick={() => onViewTicket(ticket._id)}
-                        disabled={!canOpenDetails}
-                        className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                      >
-                        {canOpenDetails ? t("common.view") : requesterText.summaryOnly}
-                      </button>
-                      {canManageTickets && (
-                        <button
-                          type="button"
-                          onClick={() => deleteTicket(ticket._id)}
-                          disabled={isBusy}
-                          className="rounded-lg bg-rose-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
-                        >
-                          {isDeleting ? t("common.deleting") : t("common.delete")}
-                        </button>
-                      )}
+                    <td className="relative px-3" onClick={(event) => event.stopPropagation()}>
+                      <QueueActionMenu
+                        canDelete={canManageTickets}
+                        canOpenDetails={canOpenDetails}
+                        deleting={isDeleting}
+                        disabled={isBusy}
+                        open={openActionTicketId === ticketId}
+                        onDelete={() => deleteTicket(ticketId)}
+                        onOpenDrawer={() => openQueueDrawer(ticket)}
+                        onToggle={() =>
+                          setOpenActionTicketId(openActionTicketId === ticketId ? null : ticketId)
+                        }
+                        onViewFullDetail={() => onViewTicket(ticketId)}
+                        t={t}
+                      />
                     </td>
                   </tr>
                 );
@@ -462,6 +431,37 @@ function TicketTable({
       </div>
         </>
       )}
+
+      {!isRequester && (
+        <WorkQueueTicketDrawer
+          assignTicket={assignTicket}
+          assignableUsers={getAssignableUsersForTicket(assignableUsers, activeDrawerTicket)}
+          canDelete={canManageTickets}
+          canManageTickets={canManageTickets}
+          canUpdateStatus={activeDrawerTicket ? canUpdateTicketStatus(activeDrawerTicket) : false}
+          deleting={activeDrawerTicket ? deletingTicketId === (activeDrawerTicket._id || activeDrawerTicket.id) : false}
+          disabled={
+            activeDrawerTicket
+              ? [updatingTicketId, assigningTicketId, deletingTicketId].includes(activeDrawerTicket._id || activeDrawerTicket.id)
+              : false
+          }
+          onClose={closeQueueDrawer}
+          onDelete={(ticketId) => {
+            closeQueueDrawer();
+            deleteTicket(ticketId);
+          }}
+          onViewFullDetail={(ticketId) => {
+            closeQueueDrawer();
+            onViewTicket(ticketId);
+          }}
+          priorityOptions={priorityOptions}
+          statusOptions={statusOptions}
+          t={t}
+          ticket={activeDrawerTicket}
+          updatePriority={updatePriority}
+          updateStatus={updateStatus}
+        />
+      )}
     </section>
   );
 }
@@ -475,10 +475,13 @@ function GroupAdminControlView({
   deleteTicket,
   deletingTicketId,
   loading,
+  onOpenDrawer,
   onViewTicket,
+  openActionTicketId,
   priorityOptions,
   queueTickets,
   setCurrentPage,
+  setOpenActionTicketId,
   statusOptions,
   t,
   text,
@@ -515,7 +518,9 @@ function GroupAdminControlView({
             assigningTicketId={assigningTicketId}
             deleteTicket={deleteTicket}
             deletingTicketId={deletingTicketId}
+            onOpenDrawer={onOpenDrawer}
             onViewTicket={onViewTicket}
+            openActionTicketId={openActionTicketId}
             priorityOptions={priorityOptions}
             statusOptions={statusOptions}
             t={t}
@@ -524,6 +529,7 @@ function GroupAdminControlView({
             updatePriority={updatePriority}
             updateStatus={updateStatus}
             updatingTicketId={updatingTicketId}
+            setOpenActionTicketId={setOpenActionTicketId}
           />
         ))}
       </div>
@@ -551,7 +557,9 @@ function GroupAdminControlView({
                 assigningTicketId={assigningTicketId}
                 deleteTicket={deleteTicket}
                 deletingTicketId={deletingTicketId}
+                onOpenDrawer={onOpenDrawer}
                 onViewTicket={onViewTicket}
+                openActionTicketId={openActionTicketId}
                 priorityOptions={priorityOptions}
                 statusOptions={statusOptions}
                 t={t}
@@ -560,6 +568,7 @@ function GroupAdminControlView({
                 updatePriority={updatePriority}
                 updateStatus={updateStatus}
                 updatingTicketId={updatingTicketId}
+                setOpenActionTicketId={setOpenActionTicketId}
               />
             ))}
           </tbody>
@@ -576,31 +585,267 @@ function GroupAdminControlView({
   );
 }
 
-function GroupAdminControlRow({
+function QueueActionMenu({
+  canDelete,
+  canOpenDetails,
+  deleting,
+  disabled,
+  onDelete,
+  onOpenDrawer,
+  onToggle,
+  onViewFullDetail,
+  open,
+  t,
+}) {
+  return (
+    <div className="flex justify-end">
+      <button
+        type="button"
+        aria-label={t("queue.action")}
+        aria-expanded={open}
+        onClick={onToggle}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+      >
+        <MoreVertical size={17} strokeWidth={2.4} />
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-10 z-20 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+          <button
+            type="button"
+            onClick={onOpenDrawer}
+            className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+          >
+            {t("common.view")}
+          </button>
+          <button
+            type="button"
+            disabled={!canOpenDetails}
+            onClick={onViewFullDetail}
+            className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-slate-800 dark:disabled:text-slate-600"
+          >
+            Full detail
+          </button>
+          {canDelete && (
+            <button
+              type="button"
+              disabled={disabled}
+              onClick={onDelete}
+              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:text-slate-600"
+            >
+              {deleting ? t("common.deleting") : t("common.delete")}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function WorkQueueTicketDrawer({
   assignTicket,
   assignableUsers,
-  assigningTicketId,
-  deleteTicket,
-  deletingTicketId,
-  onViewTicket,
+  canDelete,
+  canManageTickets,
+  canUpdateStatus,
+  deleting,
+  disabled,
+  onClose,
+  onDelete,
+  onViewFullDetail,
   priorityOptions,
   statusOptions,
   t,
-  text,
   ticket,
   updatePriority,
   updateStatus,
+}) {
+  if (!ticket) return null;
+
+  const ticketId = ticket._id || ticket.id;
+
+  return (
+    <div className="fixed inset-0 z-40 flex justify-end bg-slate-950/30 backdrop-blur-sm">
+      <button
+        type="button"
+        aria-label={t("common.close")}
+        className="absolute inset-0 h-full w-full cursor-default"
+        onClick={onClose}
+      />
+      <aside className="relative flex h-full w-full max-w-xl flex-col bg-white shadow-2xl dark:bg-slate-950">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 p-5 dark:border-slate-800">
+          <div className="min-w-0">
+            <p className="text-xs font-black uppercase tracking-[0.16em] text-blue-600 dark:text-blue-300">
+              {ticket.ticketNumber}
+            </p>
+            <h3 className="mt-2 line-clamp-2 text-2xl font-black text-slate-950 dark:text-white">
+              {ticket.title}
+            </h3>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              {getTicketHotelLabel(ticket, t("common.unknown"))} / {ticket.departmentName || ticket.department || "-"}
+            </p>
+          </div>
+          <button
+            type="button"
+            aria-label={t("common.close")}
+            onClick={onClose}
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+          >
+            <X size={18} strokeWidth={2.4} />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
+          <div className="flex flex-wrap gap-2">
+            {getQueueBadges(ticket, t).map((badge) => (
+              <StatusPill key={badge.label} {...badge} />
+            ))}
+            {ticket.criticalRequested && (
+              <StatusPill label={t("queue.criticalReview")} tone="warning" />
+            )}
+          </div>
+
+          <section className="grid gap-3 sm:grid-cols-2">
+            <DrawerField label={t("queue.priority")}>
+              {canManageTickets ? (
+                <ThemedSelect
+                  compactOptions
+                  size="sm"
+                  value={ticket.priority}
+                  disabled={disabled}
+                  onChange={(value) => updatePriority(ticketId, value)}
+                  options={priorityOptions}
+                />
+              ) : (
+                <Badge text={getPriorityLabel(ticket.priority, t)} />
+              )}
+            </DrawerField>
+
+            <DrawerField label={t("queue.statusLabel")}>
+              {canUpdateStatus ? (
+                <ThemedSelect
+                  compactOptions
+                  size="sm"
+                  value={ticket.status}
+                  disabled={disabled}
+                  onChange={(value) => updateStatus(ticketId, value)}
+                  options={statusOptions.filter((option) => option.value !== "all")}
+                />
+              ) : (
+                <Badge text={getStatusLabel(ticket.status, t)} />
+              )}
+            </DrawerField>
+
+            <DrawerField label={t("queue.assign")}>
+              {canManageTickets ? (
+                <ThemedSelect
+                  compactOptions
+                  size="sm"
+                  value={getEntityId(ticket.assignedTo)}
+                  disabled={disabled || !assignableUsers.length}
+                  emptyLabel={t("common.unassigned")}
+                  onChange={(value) => assignTicket(ticketId, value)}
+                  options={buildAssignableOptions(assignableUsers, false, t)}
+                />
+              ) : (
+                <span>{ticket.assignedTo?.name || t("common.unassigned")}</span>
+              )}
+            </DrawerField>
+
+            <DrawerField label={t("queue.due")}>
+              <DueLabel ticket={ticket} />
+            </DrawerField>
+          </section>
+
+          <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+            <p className="text-xs font-black uppercase tracking-wide text-slate-400">
+              {t("detail.description")}
+            </p>
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-200">
+              {ticket.description || t("detail.noDescription")}
+            </p>
+          </section>
+
+          <section className="grid gap-3 sm:grid-cols-2">
+            <DrawerMeta label={t("detail.requester")} value={ticket.requester || t("common.unknown")} />
+            <DrawerMeta label={t("detail.createdBy")} value={ticket.createdBy?.name || t("common.unknown")} />
+            <DrawerMeta label={t("detail.assignedTo")} value={ticket.assignedTo?.name || t("common.unassigned")} />
+            <DrawerMeta label={t("detail.dueDate")} value={ticket.dueDate ? new Date(ticket.dueDate).toLocaleString() : t("common.notSet")} />
+          </section>
+        </div>
+
+        <div className="grid gap-3 border-t border-slate-200 p-5 dark:border-slate-800 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => onViewFullDetail(ticketId)}
+            className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700"
+          >
+            Full detail
+          </button>
+          {canDelete && (
+            <button
+              type="button"
+              disabled={disabled || deleting}
+              onClick={() => onDelete(ticketId)}
+              className="rounded-xl border border-rose-200 px-4 py-3 text-sm font-black text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-transparent dark:border-rose-500/30 dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:border-slate-800 dark:disabled:text-slate-600"
+            >
+              {deleting ? t("common.deleting") : t("common.delete")}
+            </button>
+          )}
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+function DrawerField({ children, label }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+      <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-400">
+        {label}
+      </p>
+      {children}
+    </div>
+  );
+}
+
+function DrawerMeta({ label, value }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+      <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">
+        {label}
+      </p>
+      <p className="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function GroupAdminControlRow({
+  assigningTicketId,
+  deleteTicket,
+  deletingTicketId,
+  onOpenDrawer,
+  onViewTicket,
+  openActionTicketId,
+  t,
+  text,
+  ticket,
   updatingTicketId,
+  setOpenActionTicketId,
 }) {
   const ticketId = ticket._id || ticket.id;
   const isUpdating = updatingTicketId === ticketId;
   const isAssigning = assigningTicketId === ticketId;
   const isDeleting = deletingTicketId === ticketId;
   const isBusy = isUpdating || isAssigning || isDeleting;
-  const ticketAssignableUsers = getAssignableUsersForTicket(assignableUsers, ticket);
 
   return (
-    <tr className="border-b border-slate-200 last:border-0 dark:border-slate-700">
+    <tr
+      className="cursor-pointer border-b border-slate-200 last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900/70"
+      onClick={() => onOpenDrawer(ticket)}
+    >
       <td className="max-w-xs px-3 py-4">
         <p className="text-xs font-black text-blue-700 dark:text-blue-300">{ticket.ticketNumber}</p>
         <p className="mt-1 line-clamp-2 font-black text-slate-900 dark:text-white">{ticket.title}</p>
@@ -620,61 +865,32 @@ function GroupAdminControlRow({
         </div>
       </td>
       <td className="px-3">
-        <ThemedSelect
-          className="w-32"
-          compactOptions
-          menuWidth={150}
-          size="sm"
-          value={ticket.priority}
-          disabled={isBusy}
-          onChange={(value) => updatePriority(ticketId, value)}
-          options={priorityOptions}
-        />
+        <Badge text={getPriorityLabel(ticket.priority, t)} />
       </td>
       <td className="px-3">
-        <ThemedSelect
-          className="w-36"
-          compactOptions
-          menuWidth={160}
-          size="sm"
-          value={ticket.status}
-          disabled={isBusy}
-          onChange={(value) => updateStatus(ticketId, value)}
-          options={statusOptions.filter((option) => option.value !== "all")}
-        />
+        <Badge text={getStatusLabel(ticket.status, t)} />
       </td>
-      <td className="px-3">
-        <ThemedSelect
-          className="w-40"
-          compactOptions
-          menuWidth={180}
-          size="sm"
-          value={getEntityId(ticket.assignedTo)}
-          disabled={isBusy || !ticketAssignableUsers.length}
-          emptyLabel={isAssigning ? t("addTicket.assigning") : t("common.unassigned")}
-          onChange={(value) => assignTicket(ticketId, value)}
-          options={buildAssignableOptions(ticketAssignableUsers, isAssigning, t)}
-        />
+      <td className="px-3 text-slate-600 dark:text-slate-300">
+        {ticket.assignedTo?.name || t("common.unassigned")}
       </td>
       <td className="min-w-28 px-3 text-slate-500 dark:text-slate-400">
         <DueLabel ticket={ticket} />
       </td>
-      <td className="space-x-2 whitespace-nowrap px-3">
-        <button
-          type="button"
-          onClick={() => onViewTicket(ticketId)}
-          className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-        >
-          {t("common.view")}
-        </button>
-        <button
-          type="button"
-          onClick={() => deleteTicket(ticketId)}
+      <td className="relative px-3" onClick={(event) => event.stopPropagation()}>
+        <QueueActionMenu
+          canDelete
+          canOpenDetails
+          deleting={isDeleting}
           disabled={isBusy}
-          className="rounded-lg bg-rose-500 px-3 py-2 text-xs font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
-        >
-          {isDeleting ? t("common.deleting") : t("common.delete")}
-        </button>
+          open={openActionTicketId === ticketId}
+          onDelete={() => deleteTicket(ticketId)}
+          onOpenDrawer={() => onOpenDrawer(ticket)}
+          onToggle={() =>
+            setOpenActionTicketId(openActionTicketId === ticketId ? null : ticketId)
+          }
+          onViewFullDetail={() => onViewTicket(ticketId)}
+          t={t}
+        />
       </td>
     </tr>
   );
@@ -682,30 +898,29 @@ function GroupAdminControlRow({
 
 function GroupAdminMobileControlCard(props) {
   const {
-    assignTicket,
-    assignableUsers,
     assigningTicketId,
     deleteTicket,
     deletingTicketId,
+    onOpenDrawer,
     onViewTicket,
-    priorityOptions,
-    statusOptions,
+    openActionTicketId,
     t,
     text,
     ticket,
-    updatePriority,
-    updateStatus,
     updatingTicketId,
+    setOpenActionTicketId,
   } = props;
   const ticketId = ticket._id || ticket.id;
   const isUpdating = updatingTicketId === ticketId;
   const isAssigning = assigningTicketId === ticketId;
   const isDeleting = deletingTicketId === ticketId;
   const isBusy = isUpdating || isAssigning || isDeleting;
-  const ticketAssignableUsers = getAssignableUsersForTicket(assignableUsers, ticket);
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+    <article
+      className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
+      onClick={() => onOpenDrawer(ticket)}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-black text-blue-700 dark:text-blue-300">{ticket.ticketNumber}</p>
@@ -724,53 +939,30 @@ function GroupAdminMobileControlCard(props) {
       </div>
 
       <div className="mt-4 grid min-w-0 gap-3 sm:grid-cols-3">
-        <ThemedSelect
-          compactOptions
-          size="sm"
-          value={ticket.priority}
-          disabled={isBusy}
-          onChange={(value) => updatePriority(ticketId, value)}
-          options={priorityOptions}
-        />
-        <ThemedSelect
-          compactOptions
-          size="sm"
-          value={ticket.status}
-          disabled={isBusy}
-          onChange={(value) => updateStatus(ticketId, value)}
-          options={statusOptions.filter((option) => option.value !== "all")}
-        />
-        <ThemedSelect
-          compactOptions
-          size="sm"
-          value={getEntityId(ticket.assignedTo)}
-          disabled={isBusy || !ticketAssignableUsers.length}
-          emptyLabel={isAssigning ? t("addTicket.assigning") : t("common.unassigned")}
-          onChange={(value) => assignTicket(ticketId, value)}
-          options={buildAssignableOptions(ticketAssignableUsers, isAssigning, t)}
-        />
+        <MobileMeta label={t("queue.priority")} value={getPriorityLabel(ticket.priority, t)} />
+        <MobileMeta label={t("queue.statusLabel")} value={getStatusLabel(ticket.status, t)} />
+        <MobileMeta label={text.ownerColumn} value={ticket.assignedTo?.name || t("common.unassigned")} />
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-500 dark:text-slate-400">
           {text.dueLabel}: <DueLabel ticket={ticket} />
         </p>
-        <div className="flex shrink-0 gap-2">
-          <button
-            type="button"
-            onClick={() => onViewTicket(ticketId)}
-            className="rounded-lg bg-slate-200 px-3 py-2 text-xs font-bold text-slate-800 transition hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-100"
-          >
-            {t("common.view")}
-          </button>
-          <button
-            type="button"
-            onClick={() => deleteTicket(ticketId)}
+        <div className="relative shrink-0" onClick={(event) => event.stopPropagation()}>
+          <QueueActionMenu
+            canDelete
+            canOpenDetails
+            deleting={isDeleting}
             disabled={isBusy}
-            className="rounded-lg bg-rose-500 px-3 py-2 text-xs font-bold text-white transition hover:bg-rose-600 disabled:cursor-not-allowed disabled:bg-rose-300"
-          >
-            {isDeleting ? t("common.deleting") : t("common.delete")}
-          </button>
+            open={openActionTicketId === ticketId}
+            onDelete={() => deleteTicket(ticketId)}
+            onOpenDrawer={() => onOpenDrawer(ticket)}
+            onToggle={() =>
+              setOpenActionTicketId(openActionTicketId === ticketId ? null : ticketId)
+            }
+            onViewFullDetail={() => onViewTicket(ticketId)}
+            t={t}
+          />
         </div>
       </div>
     </article>
