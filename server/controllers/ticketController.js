@@ -76,9 +76,26 @@ function isOwnTicket(user, ticket) {
   return isAssignedToUser(user, ticket) || isCreatedByUser(user, ticket) || isRequesterUser(user, ticket);
 }
 
+function isUnassignedActiveTicket(ticket) {
+  return !isCompletedStatus(ticket.status) && !ticket.assignedTo;
+}
+
+function hasTicketHotelAccess(user, ticket) {
+  const ticketHotelId = getTicketHotelId(ticket);
+  if (!ticketHotelId) return false;
+
+  const allowedHotelIds = [
+    getUserHotelId(user),
+    ...(user?.hotelAccess || []).map((hotelId) => String(hotelId?._id || hotelId || "")),
+  ].filter(Boolean);
+
+  return allowedHotelIds.includes(ticketHotelId);
+}
+
 function canAccessTicket(user, ticket) {
   if (canManageTickets(user)) return true;
-  if (getTicketHotelId(ticket) !== getUserHotelId(user)) return false;
+  if (!hasTicketHotelAccess(user, ticket)) return false;
+  if (user?.role === "Agent" && isUnassignedActiveTicket(ticket)) return true;
   return isOwnTicket(user, ticket);
 }
 
@@ -102,6 +119,14 @@ function buildTicketVisibilityQuery(user) {
     { requesterUserId: getUserId(user) },
     { assignedTo: getUserId(user) },
   ];
+
+  if (user?.role === "Agent") {
+    ownTicketQuery.push({
+      status: { $nin: ["resolved", "closed"] },
+      $or: [{ assignedTo: { $exists: false } }, { assignedTo: null }],
+    });
+  }
+
   const departmentQuery = [];
 
   if (departmentId) {
@@ -149,7 +174,7 @@ function canSubmitSatisfaction(user, ticket) {
 }
 
 function sanitizeRequesterListTicket(user, ticket) {
-  if (canManageTickets(user) || isOwnTicket(user, ticket)) return ticket;
+  if (isStaffRole(user?.role) || isOwnTicket(user, ticket)) return ticket;
 
   const plainTicket = typeof ticket.toObject === "function"
     ? ticket.toObject({ virtuals: true })
@@ -1198,4 +1223,9 @@ module.exports = {
   uploadAttachment,
   viewAttachment,
   deleteTicket,
+  _private: {
+    buildTicketVisibilityQuery,
+    canAccessTicket,
+    sanitizeRequesterListTicket,
+  },
 };

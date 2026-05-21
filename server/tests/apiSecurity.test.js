@@ -11,6 +11,7 @@ const authMiddleware = require("../middleware/authMiddleware");
 const authRoutes = require("../routes/authRoutes");
 const notificationRoutes = require("../routes/notificationRoutes");
 const ticketRoutes = require("../routes/ticketRoutes");
+const ticketController = require("../controllers/ticketController");
 const errorHandler = require("../middleware/errorHandler");
 const { canManageRole } = require("../utils/roleHierarchy");
 const {
@@ -183,4 +184,51 @@ test("role hierarchy blocks lower roles from managing higher roles", () => {
   assert.equal(canManageRole("HotelAdmin", "GroupAdmin"), false);
   assert.equal(canManageRole("Manager", "HotelAdmin"), false);
   assert.equal(canManageRole("GroupAdmin", "Admin"), true);
+});
+
+test("agent visibility includes active unassigned tickets in hotel scope", () => {
+  const query = ticketController._private.buildTicketVisibilityQuery({
+    id: "507f1f77bcf86cd799439011",
+    role: "Agent",
+    hotelId: "507f1f77bcf86cd799439012",
+  });
+
+  assert.ok(query.$or.some((condition) => {
+    return (
+      condition.status?.$nin?.includes("closed") &&
+      condition.$or?.some((item) => item.assignedTo === null)
+    );
+  }));
+
+  assert.equal(
+    ticketController._private.canAccessTicket(
+      {
+        id: "507f1f77bcf86cd799439011",
+        role: "Agent",
+        hotelId: "507f1f77bcf86cd799439012",
+      },
+      {
+        hotelId: "507f1f77bcf86cd799439012",
+        status: "open",
+        assignedTo: null,
+      }
+    ),
+    true
+  );
+
+  assert.equal(
+    ticketController._private.canAccessTicket(
+      {
+        id: "507f1f77bcf86cd799439011",
+        role: "Agent",
+        hotelId: "507f1f77bcf86cd799439012",
+      },
+      {
+        hotelId: "507f1f77bcf86cd799439012",
+        status: "in_progress",
+        assignedTo: "507f1f77bcf86cd799439013",
+      }
+    ),
+    false
+  );
 });
