@@ -359,7 +359,7 @@ function getDrawerText(t, workQueueProfile) {
     };
   }
 
-  if (workQueueProfile === "manager") {
+  if (workQueueProfile === "manager" || workQueueProfile === "hotelAdmin") {
     return {
       fullDetail,
       roleTitle: pickText(t, "managerQueue.drawer.title", "Manager triage"),

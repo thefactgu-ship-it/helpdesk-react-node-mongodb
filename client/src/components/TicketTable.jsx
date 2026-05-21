@@ -751,7 +751,7 @@ function buildQueueOptions(tickets, currentUserId, t, workQueueProfile) {
     ];
   }
 
-  if (workQueueProfile === "manager") {
+  if (isManagerWorkQueueProfile(workQueueProfile)) {
     const text = getStaffQueueText(t, workQueueProfile);
     return [
       { id: "now", label: text.tabs.now, count: count("now"), activeClass: "border-blue-600 bg-blue-600 text-white" },
@@ -799,7 +799,7 @@ function matchesQueue(ticket, queueId, currentUserId, workQueueProfile = "staff"
     return !isCompleted(ticket) && assignedToMe;
   }
 
-  if (workQueueProfile === "manager") {
+  if (isManagerWorkQueueProfile(workQueueProfile)) {
     if (queueId === "all") return true;
     if (queueId === "unassigned") return !isCompleted(ticket) && !ticket.assignedTo;
     if (queueId === "assignedToTeam") return !isCompleted(ticket) && Boolean(ticket.assignedTo);
@@ -828,6 +828,10 @@ function matchesQueue(ticket, queueId, currentUserId, workQueueProfile = "staff"
   );
 }
 
+function isManagerWorkQueueProfile(workQueueProfile) {
+  return workQueueProfile === "manager" || workQueueProfile === "hotelAdmin";
+}
+
 function buildStaffQueueKpis(tickets, currentUserId, workQueueProfile) {
   if (workQueueProfile === "agent") {
     const assignedTickets = tickets.filter((ticket) => getEntityId(ticket.assignedTo) === currentUserId);
@@ -839,7 +843,7 @@ function buildStaffQueueKpis(tickets, currentUserId, workQueueProfile) {
     };
   }
 
-  if (workQueueProfile === "manager") {
+  if (isManagerWorkQueueProfile(workQueueProfile)) {
     return {
       primary: tickets.filter(
         (ticket) =>
@@ -907,7 +911,7 @@ function getStaffQueueText(t, workQueueProfile) {
     };
   }
 
-  if (workQueueProfile === "manager") {
+  if (isManagerWorkQueueProfile(workQueueProfile)) {
     return {
       description: pickText(t, "managerQueue.description", "Triage team workload, assign owners, and keep due work moving."),
       heading: pickText(t, "managerQueue.heading", "Team triage queue"),

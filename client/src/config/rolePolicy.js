@@ -23,6 +23,7 @@ export const GROUP_CONTROL_ROLES = Object.freeze([ROLES.GROUP_ADMIN]);
 export function getWorkQueueProfile(role) {
   if (role === ROLES.USER) return "requester";
   if (role === ROLES.GROUP_ADMIN) return "groupAdmin";
+  if (role === ROLES.HOTEL_ADMIN) return "hotelAdmin";
   if (role === ROLES.AGENT) return "agent";
   if (role === ROLES.MANAGER) return "manager";
   return "staff";
