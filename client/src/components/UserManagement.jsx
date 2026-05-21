@@ -15,6 +15,8 @@ const emptyForm = {
 };
 
 const activeRoles = ["GroupAdmin", "HotelAdmin", "Manager", "Agent", "User"];
+const groupAdminRoles = new Set(["GroupAdmin", "Admin"]);
+const hotelAdminAssignableRoles = new Set(["Manager", "Agent", "User"]);
 const legacyRoles = new Set(["Admin", "RegionalManager"]);
 const staffRoles = new Set(["GroupAdmin", "RegionalManager", "HotelAdmin", "Admin", "Manager", "Agent"]);
 const multiHotelRoles = new Set(["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"]);
@@ -287,10 +289,10 @@ function UserManagement({
                   hotelAccess: normalizeHotelAccess(form.hotelId, form.hotelAccess, value),
                 })
               }
-              options={getRoleOptions(form.role)}
+              options={getRoleOptions(form.role, currentUser)}
             />
             <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-slate-400">
-              Manager and HotelAdmin can be given access to more than one hotel. Admin and RegionalManager are legacy roles and are hidden for new users.
+              HotelAdmin can create and update Manager, Agent, and User accounts. GroupAdmin can manage group-level roles.
             </p>
           </Field>
 
@@ -705,6 +707,14 @@ function getRoleRank(role) {
 }
 
 function canManageUserRole(currentUser, targetUser) {
+  if (groupAdminRoles.has(currentUser?.role)) {
+    return getRoleRank(currentUser?.role) >= getRoleRank(targetUser?.role);
+  }
+
+  if (currentUser?.role === "HotelAdmin") {
+    return hotelAdminAssignableRoles.has(targetUser?.role);
+  }
+
   return getRoleRank(currentUser?.role) >= getRoleRank(targetUser?.role);
 }
 
@@ -827,8 +837,11 @@ function getUserSetupIssues(user) {
   return issues;
 }
 
-function getRoleOptions(currentRole) {
-  const options = activeRoles.map((role) => ({
+function getRoleOptions(currentRole, currentUser) {
+  const roles = groupAdminRoles.has(currentUser?.role)
+    ? activeRoles
+    : activeRoles.filter((role) => hotelAdminAssignableRoles.has(role));
+  const options = roles.map((role) => ({
     value: role,
     label: role,
     prefix: role.slice(0, 2).toUpperCase(),

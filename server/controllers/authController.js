@@ -16,6 +16,7 @@ const { canManageRole } = require("../utils/roleHierarchy");
 const auditLog = require("../utils/auditLogger");
 
 const MULTI_HOTEL_ACCESS_ROLES = new Set(["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"]);
+const HOTEL_ADMIN_ASSIGNABLE_ROLES = new Set(["Manager", "Agent", "User"]);
 
 async function resolveHotelId(req, requestedHotelId) {
   if (requestedHotelId) {
@@ -91,7 +92,19 @@ async function normalizeHotelAccessIds(req, primaryHotelId, requestedHotelAccess
 function normalizeAssignableRole(requester, role) {
   const normalized = normalizeRole(role);
   if (canManageHotels(requester)) return normalized;
-  return ["Manager", "Agent", "User"].includes(normalized) ? normalized : "User";
+  if (HOTEL_ADMIN_ASSIGNABLE_ROLES.has(normalized)) return normalized;
+
+  const error = new Error("You cannot assign this role");
+  error.statusCode = 403;
+  throw error;
+}
+
+function canManageUserRecord(requester, targetRole) {
+  if (canManageHotels(requester)) {
+    return canManageRole(requester.role, targetRole);
+  }
+
+  return HOTEL_ADMIN_ASSIGNABLE_ROLES.has(targetRole) && canManageRole(requester.role, targetRole);
 }
 
 /**
@@ -404,8 +417,8 @@ async function updateUser(req, res) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (!canManageRole(req.user.role, targetUser.role)) {
-      return res.status(403).json({ message: "You cannot edit a user with a higher role" });
+    if (!canManageUserRecord(req.user, targetUser.role)) {
+      return res.status(403).json({ message: "You cannot edit a user with this role" });
     }
 
     if (updateFields.role && !canManageRole(req.user.role, updateFields.role)) {
@@ -488,8 +501,8 @@ async function deleteUser(req, res) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (!canManageRole(req.user.role, targetUser.role)) {
-      return res.status(403).json({ message: "You cannot delete a user with a higher role" });
+    if (!canManageUserRecord(req.user, targetUser.role)) {
+      return res.status(403).json({ message: "You cannot delete a user with this role" });
     }
 
     // Prevent deletion of last admin

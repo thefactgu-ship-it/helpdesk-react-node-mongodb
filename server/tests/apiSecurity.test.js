@@ -292,6 +292,63 @@ test("admin password reset invalidates existing user tokens", async () => {
   }
 });
 
+test("hotel admin cannot assign group-level roles", async () => {
+  const req = {
+    body: { role: "GroupAdmin" },
+    params: { id: "507f1f77bcf86cd799439011" },
+    query: {},
+    user: {
+      id: "507f1f77bcf86cd799439013",
+      role: "HotelAdmin",
+      hotelId: "507f1f77bcf86cd799439012",
+      hotelAccess: ["507f1f77bcf86cd799439012"],
+    },
+  };
+  const res = mockResponse();
+
+  await authController.updateUser(req, res);
+
+  assert.equal(res.statusCode, 403);
+  assert.equal(res.body.message, "You cannot assign this role");
+});
+
+test("hotel admin cannot edit hotel admin accounts", async () => {
+  const originalFindOne = User.findOne;
+  const originalFindOneAndUpdate = User.findOneAndUpdate;
+  const hotelId = "507f1f77bcf86cd799439012";
+  let updateCalled = false;
+
+  User.findOne = async () => ({
+    _id: "507f1f77bcf86cd799439011",
+    role: "HotelAdmin",
+    hotelId,
+    hotelAccess: [hotelId],
+  });
+  User.findOneAndUpdate = () => {
+    updateCalled = true;
+    throw new Error("Unexpected update");
+  };
+
+  try {
+    const req = {
+      body: { name: "Hotel Admin Two" },
+      params: { id: "507f1f77bcf86cd799439011" },
+      query: {},
+      user: { id: "507f1f77bcf86cd799439013", role: "HotelAdmin", hotelId, hotelAccess: [hotelId] },
+    };
+    const res = mockResponse();
+
+    await authController.updateUser(req, res);
+
+    assert.equal(res.statusCode, 403);
+    assert.equal(res.body.message, "You cannot edit a user with this role");
+    assert.equal(updateCalled, false);
+  } finally {
+    User.findOne = originalFindOne;
+    User.findOneAndUpdate = originalFindOneAndUpdate;
+  }
+});
+
 test("role hierarchy blocks lower roles from managing higher roles", () => {
   assert.equal(canManageRole("HotelAdmin", "Manager"), true);
   assert.equal(canManageRole("HotelAdmin", "GroupAdmin"), false);
