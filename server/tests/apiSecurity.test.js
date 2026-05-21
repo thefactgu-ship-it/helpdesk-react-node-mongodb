@@ -302,7 +302,7 @@ test("role permission matrix separates ticket, user, department, and hotel setti
   assert.equal(canManageTickets({ role: "Manager" }), true);
   assert.equal(canAssignTickets({ role: "Manager" }), true);
   assert.equal(canManageUsers({ role: "Manager" }), false);
-  assert.equal(canManageDepartments({ role: "Manager" }), true);
+  assert.equal(canManageDepartments({ role: "Manager" }), false);
   assert.equal(canManageHotelSettings({ role: "Manager" }), false);
 
   assert.equal(canManageTickets({ role: "HotelAdmin" }), true);

@@ -20,11 +20,17 @@ export const TICKET_MANAGER_ROLES = Object.freeze([
 
 export const GROUP_CONTROL_ROLES = Object.freeze([ROLES.GROUP_ADMIN]);
 
+export const DEPARTMENT_MANAGER_ROLES = Object.freeze([
+  ROLES.GROUP_ADMIN,
+  ROLES.ADMIN,
+  ROLES.HOTEL_ADMIN,
+]);
+
 export const ROLE_PERMISSION_MATRIX = Object.freeze({
   canManageTickets: TICKET_MANAGER_ROLES,
   canAssignTickets: TICKET_MANAGER_ROLES,
   canManageUsers: Object.freeze([ROLES.GROUP_ADMIN, ROLES.ADMIN, ROLES.HOTEL_ADMIN]),
-  canManageDepartments: TICKET_MANAGER_ROLES,
+  canManageDepartments: DEPARTMENT_MANAGER_ROLES,
   canManageHotelSettings: Object.freeze([ROLES.GROUP_ADMIN, ROLES.ADMIN, ROLES.HOTEL_ADMIN]),
 });
 

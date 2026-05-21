@@ -13,12 +13,13 @@ const DEFAULT_TEAM = "Support";
 const GROUP_ROLES = ["GroupAdmin", "Admin"];
 const HOTEL_ADMIN_ROLES = ["GroupAdmin", "Admin", "HotelAdmin"];
 const MANAGER_ROLES = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"];
+const DEPARTMENT_MANAGER_ROLES = ["GroupAdmin", "Admin", "HotelAdmin"];
 const STAFF_ROLES = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager", "Agent"];
 const ROLE_PERMISSION_MATRIX = Object.freeze({
   canManageTickets: MANAGER_ROLES,
   canAssignTickets: MANAGER_ROLES,
   canManageUsers: HOTEL_ADMIN_ROLES,
-  canManageDepartments: MANAGER_ROLES,
+  canManageDepartments: DEPARTMENT_MANAGER_ROLES,
   canManageHotelSettings: HOTEL_ADMIN_ROLES,
 });
 
@@ -69,6 +70,7 @@ module.exports = {
   USER_ROLES,
   DEFAULT_ROLE,
   DEFAULT_TEAM,
+  DEPARTMENT_MANAGER_ROLES,
   GROUP_ROLES,
   HOTEL_ADMIN_ROLES,
   MANAGER_ROLES,
