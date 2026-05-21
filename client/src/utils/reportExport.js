@@ -9,11 +9,17 @@ export function exportReportPrompt({
   const statusSummary = report.statusSummary || countBy(tickets, "status").map(toNameValue);
   const prioritySummary = report.prioritySummary || countBy(tickets, "priority").map(toNameValue);
   const topCategories = report.topCategories || countBy(tickets, "category").slice(0, 10).map(toNameValue);
+  const focusAreas = report.focusAreas || [];
+  const managementInsights = report.managementInsights || [];
+  const recurringIssues = report.recurringIssues || [];
   const prompt = buildExecutivePrompt({
+    focusAreas,
+    managementInsights,
     periodLabel,
     prioritySummary,
     report,
     reportTitle,
+    recurringIssues,
     scopeLabel,
     statusSummary,
     topCategories,
@@ -35,10 +41,13 @@ export function makeReportFilename(prefix, periodLabel, scopeLabel) {
 }
 
 function buildExecutivePrompt({
+  focusAreas,
+  managementInsights,
   periodLabel,
   prioritySummary,
   report,
   reportTitle,
+  recurringIssues,
   scopeLabel,
   statusSummary,
   topCategories,
@@ -62,22 +71,33 @@ function buildExecutivePrompt({
 ภาพรวมข้อมูลใน report
 - Status Summary: ${formatNameValueList(statusSummary)}
 - Priority Summary: ${formatNameValueList(prioritySummary)}
-- Top Categories: ${formatNameValueList(topCategories)}
+- Top Problem Areas: ${formatNameValueList(topCategories)}
+- Hotel / Department Focus: ${formatFocusAreaList(focusAreas)}
+- Recurring Issues: ${formatNameValueList(recurringIssues)}
+- Management Insights from dashboard: ${formatTextList(managementInsights)}
+
+นิยามสถานะที่ต้องใช้ในรายงาน
+- Resolved / Waiting Confirmation = ทีม IT แก้ไขแล้ว แต่ยังรอผู้แจ้งยืนยันผลก่อนปิดงาน
+- Closed = ผู้แจ้งยืนยันแล้วหรือผู้มีสิทธิ์ปิดงานแล้ว ถือเป็นงานจบจริง
+- Active = งานที่ยังอยู่ระหว่างรับเรื่องหรือดำเนินการ
+- SLA Success Rate = สัดส่วนงานที่แก้สำเร็จภายในกำหนด SLA ไม่ใช่ Closed Rate
 
 โปรดสร้างรายงานภาษาไทยสำหรับผู้บริหาร โดยจัดหัวข้อดังนี้
-1. Executive Summary แบบกระชับ 3-5 bullet
-2. KPI Highlights: Closed Rate, Waiting Confirmation, SLA/on-time context, Satisfaction Score
-3. Risks & Attention Points: ประเด็นที่ควรระวังจาก overdue, priority, category, hotel/department
-4. Root-cause Themes: วิเคราะห์แนวโน้มจาก category/comment/title ในข้อมูล ticket
-5. Hotel / Department Focus: ชี้จุดที่ควรโฟกัสตามข้อมูลจริง
-6. Recommendations: ข้อเสนอเชิงปฏิบัติสำหรับ IT/helpdesk
-7. Next Actions: งานต่อไปแบบ 30/60/90 วัน
+1. Executive Summary แบบกระชับ 3-5 bullet โดยเริ่มจากสิ่งที่ผู้บริหารควรตัดสินใจ
+2. KPI Highlights: Closed Rate, Waiting Confirmation, SLA Success, Active/Overdue Work, Satisfaction Score
+3. Top Problem Areas: สรุปหมวดปัญหาที่เกิดบ่อย สัดส่วน และผลกระทบที่ควรสนใจ
+4. Recurring Issues: ชี้ pattern ปัญหาซ้ำที่ควรทำ preventive action หรือแก้เชิงระบบ
+5. Hotel / Department Focus: ชี้จุดที่ควรโฟกัสจาก overdue, urgent, และ volume
+6. Management Insight: แปลข้อมูลเป็นมุมตัดสินใจ เช่น risk, investment, staffing, process improvement
+7. Recommendations: ข้อเสนอเชิงปฏิบัติสำหรับ IT/helpdesk
+8. Next Actions: งานต่อไปแบบ 30/60/90 วัน
 
 ข้อกำชับ
 - อ้างอิงเฉพาะตัวเลขและรายการในข้อมูล report/ticket ที่ให้มา
 - อย่าสรุปเกินข้อมูลจริง
 - ถ้าต้องตั้งสมมติฐานให้แยกหัวข้อ "Assumptions" ชัดเจน
-- ใช้น้ำเสียงมืออาชีพ เหมาะสำหรับส่งต่อผู้บริหารโรงแรม`;
+- ใช้น้ำเสียงมืออาชีพ เหมาะสำหรับส่งต่อผู้บริหารโรงแรม
+- อย่าเขียนเป็น log ราย ticket ให้สรุปเป็น pattern, risk, decision, และ action`;
 }
 
 function countBy(items, key) {
@@ -98,6 +118,18 @@ function formatNameValueList(items) {
   return items.length
     ? items.map((item) => `${item.name}: ${item.value}`).join(", ")
     : "-";
+}
+
+function formatFocusAreaList(items) {
+  return items.length
+    ? items.map((item) => {
+        return `${item.name}: ${item.value} tickets, ${item.overdue || 0} overdue, ${item.urgent || 0} urgent`;
+      }).join(", ")
+    : "-";
+}
+
+function formatTextList(items) {
+  return items.length ? items.join(" | ") : "-";
 }
 
 function capitalize(value) {
