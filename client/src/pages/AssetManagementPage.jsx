@@ -528,6 +528,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", t = (key) => key, t
 
 const inputClass =
   "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400";
+const dateInputClass = `${inputClass} min-w-0 max-w-full appearance-none`;
 
 function AssetDetailModal({
   asset,
@@ -591,7 +592,7 @@ function AssetDetailModal({
                   onChange={(event) =>
                     setFormValue(onEditFormChange, "assetName", event.target.value)
                   }
-                  className={inputClass}
+                className={dateInputClass}
                 />
               </Field>
               <Field label={t("settings.asset.type")}>
@@ -609,7 +610,7 @@ function AssetDetailModal({
                   onChange={(event) =>
                     setFormValue(onEditFormChange, "serialNumber", event.target.value)
                   }
-                  className={inputClass}
+                  className={dateInputClass}
                 />
               </Field>
               <Field label={t("settings.asset.owner")}>
@@ -768,7 +769,7 @@ function formatAge(ageMonths, t = (key) => key) {
 
 function Field({ children, className = "", label }) {
   return (
-    <label className={`block ${className}`}>
+    <label className={`block min-w-0 ${className}`}>
       <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
         {label}
       </span>

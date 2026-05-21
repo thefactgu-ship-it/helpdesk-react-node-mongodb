@@ -15,6 +15,7 @@ function AddTicketForm({
 }) {
   const fieldClass =
     "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400";
+  const dateFieldClass = `${fieldClass} min-w-0 max-w-full appearance-none`;
   const labelClass = "text-sm font-bold text-slate-800 dark:text-slate-200";
 
   const categoryOptions = problemTypes.filter((type) => type.active !== false);
@@ -221,7 +222,7 @@ function AddTicketForm({
                       value={form.dueDate || ""}
                       disabled={submitting}
                       onChange={(e) => setForm({ ...form, dueDate: e.target.value })}
-                      className={fieldClass}
+                      className={dateFieldClass}
                     />
                   </Field>
                 </div>
@@ -309,7 +310,7 @@ function buildPriorityGuidance(t) {
 
 function Field({ children, label, labelClass, required = false }) {
   return (
-    <div className="space-y-2">
+    <div className="min-w-0 space-y-2">
       <label className={labelClass}>
         {label}
         {required && (

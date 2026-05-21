@@ -157,7 +157,7 @@ function WorkQueueTicketDrawer({
                 value={toDateTimeLocalValue(ticket.dueDate)}
                 disabled={disabled}
                 onChange={(event) => updateDueDate(ticketId, event.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950"
+                className="w-full min-w-0 max-w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950"
               />
             ) : (
               <DueLabel ticket={ticket} />
@@ -309,7 +309,7 @@ function AgentQuickUpdatePanel({
 
 function DrawerField({ children, label }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+    <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
       <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-400">
         {label}
       </p>
