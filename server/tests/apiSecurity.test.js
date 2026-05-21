@@ -13,6 +13,10 @@ const notificationRoutes = require("../routes/notificationRoutes");
 const ticketRoutes = require("../routes/ticketRoutes");
 const errorHandler = require("../middleware/errorHandler");
 const { canManageRole } = require("../utils/roleHierarchy");
+const {
+  handleValidationErrors,
+  updateCurrentUserValidationRules,
+} = require("../validators/authValidator");
 
 function createTestApp() {
   const app = express();
@@ -95,6 +99,34 @@ test("auth API rejects malformed login payload", async () => {
 
   assert.equal(response.status, 400);
   assert.equal(response.data.message, "Validation error");
+});
+
+test("profile update rejects role, department, and team changes", async () => {
+  const app = express();
+  app.use(express.json());
+  app.patch(
+    "/me",
+    updateCurrentUserValidationRules(),
+    handleValidationErrors,
+    (req, res) => res.json({ ok: true })
+  );
+
+  const response = await request(app, "/me", {
+    method: "PATCH",
+    body: {
+      name: "Test User",
+      email: "test@example.com",
+      role: "GroupAdmin",
+      departmentId: "507f1f77bcf86cd799439012",
+      team: "IT",
+    },
+  });
+
+  assert.equal(response.status, 400);
+  assert.equal(response.data.message, "Validation error");
+  assert.ok(response.data.errors.some((error) => error.field === "role"));
+  assert.ok(response.data.errors.some((error) => error.field === "departmentId"));
+  assert.ok(response.data.errors.some((error) => error.field === "team"));
 });
 
 test("ticket API requires authentication", async () => {

@@ -184,15 +184,17 @@ const updateCurrentUserValidationRules = () => [
     .withMessage("Email must be valid")
     .normalizeEmail(),
   body("team")
-    .trim()
-    .notEmpty()
-    .withMessage("Team is required")
-    .isLength({ min: 1, max: 50 })
-    .withMessage("Team must be between 1 and 50 characters"),
+    .not()
+    .exists()
+    .withMessage("Team cannot be updated from profile"),
   body("departmentId")
-    .optional({ checkFalsy: true })
-    .custom((value) => mongoose.Types.ObjectId.isValid(value))
-    .withMessage("Invalid department ID"),
+    .not()
+    .exists()
+    .withMessage("Department cannot be updated from profile"),
+  body("departmentName")
+    .not()
+    .exists()
+    .withMessage("Department cannot be updated from profile"),
   body("role")
     .not()
     .exists()

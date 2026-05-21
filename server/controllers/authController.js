@@ -215,18 +215,11 @@ async function getCurrentUser(req, res) {
  */
 async function updateCurrentUser(req, res) {
   try {
-    const { name, email, team, departmentId } = req.body;
+    const { name, email } = req.body;
     const updateFields = {};
 
     if (name) updateFields.name = name;
     if (email) updateFields.email = email;
-    if (team) updateFields.team = team;
-    if (departmentId) {
-      const department = await resolveDepartment(departmentId, getUserHotelId(req.user));
-      updateFields.departmentId = department._id;
-      updateFields.departmentName = department.name;
-      updateFields.team = department.name;
-    }
 
     const updatedUser = await User.findByIdAndUpdate(
       req.user.id,

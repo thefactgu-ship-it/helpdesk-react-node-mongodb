@@ -1,10 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import ThemedSelect from "../components/ThemedSelect";
 
 function ProfilePage({
   changingPassword,
   currentUser,
-  departments = [],
   initialSection = "profile",
   onChangePassword,
   onUpdateProfile,
@@ -14,8 +12,6 @@ function ProfilePage({
   const [profileForm, setProfileForm] = useState(() => ({
     name: currentUser?.name || "",
     email: currentUser?.email || "",
-    team: currentUser?.team || "Support",
-    departmentId: currentUser?.departmentId?._id || currentUser?.departmentId || "",
   }));
   const [passwordForm, setPasswordForm] = useState({
     currentPassword: "",
@@ -38,8 +34,6 @@ function ProfilePage({
     const payload = {
       name: profileForm.name.trim(),
       email: profileForm.email.trim(),
-      team: profileForm.team.trim(),
-      departmentId: profileForm.departmentId || undefined,
     };
 
     if (payload.name.length < 2) {
@@ -48,10 +42,6 @@ function ProfilePage({
     }
     if (!payload.email) {
       onUpdateProfile(null, "Email is required");
-      return;
-    }
-    if (!payload.team) {
-      onUpdateProfile(null, "Team is required");
       return;
     }
 
@@ -98,7 +88,7 @@ function ProfilePage({
           Update Profile
         </h3>
         <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
-          Keep your account details current. Your role is managed by an admin.
+          Keep your account details current. Role and department are managed from User Management.
         </p>
       </section>
 
@@ -135,47 +125,6 @@ function ProfilePage({
               />
             </Field>
 
-            <Field label="Team">
-              <input
-                type="text"
-                value={profileForm.team}
-                disabled={savingProfile}
-                onChange={(event) =>
-                  setProfileForm({ ...profileForm, team: event.target.value })
-                }
-                className={inputClass}
-                placeholder="Support"
-              />
-            </Field>
-
-            <Field label="Department">
-              <ThemedSelect
-                value={profileForm.departmentId}
-                disabled={savingProfile}
-                onChange={(value) => {
-                  const department = departments.find(
-                    (item) => (item._id || item.id) === value,
-                  );
-                  setProfileForm({
-                    ...profileForm,
-                    departmentId: value,
-                    team: department?.name || profileForm.team,
-                  });
-                }}
-                options={[
-                  { value: "", label: "No department", prefix: "-" },
-                  ...departments
-                    .filter((department) => department.active !== false)
-                    .map((department) => ({
-                      value: department._id || department.id,
-                      label: department.name,
-                      meta: department.code,
-                      prefix: department.code || department.name.slice(0, 2).toUpperCase(),
-                    })),
-                ]}
-              />
-            </Field>
-
             <Field label="Role">
               <input
                 type="text"
@@ -183,6 +132,18 @@ function ProfilePage({
                 disabled
                 className={inputClass}
               />
+            </Field>
+
+            <Field label="Department">
+              <input
+                type="text"
+                value={getDepartmentLabel(currentUser)}
+                disabled
+                className={inputClass}
+              />
+              <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+                Department changes are handled by an admin in User Management.
+              </p>
             </Field>
 
             <button
@@ -281,6 +242,10 @@ function Field({ children, label }) {
       {children}
     </label>
   );
+}
+
+function getDepartmentLabel(user) {
+  return user?.departmentId?.name || user?.departmentName || user?.team || "No department";
 }
 
 export default ProfilePage;
