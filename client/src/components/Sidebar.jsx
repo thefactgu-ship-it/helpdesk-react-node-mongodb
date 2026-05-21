@@ -12,6 +12,7 @@ import {
   LogOut,
   Menu,
   PlusCircle,
+  ScrollText,
   ShieldCheck,
   User,
   UserCog,
@@ -45,6 +46,7 @@ const menuGroups = [
     adminOnly: true,
     items: [
       { id: "assets", textKey: "nav.assets", icon: Laptop, enabled: true },
+      { id: "audit-logs", textKey: "nav.auditLogs", icon: ScrollText, enabled: true },
       { id: "departments", textKey: "nav.departments", icon: FileBarChart, enabled: true, managerOnly: true },
       {
         id: "hotels",
@@ -104,6 +106,7 @@ function Sidebar({
           ...group,
           items: group.items
             .filter((item) => !["assets", "problem-types"].includes(item.id) || isHotelSettingsManager)
+            .filter((item) => item.id !== "audit-logs" || isHotelSettingsManager)
             .filter((item) => !item.groupOnly || isGroupAdmin)
             .filter((item) => !item.managerOnly || isDepartmentManager)
             .filter((item) => item.id !== "user-management" || isUserManager),

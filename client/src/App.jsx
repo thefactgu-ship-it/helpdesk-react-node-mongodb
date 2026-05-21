@@ -38,6 +38,7 @@ import { getDepartments } from "./services/departmentService";
 
 const AddTicketPage = lazyWithDeployRetry(() => import("./pages/AddTicketPage"));
 const AssetManagementPage = lazyWithDeployRetry(() => import("./pages/AssetManagementPage"));
+const AuditLogsPage = lazyWithDeployRetry(() => import("./pages/AuditLogsPage"));
 const DashboardPage = lazyWithDeployRetry(() => import("./pages/DashboardPage"));
 const DepartmentManagementPage = lazyWithDeployRetry(() => import("./pages/DepartmentManagementPage"));
 const HotelManagementPage = lazyWithDeployRetry(() => import("./pages/HotelManagementPage"));
@@ -850,6 +851,7 @@ function App() {
       (activePage === "request-users" && !canManageUsers) ||
       (activePage === "hotels" && !["GroupAdmin", "Admin"].includes(currentUser?.role)) ||
       (activePage === "assets" && !canManageHotelSettings) ||
+      (activePage === "audit-logs" && !canManageHotelSettings) ||
       (activePage === "problem-types" && !canManageHotelSettings) ||
       (activePage === "departments" && !departmentManagerRoles.includes(currentUser?.role))
     ) {
@@ -1179,6 +1181,14 @@ function App() {
                   currentUser={currentUser}
                   hotelId={selectedHotelId}
                   t={t}
+                  token={token}
+                />
+              )}
+
+              {visibleActivePage === "audit-logs" && canManageHotelSettings && (
+                <AuditLogsPage
+                  hotels={hotels}
+                  selectedHotelId={selectedHotelId}
                   token={token}
                 />
               )}

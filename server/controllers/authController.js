@@ -453,7 +453,7 @@ async function updateUser(req, res) {
       .populate({ path: "hotelAccess", select: "name code region timezone active" })
       .populate({ path: "departmentId", select: "name code active hotelId" });
 
-    auditLog("user.updated", req, { userId: updatedUser?._id });
+    auditLog("user.updated", req, { userId: updatedUser?._id, hotelId: updatedUser?.hotelId });
     res.json(updatedUser);
   } catch (error) {
     if (error.statusCode) {
@@ -504,7 +504,7 @@ async function deleteUser(req, res) {
 
     // Delete user
     await User.findOneAndDelete({ _id: req.params.id, ...hotelScope });
-    auditLog("user.deleted", req, { userId: req.params.id });
+    auditLog("user.deleted", req, { userId: req.params.id, hotelId: targetUser.hotelId });
     res.json({ message: "User deleted" });
   } catch (error) {
     res.status(500).json({ message: "Failed to delete user" });

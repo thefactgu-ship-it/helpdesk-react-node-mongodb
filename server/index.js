@@ -10,6 +10,7 @@ const bcrypt = require("bcryptjs");
 const ticketRoutes = require("./routes/ticketRoutes");
 const authRoutes = require("./routes/authRoutes");
 const assetRoutes = require("./routes/assetRoutes");
+const auditLogRoutes = require("./routes/auditLogRoutes");
 const problemTypeRoutes = require("./routes/problemTypeRoutes");
 const hotelRoutes = require("./routes/hotelRoutes");
 const departmentRoutes = require("./routes/departmentRoutes");
@@ -254,6 +255,7 @@ app.use("/api/hotels", hotelRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/assets", assetRoutes);
+app.use("/api/audit-logs", auditLogRoutes);
 app.use("/api/problem-types", problemTypeRoutes);
 app.use("/api/notifications", notificationRoutes);
 

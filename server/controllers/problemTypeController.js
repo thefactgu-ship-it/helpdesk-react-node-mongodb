@@ -1,5 +1,6 @@
 const ProblemType = require("../models/ProblemType");
 const { sendError } = require("../utils/errorHandler");
+const auditLog = require("../utils/auditLogger");
 
 async function getProblemTypes(req, res) {
   try {
@@ -25,6 +26,7 @@ async function createProblemType(req, res) {
     });
 
     await problemType.populate({ path: "createdBy", select: "name email role team hotelId" });
+    auditLog("problem_type.created", req, { problemTypeId: problemType._id });
     res.status(201).json(problemType);
   } catch (error) {
     if (error.code === 11000) {
@@ -45,6 +47,7 @@ async function deleteProblemType(req, res) {
       return res.status(404).json({ message: "Problem type not found" });
     }
 
+    auditLog("problem_type.deleted", req, { problemTypeId: problemType._id });
     res.json({ message: "Problem type deleted" });
   } catch (error) {
     sendError(res, 400, "Failed to delete problem type", error);

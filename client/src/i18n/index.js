@@ -103,6 +103,10 @@ export const translations = {
         title: "หมวดปัญหา",
         subtitle: "จัดการหมวดปัญหาที่ใช้ตอนแจ้ง ticket",
       },
+      "audit-logs": {
+        title: "Audit Logs",
+        subtitle: "ตรวจสอบประวัติการทำงานและการเปลี่ยนแปลงในระบบ",
+      },
       profile: {
         title: "โปรไฟล์",
         subtitle: "อัปเดตข้อมูลส่วนตัวและรหัสผ่าน",
@@ -118,6 +122,7 @@ export const translations = {
       monthlyReport: "รายงานรายเดือน",
       quarterlyReport: "ไตรมาส / ปี",
       assets: "ทรัพย์สิน",
+      auditLogs: "Audit Logs",
       departments: "แผนก",
       hotels: "โรงแรม",
       users: "ผู้ใช้",
@@ -634,6 +639,10 @@ export const translations = {
         title: "Problem Types",
         subtitle: "Manage issue categories used when creating tickets",
       },
+      "audit-logs": {
+        title: "Audit Logs",
+        subtitle: "Review system activity and operational changes",
+      },
       profile: {
         title: "Profile",
         subtitle: "Update profile details and password",
@@ -649,6 +658,7 @@ export const translations = {
       monthlyReport: "Monthly Report",
       quarterlyReport: "Quarterly / Yearly",
       assets: "Asset Management",
+      auditLogs: "Audit Logs",
       departments: "Departments",
       hotels: "Hotel Management",
       users: "User Management",

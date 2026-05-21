@@ -11,6 +11,7 @@ const User = require("../models/User");
 const authController = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 const authRoutes = require("../routes/authRoutes");
+const auditLogController = require("../controllers/auditLogController");
 const notificationRoutes = require("../routes/notificationRoutes");
 const ticketRoutes = require("../routes/ticketRoutes");
 const ticketController = require("../controllers/ticketController");
@@ -316,6 +317,25 @@ test("role permission matrix separates ticket, user, department, and hotel setti
   assert.equal(canManageUsers({ role: "Agent" }), false);
   assert.equal(canManageDepartments({ role: "Agent" }), false);
   assert.equal(canManageHotelSettings({ role: "Agent" }), false);
+});
+
+test("audit log query scopes hotel admin to hotel access", async () => {
+  const hotelId = "507f1f77bcf86cd799439012";
+  const query = await auditLogController._private.buildAuditLogQuery({
+    query: {},
+    user: { id: "507f1f77bcf86cd799439013", role: "HotelAdmin", hotelId, hotelAccess: [hotelId] },
+  });
+
+  assert.deepEqual(query.hotelId.$in.map(String), [hotelId]);
+});
+
+test("group admin audit log query can read across hotels by default", async () => {
+  const query = await auditLogController._private.buildAuditLogQuery({
+    query: {},
+    user: { id: "507f1f77bcf86cd799439013", role: "GroupAdmin" },
+  });
+
+  assert.equal(query.hotelId, undefined);
 });
 
 test("agent visibility includes active unassigned tickets in hotel scope", () => {
