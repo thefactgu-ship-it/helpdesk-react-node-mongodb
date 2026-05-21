@@ -134,6 +134,7 @@ module.exports = {
   getAllowedHotelIds,
   getHotelAccessIds,
   getUserHotelId,
+  hasRolePermission,
   isGroupRole,
   isStaffRole,
   toObjectId,

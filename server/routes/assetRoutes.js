@@ -1,6 +1,6 @@
 const express = require("express");
 const authMiddleware = require("../middleware/authMiddleware");
-const adminMiddleware = require("../middleware/adminMiddleware");
+const { requirePermission } = require("../middleware/permissionMiddleware");
 const mongoIdValidator = require("../middleware/mongoIdValidator");
 const asyncHandler = require("../utils/asyncHandler");
 const assetController = require("../controllers/assetController");
@@ -11,13 +11,22 @@ const {
 } = require("../validators/assetValidator");
 
 const router = express.Router();
+const requireHotelSettings = requirePermission(
+  "canManageHotelSettings",
+  "Hotel settings access required"
+);
 
-router.get("/", authMiddleware, asyncHandler(assetController.getAllAssets));
+router.get(
+  "/",
+  authMiddleware,
+  requireHotelSettings,
+  asyncHandler(assetController.getAllAssets)
+);
 
 router.post(
   "/",
   authMiddleware,
-  adminMiddleware,
+  requireHotelSettings,
   createAssetValidationRules(),
   handleValidationErrors,
   asyncHandler(assetController.createAsset)
@@ -26,7 +35,7 @@ router.post(
 router.patch(
   "/:id",
   authMiddleware,
-  adminMiddleware,
+  requireHotelSettings,
   mongoIdValidator,
   updateAssetValidationRules(),
   handleValidationErrors,
@@ -36,7 +45,7 @@ router.patch(
 router.delete(
   "/:id",
   authMiddleware,
-  adminMiddleware,
+  requireHotelSettings,
   mongoIdValidator,
   asyncHandler(assetController.deleteAsset)
 );

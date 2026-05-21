@@ -11,10 +11,15 @@ const User = require("../models/User");
 const authController = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 const authRoutes = require("../routes/authRoutes");
+const assetRoutes = require("../routes/assetRoutes");
 const auditLogController = require("../controllers/auditLogController");
+const departmentRoutes = require("../routes/departmentRoutes");
 const notificationRoutes = require("../routes/notificationRoutes");
+const problemTypeRoutes = require("../routes/problemTypeRoutes");
 const ticketRoutes = require("../routes/ticketRoutes");
 const ticketController = require("../controllers/ticketController");
+const Asset = require("../models/Asset");
+const ProblemType = require("../models/ProblemType");
 const errorHandler = require("../middleware/errorHandler");
 const { canManageRole } = require("../utils/roleHierarchy");
 const {
@@ -33,6 +38,9 @@ function createTestApp() {
   const app = express();
   app.use(express.json());
   app.use("/api/auth", authRoutes);
+  app.use("/api/assets", assetRoutes);
+  app.use("/api/departments", departmentRoutes);
+  app.use("/api/problem-types", problemTypeRoutes);
   app.use("/api/tickets", ticketRoutes);
   app.use("/api/notifications", notificationRoutes);
   app.use(errorHandler);
@@ -83,6 +91,37 @@ function mockResponse() {
       this.body = payload;
       return this;
     },
+  };
+}
+
+function authHeaderFor(userId = "507f1f77bcf86cd799439011") {
+  const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+    expiresIn: "1h",
+  });
+  return { authorization: `Bearer ${token}` };
+}
+
+function mockAuthenticatedUser(role, overrides = {}) {
+  return {
+    _id: overrides.id || "507f1f77bcf86cd799439011",
+    active: overrides.active !== false,
+    role,
+    team: overrides.team || "IT",
+    departmentId: overrides.departmentId || null,
+    departmentName: overrides.departmentName || "IT",
+    hotelId: overrides.hotelId || "507f1f77bcf86cd799439012",
+    hotelAccess: overrides.hotelAccess || [overrides.hotelId || "507f1f77bcf86cd799439012"],
+    regions: overrides.regions || [],
+  };
+}
+
+function stubUserFindById(user) {
+  const originalFindById = User.findById;
+  User.findById = () => ({
+    select: async () => user,
+  });
+  return () => {
+    User.findById = originalFindById;
   };
 }
 
@@ -374,6 +413,159 @@ test("role permission matrix separates ticket, user, department, and hotel setti
   assert.equal(canManageUsers({ role: "Agent" }), false);
   assert.equal(canManageDepartments({ role: "Agent" }), false);
   assert.equal(canManageHotelSettings({ role: "Agent" }), false);
+});
+
+test("manager cannot access department or user management APIs", async () => {
+  const restoreUserFindById = stubUserFindById(mockAuthenticatedUser("Manager"));
+
+  try {
+    const app = createTestApp();
+    const headers = authHeaderFor();
+
+    const departmentResponse = await request(app, "/api/departments", {
+      method: "POST",
+      headers,
+      body: { name: "Front Office", code: "FO" },
+    });
+    const userResponse = await request(app, "/api/auth/users", {
+      method: "POST",
+      headers,
+      body: { name: "Agent Two", email: "agent2@example.com", password: "password123" },
+    });
+
+    assert.equal(departmentResponse.status, 403);
+    assert.equal(departmentResponse.data.message, "Department management access denied");
+    assert.equal(userResponse.status, 403);
+    assert.equal(userResponse.data.message, "Admin access required");
+  } finally {
+    restoreUserFindById();
+  }
+});
+
+test("agent and requester cannot read asset settings API", async () => {
+  for (const role of ["Agent", "User"]) {
+    const restoreUserFindById = stubUserFindById(mockAuthenticatedUser(role));
+
+    try {
+      const app = createTestApp();
+      const response = await request(app, "/api/assets", {
+        method: "GET",
+        headers: authHeaderFor(),
+      });
+
+      assert.equal(response.status, 403);
+      assert.equal(response.data.message, "Hotel settings access required");
+    } finally {
+      restoreUserFindById();
+    }
+  }
+});
+
+test("requester can read problem types for ticket creation", async () => {
+  const restoreUserFindById = stubUserFindById(mockAuthenticatedUser("User"));
+  const originalFind = ProblemType.find;
+  let capturedQuery = null;
+
+  ProblemType.find = (query) => {
+    capturedQuery = query;
+    return {
+      sort() {
+        return this;
+      },
+      populate() {
+        return this;
+      },
+      then(resolve) {
+        resolve([]);
+      },
+    };
+  };
+
+  try {
+    const app = createTestApp();
+    const response = await request(app, "/api/problem-types", {
+      method: "GET",
+      headers: authHeaderFor(),
+    });
+
+    assert.equal(response.status, 200);
+    assert.deepEqual(response.data, []);
+    assert.ok(capturedQuery.$or.some((condition) => condition.hotelId === null));
+  } finally {
+    ProblemType.find = originalFind;
+    restoreUserFindById();
+  }
+});
+
+test("hotel admin can manage scoped asset and problem type settings", async () => {
+  const hotelId = "507f1f77bcf86cd799439012";
+  const restoreUserFindById = stubUserFindById(
+    mockAuthenticatedUser("HotelAdmin", { hotelId, hotelAccess: [hotelId] })
+  );
+  const originalAssetCreate = Asset.create;
+  const originalProblemTypeCreate = ProblemType.create;
+  let capturedAsset = null;
+  let capturedProblemType = null;
+
+  Asset.create = async (payload) => {
+    capturedAsset = payload;
+    return {
+      _id: "507f1f77bcf86cd799439021",
+      hotelId: payload.hotelId,
+      lifeCycle: {},
+      status: payload.status || "Active",
+      async populate() {},
+      toObject() {
+        return {
+          _id: this._id,
+          ...payload,
+          lifeCycle: payload.lifeCycle || {},
+          status: payload.status || "Active",
+        };
+      },
+    };
+  };
+  ProblemType.create = async (payload) => {
+    capturedProblemType = payload;
+    return {
+      _id: "507f1f77bcf86cd799439022",
+      ...payload,
+      async populate() {},
+    };
+  };
+
+  try {
+    const app = createTestApp();
+    const headers = authHeaderFor();
+    const assetResponse = await request(app, "/api/assets", {
+      method: "POST",
+      headers,
+      body: {
+        assetName: "Front Office PC",
+        assetType: "Desktop",
+        serialNumber: "FO-PC-001",
+        hotelId,
+      },
+    });
+    const problemTypeResponse = await request(app, "/api/problem-types", {
+      method: "POST",
+      headers,
+      body: {
+        name: "Door Lock",
+        description: "Door lock and encoder issues",
+        hotelId,
+      },
+    });
+
+    assert.equal(assetResponse.status, 201);
+    assert.equal(String(capturedAsset.hotelId), hotelId);
+    assert.equal(problemTypeResponse.status, 201);
+    assert.equal(String(capturedProblemType.hotelId), hotelId);
+  } finally {
+    Asset.create = originalAssetCreate;
+    ProblemType.create = originalProblemTypeCreate;
+    restoreUserFindById();
+  }
 });
 
 test("audit log query scopes hotel admin to hotel access", async () => {

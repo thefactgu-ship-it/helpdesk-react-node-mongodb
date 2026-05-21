@@ -14,12 +14,10 @@ import LoginPage from "./components/LoginPage";
 import NotificationBell from "./components/NotificationBell";
 import ThemedSelect from "./components/ThemedSelect";
 import TicketDetailModal from "./components/TicketDetailModal";
-import {
-  departmentManagerRoles,
-  groupRoles,
-} from "./config/appConfig";
+import { groupRoles } from "./config/appConfig";
 import {
   canAssignTickets as roleCanAssignTickets,
+  canManageDepartments as roleCanManageDepartments,
   canManageHotelSettings as roleCanManageHotelSettings,
   canManageTickets as roleCanManageTickets,
   canManageUsers as roleCanManageUsers,
@@ -802,6 +800,7 @@ function App() {
 
   const canManageTickets = roleCanManageTickets(currentUser?.role);
   const canAssignTickets = roleCanAssignTickets(currentUser?.role);
+  const canManageDepartments = roleCanManageDepartments(currentUser?.role);
   const canManageUsers = roleCanManageUsers(currentUser?.role);
   const canManageHotelSettings = roleCanManageHotelSettings(currentUser?.role);
   const accessibleHotelIds = [...new Set(getUserHotelAccessIds(currentUser))];
@@ -829,7 +828,7 @@ function App() {
       (activePage === "assets" && !canManageHotelSettings) ||
       (activePage === "audit-logs" && !canManageHotelSettings) ||
       (activePage === "problem-types" && !canManageHotelSettings) ||
-      (activePage === "departments" && !departmentManagerRoles.includes(currentUser?.role))
+      (activePage === "departments" && !canManageDepartments)
     ) {
       return "dashboard";
     }
@@ -839,7 +838,7 @@ function App() {
     }
 
     return activePage;
-  }, [activePage, canManageHotelSettings, canManageUsers, currentUser?.role]);
+  }, [activePage, canManageDepartments, canManageHotelSettings, canManageUsers, currentUser?.role]);
 
   const currentPageMeta = getPageMeta(visibleActivePage, language);
   const pendingDeleteUser = users.find(
@@ -1169,7 +1168,7 @@ function App() {
                 />
               )}
 
-              {visibleActivePage === "departments" && departmentManagerRoles.includes(currentUser?.role) && (
+              {visibleActivePage === "departments" && canManageDepartments && (
                 <DepartmentManagementPage
                   departments={departments}
                   hotels={hotels}

@@ -1,30 +1,36 @@
+import {
+  LEGACY_ROLES,
+  ROLES,
+  TICKET_MANAGER_ROLES,
+  canManageUsers,
+} from "../config/rolePolicy";
+
 const emptyForm = {
   name: "",
   email: "",
   password: "",
-  role: "User",
+  role: ROLES.USER,
   team: "Support",
   departmentId: "",
   hotelId: "",
   hotelAccess: [],
 };
 
-const activeRoles = ["GroupAdmin", "HotelAdmin", "Manager", "Agent", "User"];
-const groupAdminRoles = new Set(["GroupAdmin", "Admin"]);
-const hotelAdminAssignableRoles = new Set(["Manager", "Agent", "User"]);
+const activeRoles = [ROLES.GROUP_ADMIN, ROLES.HOTEL_ADMIN, ROLES.MANAGER, ROLES.AGENT, ROLES.USER];
+const hotelAdminAssignableRoles = new Set([ROLES.MANAGER, ROLES.AGENT, ROLES.USER]);
 
-export const legacyRoles = new Set(["Admin", "RegionalManager"]);
-export const staffRoles = new Set(["GroupAdmin", "RegionalManager", "HotelAdmin", "Admin", "Manager", "Agent"]);
+export const legacyRoles = new Set(LEGACY_ROLES);
+export const staffRoles = new Set(TICKET_MANAGER_ROLES.concat(ROLES.AGENT));
 
-const multiHotelRoles = new Set(["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"]);
+const multiHotelRoles = new Set(TICKET_MANAGER_ROLES);
 const roleRank = {
-  User: 10,
-  Agent: 20,
-  Manager: 30,
-  HotelAdmin: 40,
-  RegionalManager: 45,
-  Admin: 50,
-  GroupAdmin: 60,
+  [ROLES.USER]: 10,
+  [ROLES.AGENT]: 20,
+  [ROLES.MANAGER]: 30,
+  [ROLES.HOTEL_ADMIN]: 40,
+  [ROLES.REGIONAL_MANAGER]: 45,
+  [ROLES.ADMIN]: 50,
+  [ROLES.GROUP_ADMIN]: 60,
 };
 
 export function canUseMultiHotelAccess(role) {
@@ -36,11 +42,11 @@ function getRoleRank(role) {
 }
 
 export function canManageUserRole(currentUser, targetUser) {
-  if (groupAdminRoles.has(currentUser?.role)) {
+  if (currentUser?.role && canManageUsers(currentUser.role) && currentUser.role !== ROLES.HOTEL_ADMIN) {
     return getRoleRank(currentUser?.role) >= getRoleRank(targetUser?.role);
   }
 
-  if (currentUser?.role === "HotelAdmin") {
+  if (currentUser?.role === ROLES.HOTEL_ADMIN) {
     return hotelAdminAssignableRoles.has(targetUser?.role);
   }
 
@@ -51,7 +57,7 @@ export function buildAccountStats(users) {
   return users.reduce(
     (stats, user) => {
       if (staffRoles.has(user.role)) stats.staff += 1;
-      if (user.role === "User") stats.requesters += 1;
+      if (user.role === ROLES.USER) stats.requesters += 1;
       if (getHotelAccessIds(user).length > 1) stats.multiHotel += 1;
       if (legacyRoles.has(user.role)) stats.legacy += 1;
       if (getUserSetupIssues(user).length > 0) stats.needsReview += 1;
@@ -158,7 +164,7 @@ export function getUserSetupIssues(user) {
   if (user.active === false) issues.push({ label: "Inactive", tone: "neutral" });
   if (legacyRoles.has(user.role)) issues.push({ label: "Legacy role", tone: "warning" });
   if (!primaryHotelId) issues.push({ label: "No hotel", tone: "danger" });
-  if (user.role === "User" && !hasDepartment) issues.push({ label: "No department", tone: "danger" });
+  if (user.role === ROLES.USER && !hasDepartment) issues.push({ label: "No department", tone: "danger" });
   if (canUseMultiHotelAccess(user.role) && !accessIds.length) {
     issues.push({ label: "No access", tone: "danger" });
   }
@@ -167,7 +173,7 @@ export function getUserSetupIssues(user) {
 }
 
 export function getRoleOptions(currentRole, currentUser) {
-  const roles = groupAdminRoles.has(currentUser?.role)
+  const roles = currentUser?.role && canManageUsers(currentUser.role) && currentUser.role !== ROLES.HOTEL_ADMIN
     ? activeRoles
     : activeRoles.filter((role) => hotelAdminAssignableRoles.has(role));
   const options = roles.map((role) => ({

@@ -42,10 +42,10 @@ function inferTargetId(details = {}) {
     details.targetId ||
     details.ticketId ||
     details.userId ||
-    details.hotelId ||
     details.departmentId ||
     details.assetId ||
-    details.problemTypeId;
+    details.problemTypeId ||
+    details.hotelId;
   return value ? String(value) : "";
 }
 
