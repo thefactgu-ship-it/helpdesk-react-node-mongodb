@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import ConfirmModal from "../components/ConfirmModal";
+import { canManageHotelSettings } from "../config/rolePolicy";
 import {
   createProblemType,
   deleteProblemType,
@@ -24,7 +25,7 @@ function ProblemTypesPage({ currentUser, token }) {
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
   const [deleteTypeId, setDeleteTypeId] = useState(null);
-  const isAdmin = ["GroupAdmin", "Admin", "HotelAdmin"].includes(currentUser?.role);
+  const isAdmin = canManageHotelSettings(currentUser?.role);
 
   const fetchProblemTypes = useCallback(async () => {
     if (!token) return;

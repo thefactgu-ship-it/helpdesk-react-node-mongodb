@@ -1,7 +1,7 @@
 const Department = require("../models/Department");
-const { MANAGER_ROLES } = require("../constants");
 const {
   buildHotelScopeQuery,
+  canManageDepartments,
   getUserHotelId,
 } = require("../utils/tenantScope");
 const { sendError } = require("../utils/errorHandler");
@@ -28,7 +28,7 @@ async function getDepartments(req, res) {
 
 async function createDepartment(req, res) {
   try {
-    if (!MANAGER_ROLES.includes(req.user?.role)) {
+    if (!canManageDepartments(req.user)) {
       return res.status(403).json({ message: "Department management access denied" });
     }
 
@@ -56,7 +56,7 @@ async function createDepartment(req, res) {
 
 async function updateDepartment(req, res) {
   try {
-    if (!MANAGER_ROLES.includes(req.user?.role)) {
+    if (!canManageDepartments(req.user)) {
       return res.status(403).json({ message: "Department management access denied" });
     }
 
@@ -86,7 +86,7 @@ async function updateDepartment(req, res) {
 
 async function deleteDepartment(req, res) {
   try {
-    if (!MANAGER_ROLES.includes(req.user?.role)) {
+    if (!canManageDepartments(req.user)) {
       return res.status(403).json({ message: "Department management access denied" });
     }
 

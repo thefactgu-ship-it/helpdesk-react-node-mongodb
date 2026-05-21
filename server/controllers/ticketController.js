@@ -26,6 +26,7 @@ const {
 const {
   buildDateRangeQuery,
   buildHotelScopeQuery,
+  canAssignTickets,
   canManageTickets,
   getUserHotelId,
   isStaffRole,
@@ -523,6 +524,7 @@ async function createTicket(req, res) {
     const selectedDepartment = departmentResult?.ok ? departmentResult.department : null;
 
     const managerCanTriage = canManageTickets(req.user);
+    const canAssignTicket = canAssignTickets(req.user);
     const criticalReviewRequested = !managerCanTriage && Boolean(criticalRequested);
     const effectivePriority = criticalReviewRequested
       ? "high"
@@ -532,7 +534,7 @@ async function createTicket(req, res) {
 
     let assignedUser = null;
     if (assignedTo) {
-      if (!managerCanTriage) {
+      if (!canAssignTicket) {
         return res.status(403).json({ message: "Only Admin or Manager can assign tickets" });
       }
 
@@ -629,6 +631,7 @@ async function updateTicket(req, res) {
       dueDate,
     } = req.body;
     const managerCanTriage = canManageTickets(req.user);
+    const canAssignTicket = canAssignTickets(req.user);
 
     // Build update fields and log details
     if (title) {
@@ -706,7 +709,7 @@ async function updateTicket(req, res) {
       logDetails.push(nextCriticalRequested ? "Critical review requested" : "Critical review cleared");
     }
     if (assignedTo) {
-      if (!managerCanTriage) {
+      if (!canAssignTicket) {
         return res.status(403).json({ message: "Only Admin or Manager can assign tickets" });
       }
 
@@ -887,7 +890,7 @@ async function assignTicket(req, res) {
   try {
     const { assignedTo } = req.body;
 
-    if (!canManageTickets(req.user)) {
+    if (!canAssignTickets(req.user)) {
       return res.status(403).json({ message: "Only Admin or Manager can assign tickets" });
     }
 

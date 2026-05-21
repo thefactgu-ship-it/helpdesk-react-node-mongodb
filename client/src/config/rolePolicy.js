@@ -20,6 +20,14 @@ export const TICKET_MANAGER_ROLES = Object.freeze([
 
 export const GROUP_CONTROL_ROLES = Object.freeze([ROLES.GROUP_ADMIN]);
 
+export const ROLE_PERMISSION_MATRIX = Object.freeze({
+  canManageTickets: TICKET_MANAGER_ROLES,
+  canAssignTickets: TICKET_MANAGER_ROLES,
+  canManageUsers: Object.freeze([ROLES.GROUP_ADMIN, ROLES.ADMIN, ROLES.HOTEL_ADMIN]),
+  canManageDepartments: TICKET_MANAGER_ROLES,
+  canManageHotelSettings: Object.freeze([ROLES.GROUP_ADMIN, ROLES.ADMIN, ROLES.HOTEL_ADMIN]),
+});
+
 export function getWorkQueueProfile(role) {
   if (role === ROLES.USER) return "requester";
   if (role === ROLES.GROUP_ADMIN) return "groupAdmin";
@@ -30,7 +38,27 @@ export function getWorkQueueProfile(role) {
 }
 
 export function canManageTickets(role) {
-  return TICKET_MANAGER_ROLES.includes(role);
+  return hasRolePermission(role, "canManageTickets");
+}
+
+export function canAssignTickets(role) {
+  return hasRolePermission(role, "canAssignTickets");
+}
+
+export function canManageUsers(role) {
+  return hasRolePermission(role, "canManageUsers");
+}
+
+export function canManageDepartments(role) {
+  return hasRolePermission(role, "canManageDepartments");
+}
+
+export function canManageHotelSettings(role) {
+  return hasRolePermission(role, "canManageHotelSettings");
+}
+
+export function hasRolePermission(role, permission) {
+  return (ROLE_PERMISSION_MATRIX[permission] || []).includes(role);
 }
 
 export function canUseGroupControlQueue(role) {

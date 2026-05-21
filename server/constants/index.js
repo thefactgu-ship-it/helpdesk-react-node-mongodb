@@ -14,6 +14,13 @@ const GROUP_ROLES = ["GroupAdmin", "Admin"];
 const HOTEL_ADMIN_ROLES = ["GroupAdmin", "Admin", "HotelAdmin"];
 const MANAGER_ROLES = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"];
 const STAFF_ROLES = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager", "Agent"];
+const ROLE_PERMISSION_MATRIX = Object.freeze({
+  canManageTickets: MANAGER_ROLES,
+  canAssignTickets: MANAGER_ROLES,
+  canManageUsers: HOTEL_ADMIN_ROLES,
+  canManageDepartments: MANAGER_ROLES,
+  canManageHotelSettings: HOTEL_ADMIN_ROLES,
+});
 
 // Ticket priorities and SLA hours mapping
 const TICKET_PRIORITIES = ["low", "medium", "high", "critical"];
@@ -65,6 +72,7 @@ module.exports = {
   GROUP_ROLES,
   HOTEL_ADMIN_ROLES,
   MANAGER_ROLES,
+  ROLE_PERMISSION_MATRIX,
   STAFF_ROLES,
   TICKET_PRIORITIES,
   SLA_HOURS_MAP,

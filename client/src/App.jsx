@@ -16,10 +16,15 @@ import NotificationBell from "./components/NotificationBell";
 import ThemedSelect from "./components/ThemedSelect";
 import TicketDetailModal from "./components/TicketDetailModal";
 import {
-  adminRoles,
+  departmentManagerRoles,
   groupRoles,
-  ticketManagerRoles,
 } from "./config/appConfig";
+import {
+  canAssignTickets as roleCanAssignTickets,
+  canManageHotelSettings as roleCanManageHotelSettings,
+  canManageTickets as roleCanManageTickets,
+  canManageUsers as roleCanManageUsers,
+} from "./config/rolePolicy";
 import { useTicketFilters } from "./hooks/useTicketFilters";
 import {
   createTranslator,
@@ -202,7 +207,7 @@ function App() {
   }, [authHeaders, scopedParams, token]);
 
   const fetchUsers = useCallback(async () => {
-    if (!token || !ticketManagerRoles.includes(currentUser?.role)) {
+    if (!token || !roleCanManageTickets(currentUser?.role)) {
       setUsers([]);
       return;
     }
@@ -357,7 +362,7 @@ function App() {
           department: departmentName,
           priority,
           criticalRequested,
-          assignedTo: canManageTickets ? form.assignedTo || undefined : undefined,
+          assignedTo: canAssignTickets ? form.assignedTo || undefined : undefined,
           dueDate: canManageTickets ? form.dueDate || undefined : undefined,
           hotelId: selectedHotelId !== "all" ? selectedHotelId : undefined,
         },
@@ -483,7 +488,7 @@ function App() {
 
   const assignTicket = async (id, assignedTo) => {
     if (!assignedTo) return;
-    if (!canManageTickets) return;
+    if (!canAssignTickets) return;
 
     try {
       setAssigningTicketId(id);
@@ -818,8 +823,10 @@ function App() {
     }
   };
 
-  const isAdmin = adminRoles.includes(currentUser?.role);
-  const canManageTickets = ticketManagerRoles.includes(currentUser?.role);
+  const canManageTickets = roleCanManageTickets(currentUser?.role);
+  const canAssignTickets = roleCanAssignTickets(currentUser?.role);
+  const canManageUsers = roleCanManageUsers(currentUser?.role);
+  const canManageHotelSettings = roleCanManageHotelSettings(currentUser?.role);
   const accessibleHotelIds = [...new Set(getUserHotelAccessIds(currentUser))];
   const canSelectHotel =
     hotels.length > 1 &&
@@ -839,20 +846,22 @@ function App() {
     }
 
     if (
-      (activePage === "user-management" && !isAdmin) ||
-      (activePage === "request-users" && !isAdmin) ||
+      (activePage === "user-management" && !canManageUsers) ||
+      (activePage === "request-users" && !canManageUsers) ||
       (activePage === "hotels" && !["GroupAdmin", "Admin"].includes(currentUser?.role)) ||
-      (activePage === "departments" && !ticketManagerRoles.includes(currentUser?.role))
+      (activePage === "assets" && !canManageHotelSettings) ||
+      (activePage === "problem-types" && !canManageHotelSettings) ||
+      (activePage === "departments" && !departmentManagerRoles.includes(currentUser?.role))
     ) {
       return "dashboard";
     }
 
-    if (activePage === "request-users" && isAdmin) {
+    if (activePage === "request-users" && canManageUsers) {
       return "user-management";
     }
 
     return activePage;
-  }, [activePage, currentUser?.role, isAdmin]);
+  }, [activePage, canManageHotelSettings, canManageUsers, currentUser?.role]);
 
   const currentPageMeta = getPageMeta(visibleActivePage, language);
   const pendingDeleteUser = users.find(
@@ -908,7 +917,7 @@ function App() {
                 console.error("Failed to fetch current user", error);
                 return null;
               }),
-        ticketManagerRoles.includes(currentUser?.role)
+        canManageTickets
           ? axios
               .get(`${AUTH_URL}/users`, { headers: authHeaders, params: scopedParams })
               .then((res) => res.data)
@@ -962,7 +971,7 @@ function App() {
     return () => {
       ignore = true;
     };
-  }, [authHeaders, currentUser, scopedParams, ticketListParams, token]);
+  }, [authHeaders, canManageTickets, currentUser, scopedParams, ticketListParams, token]);
 
   useEffect(() => {
     if (!selectedHotelId) return;
@@ -1135,7 +1144,7 @@ function App() {
 
               {visibleActivePage === "add-ticket" && (
                 <AddTicketPage
-                  canAssignTickets={canManageTickets}
+                  canAssignTickets={canAssignTickets}
                   form={form}
                   setForm={setForm}
                   handleSubmit={handleSubmit}
@@ -1174,7 +1183,7 @@ function App() {
                 />
               )}
 
-              {visibleActivePage === "departments" && ticketManagerRoles.includes(currentUser?.role) && (
+              {visibleActivePage === "departments" && departmentManagerRoles.includes(currentUser?.role) && (
                 <DepartmentManagementPage
                   departments={departments}
                   hotels={hotels}
@@ -1194,7 +1203,7 @@ function App() {
                 />
               )}
 
-              {visibleActivePage === "user-management" && isAdmin && (
+              {visibleActivePage === "user-management" && canManageUsers && (
                 <UserManagementPage
                   currentUser={currentUser}
                   deletingUserId={deletingUserId}

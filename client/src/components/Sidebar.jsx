@@ -18,6 +18,11 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  canManageDepartments,
+  canManageHotelSettings,
+  canManageUsers,
+} from "../config/rolePolicy";
 
 const menuGroups = [
   {
@@ -81,23 +86,30 @@ function Sidebar({
   const userName = currentUser?.name || "Welcome";
   const userRole = currentUser?.role || "User";
   const userTeam = currentUser?.team || "Support";
-  const isAdmin = ["GroupAdmin", "Admin", "HotelAdmin"].includes(currentUser?.role);
+  const hasSystemAccess =
+    canManageUsers(currentUser?.role) ||
+    canManageDepartments(currentUser?.role) ||
+    canManageHotelSettings(currentUser?.role);
   const isGroupAdmin = ["GroupAdmin", "Admin"].includes(currentUser?.role);
-  const isManager = ["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"].includes(currentUser?.role);
+  const isDepartmentManager = canManageDepartments(currentUser?.role);
+  const isHotelSettingsManager = canManageHotelSettings(currentUser?.role);
+  const isUserManager = canManageUsers(currentUser?.role);
   const isRequester = currentUser?.role === "User";
   const visibleGroups = useMemo(
     () =>
       menuGroups
-        .filter((group) => !group.adminOnly || isAdmin)
+        .filter((group) => !group.adminOnly || hasSystemAccess)
         .filter((group) => group.labelKey !== "nav.reports" || !isRequester)
         .map((group) => ({
           ...group,
           items: group.items
+            .filter((item) => !["assets", "problem-types"].includes(item.id) || isHotelSettingsManager)
             .filter((item) => !item.groupOnly || isGroupAdmin)
-            .filter((item) => !item.managerOnly || isManager),
+            .filter((item) => !item.managerOnly || isDepartmentManager)
+            .filter((item) => item.id !== "user-management" || isUserManager),
         }))
         .filter((group) => group.items.length),
-    [isAdmin, isGroupAdmin, isManager, isRequester],
+    [hasSystemAccess, isDepartmentManager, isGroupAdmin, isHotelSettingsManager, isRequester, isUserManager],
   );
 
   useEffect(() => {

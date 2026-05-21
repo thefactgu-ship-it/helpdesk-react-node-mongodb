@@ -1,10 +1,16 @@
-import { ROLES, TICKET_MANAGER_ROLES } from "./rolePolicy";
+import { ROLE_PERMISSION_MATRIX, ROLES, TICKET_MANAGER_ROLES } from "./rolePolicy";
 
 export const groupRoles = [ROLES.GROUP_ADMIN, ROLES.ADMIN, ROLES.REGIONAL_MANAGER];
 
-export const adminRoles = [ROLES.GROUP_ADMIN, ROLES.ADMIN, ROLES.HOTEL_ADMIN];
+export const adminRoles = [...ROLE_PERMISSION_MATRIX.canManageUsers];
 
 export const ticketManagerRoles = [...TICKET_MANAGER_ROLES];
+
+export const ticketAssignmentRoles = [...ROLE_PERMISSION_MATRIX.canAssignTickets];
+
+export const departmentManagerRoles = [...ROLE_PERMISSION_MATRIX.canManageDepartments];
+
+export const hotelSettingsManagerRoles = [...ROLE_PERMISSION_MATRIX.canManageHotelSettings];
 
 export const pageTitles = {
   dashboard: {

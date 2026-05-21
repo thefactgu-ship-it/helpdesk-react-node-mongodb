@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const Hotel = require("../models/Hotel");
-const { GROUP_ROLES, MANAGER_ROLES, HOTEL_ADMIN_ROLES, STAFF_ROLES } = require("../constants");
+const { GROUP_ROLES, ROLE_PERMISSION_MATRIX, STAFF_ROLES } = require("../constants");
 
 function toObjectId(value) {
   if (!value || !mongoose.Types.ObjectId.isValid(value)) return null;
@@ -20,11 +20,31 @@ function canManageHotels(user) {
 }
 
 function canManageHotelData(user) {
-  return HOTEL_ADMIN_ROLES.includes(user?.role);
+  return canManageHotelSettings(user);
 }
 
 function canManageTickets(user) {
-  return MANAGER_ROLES.includes(user?.role);
+  return hasRolePermission(user, "canManageTickets");
+}
+
+function canAssignTickets(user) {
+  return hasRolePermission(user, "canAssignTickets");
+}
+
+function canManageUsers(user) {
+  return hasRolePermission(user, "canManageUsers");
+}
+
+function canManageDepartments(user) {
+  return hasRolePermission(user, "canManageDepartments");
+}
+
+function canManageHotelSettings(user) {
+  return hasRolePermission(user, "canManageHotelSettings");
+}
+
+function hasRolePermission(user, permission) {
+  return (ROLE_PERMISSION_MATRIX[permission] || []).includes(user?.role);
 }
 
 function isStaffRole(role) {
@@ -104,9 +124,13 @@ function buildDateRangeQuery(query = {}) {
 module.exports = {
   buildDateRangeQuery,
   buildHotelScopeQuery,
+  canAssignTickets,
+  canManageDepartments,
   canManageHotelData,
   canManageHotels,
+  canManageHotelSettings,
   canManageTickets,
+  canManageUsers,
   getAllowedHotelIds,
   getHotelAccessIds,
   getUserHotelId,

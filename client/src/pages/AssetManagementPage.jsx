@@ -4,6 +4,7 @@ import ActionMenu from "../components/ActionMenu";
 import ConfirmModal from "../components/ConfirmModal";
 import Drawer from "../components/Drawer";
 import ThemedSelect from "../components/ThemedSelect";
+import { canManageHotelSettings } from "../config/rolePolicy";
 import {
   createAsset,
   deleteAsset,
@@ -47,7 +48,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", t = (key) => key, t
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [formDrawerOpen, setFormDrawerOpen] = useState(false);
   const [openActionAssetId, setOpenActionAssetId] = useState(null);
-  const isAdmin = ["GroupAdmin", "Admin", "HotelAdmin"].includes(currentUser?.role);
+  const isAdmin = canManageHotelSettings(currentUser?.role);
   const scopedParams = useMemo(
     () => (hotelId && hotelId !== "all" ? { hotelId } : undefined),
     [hotelId],

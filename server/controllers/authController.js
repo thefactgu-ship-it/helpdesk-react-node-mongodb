@@ -4,8 +4,14 @@ const User = require("../models/User");
 const Hotel = require("../models/Hotel");
 const Department = require("../models/Department");
 const { sanitizeUser, normalizeRole } = require("../utils/userSanitizer");
-const { GROUP_ROLES, MANAGER_ROLES, PUBLIC_USER_FIELDS } = require("../constants");
-const { buildHotelScopeQuery, canManageHotels, getAllowedHotelIds, getUserHotelId } = require("../utils/tenantScope");
+const { GROUP_ROLES, PUBLIC_USER_FIELDS } = require("../constants");
+const {
+  buildHotelScopeQuery,
+  canManageHotels,
+  canManageTickets,
+  getAllowedHotelIds,
+  getUserHotelId,
+} = require("../utils/tenantScope");
 const { canManageRole } = require("../utils/roleHierarchy");
 const auditLog = require("../utils/auditLogger");
 
@@ -282,7 +288,7 @@ async function updateCurrentUserPassword(req, res) {
  */
 async function getAllUsers(req, res) {
   try {
-    if (!MANAGER_ROLES.includes(req.user?.role)) {
+    if (!canManageTickets(req.user)) {
       return res.status(403).json({ message: "User list access denied" });
     }
 

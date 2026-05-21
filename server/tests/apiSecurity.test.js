@@ -17,6 +17,13 @@ const ticketController = require("../controllers/ticketController");
 const errorHandler = require("../middleware/errorHandler");
 const { canManageRole } = require("../utils/roleHierarchy");
 const {
+  canAssignTickets,
+  canManageDepartments,
+  canManageHotelSettings,
+  canManageTickets,
+  canManageUsers,
+} = require("../utils/tenantScope");
+const {
   handleValidationErrors,
   updateCurrentUserValidationRules,
 } = require("../validators/authValidator");
@@ -289,6 +296,26 @@ test("role hierarchy blocks lower roles from managing higher roles", () => {
   assert.equal(canManageRole("HotelAdmin", "GroupAdmin"), false);
   assert.equal(canManageRole("Manager", "HotelAdmin"), false);
   assert.equal(canManageRole("GroupAdmin", "Admin"), true);
+});
+
+test("role permission matrix separates ticket, user, department, and hotel settings capabilities", () => {
+  assert.equal(canManageTickets({ role: "Manager" }), true);
+  assert.equal(canAssignTickets({ role: "Manager" }), true);
+  assert.equal(canManageUsers({ role: "Manager" }), false);
+  assert.equal(canManageDepartments({ role: "Manager" }), true);
+  assert.equal(canManageHotelSettings({ role: "Manager" }), false);
+
+  assert.equal(canManageTickets({ role: "HotelAdmin" }), true);
+  assert.equal(canAssignTickets({ role: "HotelAdmin" }), true);
+  assert.equal(canManageUsers({ role: "HotelAdmin" }), true);
+  assert.equal(canManageDepartments({ role: "HotelAdmin" }), true);
+  assert.equal(canManageHotelSettings({ role: "HotelAdmin" }), true);
+
+  assert.equal(canManageTickets({ role: "Agent" }), false);
+  assert.equal(canAssignTickets({ role: "Agent" }), false);
+  assert.equal(canManageUsers({ role: "Agent" }), false);
+  assert.equal(canManageDepartments({ role: "Agent" }), false);
+  assert.equal(canManageHotelSettings({ role: "Agent" }), false);
 });
 
 test("agent visibility includes active unassigned tickets in hotel scope", () => {
