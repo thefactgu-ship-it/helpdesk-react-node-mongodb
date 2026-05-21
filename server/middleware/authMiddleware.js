@@ -22,12 +22,18 @@ const authMiddleware = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id).select(
-      "email role team departmentId departmentName hotelId hotelAccess regions passwordChangedAt"
+      "email role team departmentId departmentName hotelId hotelAccess regions passwordChangedAt active"
     );
 
     if (!user) {
       return res.status(401).json({
         message: "User not found",
+      });
+    }
+
+    if (user.active === false) {
+      return res.status(401).json({
+        message: "Account is inactive",
       });
     }
 

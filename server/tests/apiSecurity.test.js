@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 process.env.JWT_SECRET = process.env.JWT_SECRET || "test_secret_with_at_least_32_chars";
 process.env.NODE_ENV = "test";
 
+const User = require("../models/User");
 const authMiddleware = require("../middleware/authMiddleware");
 const authRoutes = require("../routes/authRoutes");
 const notificationRoutes = require("../routes/notificationRoutes");
@@ -102,6 +103,31 @@ test("auth API rejects malformed login payload", async () => {
   assert.equal(response.data.message, "Validation error");
 });
 
+test("login only searches active accounts", async () => {
+  const originalFind = User.find;
+  let capturedQuery = null;
+
+  User.find = (query) => {
+    capturedQuery = query;
+    return {
+      sort: async () => [],
+    };
+  };
+
+  try {
+    const app = createTestApp();
+    const response = await request(app, "/api/auth/login", {
+      method: "POST",
+      body: { email: "inactive@example.com", password: "password123" },
+    });
+
+    assert.equal(response.status, 401);
+    assert.deepEqual(capturedQuery.active, { $ne: false });
+  } finally {
+    User.find = originalFind;
+  }
+});
+
 test("profile update rejects role, department, and team changes", async () => {
   const app = express();
   app.use(express.json());
@@ -177,6 +203,36 @@ test("auth middleware rejects expired bearer tokens", async () => {
   assert.equal(nextCalled, false);
   assert.equal(res.statusCode, 401);
   assert.equal(res.body.message, "Token expired");
+});
+
+test("auth middleware rejects inactive accounts with existing tokens", async () => {
+  const originalFindById = User.findById;
+  const token = jwt.sign({ id: "507f1f77bcf86cd799439011" }, process.env.JWT_SECRET, {
+    expiresIn: "1h",
+  });
+  const req = { headers: { authorization: `Bearer ${token}` } };
+  const res = mockResponse();
+  let nextCalled = false;
+
+  User.findById = () => ({
+    select: async () => ({
+      active: false,
+      role: "Agent",
+      hotelAccess: [],
+    }),
+  });
+
+  try {
+    await authMiddleware(req, res, () => {
+      nextCalled = true;
+    });
+
+    assert.equal(nextCalled, false);
+    assert.equal(res.statusCode, 401);
+    assert.equal(res.body.message, "Account is inactive");
+  } finally {
+    User.findById = originalFindById;
+  }
 });
 
 test("role hierarchy blocks lower roles from managing higher roles", () => {

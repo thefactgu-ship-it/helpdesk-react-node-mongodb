@@ -150,9 +150,9 @@ async function login(req, res) {
     }
 
     // Find user and compare password
-    const matchingUsers = hotelId
-      ? await User.find({ email, hotelId }).sort({ createdAt: 1 })
-      : await User.find({ email }).sort({ createdAt: 1 });
+    const activeUserQuery = { email, active: { $ne: false } };
+    if (hotelId) activeUserQuery.hotelId = hotelId;
+    const matchingUsers = await User.find(activeUserQuery).sort({ createdAt: 1 });
     const user =
       matchingUsers.find((candidate) => GROUP_ROLES.includes(candidate.role)) ||
       matchingUsers[0];
