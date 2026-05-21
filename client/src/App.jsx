@@ -1,5 +1,4 @@
 import {
-  lazy,
   Suspense,
   useCallback,
   useEffect,
@@ -35,6 +34,7 @@ import {
 import { API_BASE_URL } from "./services/api";
 import { getHotels } from "./services/hotelService";
 import { getDepartments } from "./services/departmentService";
+import { lazyWithDeployRetry } from "./utils/lazyWithDeployRetry";
 
 const AddTicketPage = lazyWithDeployRetry(() => import("./pages/AddTicketPage"));
 const AssetManagementPage = lazyWithDeployRetry(() => import("./pages/AssetManagementPage"));
@@ -52,30 +52,6 @@ const UserManagementPage = lazyWithDeployRetry(() => import("./pages/UserManagem
 const API_URL = `${API_BASE_URL}/tickets`;
 const AUTH_URL = `${API_BASE_URL}/auth`;
 const attachmentsEnabled = import.meta.env.VITE_ATTACHMENTS_ENABLED === "true";
-const DEPLOY_RELOAD_KEY = "helpdesk:deploy-reload-attempted";
-
-function lazyWithDeployRetry(importer) {
-  return lazy(async () => {
-    try {
-      const module = await importer();
-      sessionStorage.removeItem(DEPLOY_RELOAD_KEY);
-      return module;
-    } catch (error) {
-      const message = String(error?.message || error || "");
-      const isMissingChunk =
-        message.includes("Failed to fetch dynamically imported module") ||
-        message.includes("Importing a module script failed") ||
-        message.includes("error loading dynamically imported module");
-
-      if (isMissingChunk && !sessionStorage.getItem(DEPLOY_RELOAD_KEY)) {
-        sessionStorage.setItem(DEPLOY_RELOAD_KEY, "true");
-        window.location.reload();
-      }
-
-      throw error;
-    }
-  });
-}
 
 function getErrorMessage(error, fallback) {
   const validationMessage = error?.response?.data?.errors?.[0]?.message;
