@@ -50,9 +50,10 @@ function buildExecutivePrompt({
 - ช่วงเวลา: ${periodLabel}
 - ขอบเขตโรงแรม: ${scopeLabel}
 - จำนวน Ticket ทั้งหมด: ${report.total ?? 0}
-- Completion Rate: ${report.completionRate ?? 0}%
-- Success Rate: ${report.successRate ?? 0}% (${report.successDetail || "-"})
-- Open Tickets: ${report.open ?? 0}
+- Closed Rate: ${report.completionRate ?? 0}%
+- SLA Success Rate: ${report.successRate ?? 0}% (${report.successDetail || "-"})
+- Waiting Confirmation: ${report.resolved ?? 0}
+- Closed Tickets: ${report.closed ?? 0}
 - Active Tickets: ${report.active ?? 0}
 - Overdue Tickets: ${report.overdue ?? 0}
 - Avg. Resolve Hours: ${report.avgResolutionHours ?? 0}
@@ -65,7 +66,7 @@ function buildExecutivePrompt({
 
 โปรดสร้างรายงานภาษาไทยสำหรับผู้บริหาร โดยจัดหัวข้อดังนี้
 1. Executive Summary แบบกระชับ 3-5 bullet
-2. KPI Highlights: Completion Rate, Success Rate, SLA/on-time context, Satisfaction Score
+2. KPI Highlights: Closed Rate, Waiting Confirmation, SLA/on-time context, Satisfaction Score
 3. Risks & Attention Points: ประเด็นที่ควรระวังจาก overdue, priority, category, hotel/department
 4. Root-cause Themes: วิเคราะห์แนวโน้มจาก category/comment/title ในข้อมูล ticket
 5. Hotel / Department Focus: ชี้จุดที่ควรโฟกัสตามข้อมูลจริง

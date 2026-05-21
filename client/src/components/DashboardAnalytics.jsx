@@ -81,6 +81,7 @@ function getWeekLabel(date) {
 function buildDashboardData(tickets) {
   const total = tickets.length;
   const open = tickets.filter((ticket) => ticket.status === "open").length;
+  const inProgress = tickets.filter((ticket) => ticket.status === "in_progress").length;
   const resolved = tickets.filter((ticket) => ticket.status === "resolved").length;
   const closed = tickets.filter((ticket) => ticket.status === "closed").length;
   const overdue = tickets.filter((ticket) => ticket.isOverdue).length;
@@ -213,6 +214,7 @@ function buildDashboardData(tickets) {
     avgDaysOpen,
     categoryData,
     closed,
+    inProgress,
     open,
     openDayBuckets,
     overdue,
@@ -255,22 +257,23 @@ function DashboardAnalytics({ darkMode, tickets }) {
           bars={[36, 50, 62, 48]}
         />
         <StatCard
-          title="Open"
-          value={data.open.toLocaleString()}
-          detail={`${percent(data.open, data.total)}%`}
+          title="Active Work"
+          value={(data.open + data.inProgress).toLocaleString()}
+          detail={`${data.open} open / ${data.inProgress} doing`}
           icon={BarChart3}
           bars={[24, 42, 70, 38]}
         />
         <StatCard
-          title="Resolved"
+          title="Waiting Confirm"
           value={data.resolved.toLocaleString()}
-          detail={`${percent(data.resolved, data.total)}%`}
+          detail="resolved, not closed"
           icon={CheckCircle2}
           bars={[30, 45, 58, 35]}
         />
         <StatCard
-          title="Avg. Days Open"
-          value={data.avgDaysOpen}
+          title="Closed"
+          value={data.closed.toLocaleString()}
+          detail={`${percent(data.closed, data.total)}% completed`}
           icon={Clock3}
           bars={[20, 28, 56, 44]}
         />

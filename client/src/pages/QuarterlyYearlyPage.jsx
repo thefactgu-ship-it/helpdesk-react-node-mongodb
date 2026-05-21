@@ -55,7 +55,7 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
             Quarterly / Yearly
           </h3>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Compare ticket trend, open, resolved, and overdue volume by period.
+            Compare ticket trend, waiting confirmation, closed work, and overdue volume by period.
           </p>
         </div>
 
@@ -106,9 +106,9 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
         <StatCard title="Tickets" value={report.total} detail={year} icon={ClipboardList} />
-        <StatCard title="Completion" value={`${report.completionRate}%`} detail={`${report.completedCount} done`} icon={CheckCircle2} />
-        <StatCard title="Success Rate" value={`${report.successRate}%`} detail={report.successDetail} icon={Gauge} />
-        <StatCard title="Open" value={report.open} detail="active" icon={Activity} />
+        <StatCard title="Waiting Confirm" value={report.resolved} detail="resolved, not closed" icon={Activity} />
+        <StatCard title="Closed" value={report.closed} detail={`${report.completionRate}% of tickets`} icon={CheckCircle2} />
+        <StatCard title="SLA Success" value={`${report.successRate}%`} detail={report.successDetail} icon={Gauge} />
         <StatCard title="Avg. Rating" value={report.avgSatisfactionLabel} detail={`${report.satisfactionCount} ratings`} icon={Star} />
       </section>
 
@@ -137,13 +137,14 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
           <div className="grid gap-3 text-sm">
             <SnapshotRow label="Best period" value={report.bestPeriod} />
             <SnapshotRow label="Most overdue period" value={report.mostOverduePeriod} />
+            <SnapshotRow label="Waiting confirmation" value={report.resolved} />
             <SnapshotRow label="Closed tickets" value={report.closed} />
             <SnapshotRow label="Avg. resolve time" value={`${report.avgResolutionHours}h`} />
             <SnapshotRow label="Active tickets" value={report.active} />
           </div>
         </ReportPanel>
 
-        <ReportPanel className="xl:col-span-12" title="Open / Resolved / Overdue Comparison">
+        <ReportPanel className="xl:col-span-12" title="Active / Waiting / Closed / Overdue Comparison">
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={report.periods}>
@@ -151,15 +152,17 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
                 <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
                 <YAxis allowDecimals={false} tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
                 <Tooltip content={<ChartTooltip />} />
-                <Bar dataKey="open" fill="#2563eb" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="resolved" fill="#22c55e" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="active" fill="#2563eb" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="resolved" fill="#f59e0b" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="closed" fill="#22c55e" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="overdue" fill="#e11d48" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
           <div className="mt-4 flex flex-wrap gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            <LegendDot color="#2563eb" label="Open" />
-            <LegendDot color="#22c55e" label="Resolved" />
+            <LegendDot color="#2563eb" label="Active" />
+            <LegendDot color="#f59e0b" label="Waiting confirm" />
+            <LegendDot color="#22c55e" label="Closed" />
             <LegendDot color="#e11d48" label="Overdue" />
           </div>
         </ReportPanel>
@@ -178,7 +181,6 @@ function buildPeriodReport(tickets, year, mode) {
   const total = yearTickets.length;
   const resolved = yearTickets.filter((ticket) => ticket.status === "resolved").length;
   const closed = yearTickets.filter((ticket) => ticket.status === "closed").length;
-  const open = yearTickets.filter((ticket) => ticket.status === "open").length;
   const active = yearTickets.filter((ticket) => !isCompletedTicket(ticket)).length;
   const overdue = yearTickets.filter((ticket) => isOverdue(ticket)).length;
   const resolvedWithTime = yearTickets.filter((ticket) => ticket.resolvedAt);
@@ -205,7 +207,6 @@ function buildPeriodReport(tickets, year, mode) {
     filteredTickets: yearTickets,
     label: mode === "quarterly" ? "Quarterly" : "Yearly",
     mostOverduePeriod: getTopPeriod(periods, "overdue"),
-    open,
     overdue,
     periods,
     resolved,
@@ -245,11 +246,11 @@ function buildPeriodItem(name, tickets) {
   const resolved = tickets.filter((ticket) => ticket.status === "resolved").length;
 
   return {
+    active: tickets.filter((ticket) => !isCompletedTicket(ticket)).length,
     closed,
     name,
-    open: tickets.filter((ticket) => ticket.status === "open").length,
     overdue: tickets.filter((ticket) => isOverdue(ticket)).length,
-    resolved: resolved + closed,
+    resolved,
     total: tickets.length,
   };
 }

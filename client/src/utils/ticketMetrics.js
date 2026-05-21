@@ -1,13 +1,14 @@
-const COMPLETED_STATUSES = new Set(["resolved", "closed"]);
+const WORK_FINISHED_STATUSES = new Set(["resolved", "closed"]);
 
 export function isCompletedTicket(ticket) {
-  return COMPLETED_STATUSES.has(ticket.status);
+  return WORK_FINISHED_STATUSES.has(ticket.status);
 }
 
 export function getCompletionStats(tickets) {
   const total = tickets.length;
-  const completedTickets = tickets.filter(isCompletedTicket);
-  const successEligibleTickets = completedTickets.filter(
+  const closedTickets = tickets.filter((ticket) => ticket.status === "closed");
+  const waitingConfirmationTickets = tickets.filter((ticket) => ticket.status === "resolved");
+  const successEligibleTickets = tickets.filter(
     (ticket) => ticket.resolvedAt && ticket.dueDate,
   );
   const successfulTickets = successEligibleTickets.filter(
@@ -20,8 +21,10 @@ export function getCompletionStats(tickets) {
   );
 
   return {
-    completedCount: completedTickets.length,
-    completionRate: total ? Math.round((completedTickets.length / total) * 100) : 0,
+    completedCount: closedTickets.length,
+    completionRate: total ? Math.round((closedTickets.length / total) * 100) : 0,
+    closedCount: closedTickets.length,
+    waitingConfirmationCount: waitingConfirmationTickets.length,
     successfulCount: successfulTickets.length,
     successEligibleCount: successEligibleTickets.length,
     successRate: successEligibleTickets.length

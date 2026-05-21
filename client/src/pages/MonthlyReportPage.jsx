@@ -83,9 +83,9 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
         <StatCard title={report.shortMonthLabel} value={report.total} detail="tickets" icon={CalendarDays} />
-        <StatCard title="Completion" value={`${report.completionRate}%`} detail={`${report.completedCount} done`} icon={CheckCircle2} />
-        <StatCard title="Success Rate" value={`${report.successRate}%`} detail={report.successDetail} icon={Gauge} />
-        <StatCard title="Open" value={report.open} detail="active" icon={Activity} />
+        <StatCard title="Waiting Confirm" value={report.resolved} detail="resolved, not closed" icon={Activity} />
+        <StatCard title="Closed" value={report.closed} detail={`${report.completionRate}% of tickets`} icon={CheckCircle2} />
+        <StatCard title="SLA Success" value={`${report.successRate}%`} detail={report.successDetail} icon={Gauge} />
         <StatCard title="Avg. Rating" value={report.avgSatisfactionLabel} detail={`${report.satisfactionCount} ratings`} icon={Star} />
       </section>
 
@@ -144,6 +144,7 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
           <div className="grid gap-3 text-sm">
             <SnapshotRow label="Most common category" value={report.topCategoryName} />
             <SnapshotRow label="Critical tickets" value={report.critical} />
+            <SnapshotRow label="Waiting confirmation" value={report.resolved} />
             <SnapshotRow label="Closed tickets" value={report.closed} />
             <SnapshotRow label="Overdue tickets" value={report.overdue} />
             <SnapshotRow label="Avg. resolve time" value={`${report.avgResolutionHours}h`} />
@@ -168,7 +169,6 @@ function buildMonthlyReport(tickets, selectedMonth) {
   const total = monthTickets.length;
   const resolved = monthTickets.filter((ticket) => ticket.status === "resolved").length;
   const closed = monthTickets.filter((ticket) => ticket.status === "closed").length;
-  const open = monthTickets.filter((ticket) => ticket.status === "open").length;
   const active = monthTickets.filter((ticket) => !isCompletedTicket(ticket)).length;
   const overdue = monthTickets.filter((ticket) => isOverdue(ticket)).length;
   const critical = monthTickets.filter((ticket) => ticket.priority === "critical").length;
@@ -202,7 +202,6 @@ function buildMonthlyReport(tickets, selectedMonth) {
       month: "long",
       year: "numeric",
     }),
-    open,
     overdue,
     prioritySummary: ["critical", "high", "medium", "low"].map((priority) => ({
       name: capitalize(priority),

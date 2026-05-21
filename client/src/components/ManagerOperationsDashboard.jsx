@@ -15,6 +15,7 @@ import {
   isCompleted,
   isDueSoon,
   isOverdue,
+  isWaitingRequester,
 } from "../utils/ticketQueueUtils";
 
 function ManagerOperationsDashboard({
@@ -114,10 +115,10 @@ function ManagerOperationsDashboard({
               value={data.dueSoon.length}
             />
             <ManagerKpi
-              detail={text.activeDetail}
+              detail={text.waitingConfirmationDetail}
               icon={Clock3}
-              label={text.active}
-              value={data.active.length}
+              label={text.waitingConfirmation}
+              value={data.waitingConfirmation.length}
             />
           </section>
 
@@ -202,6 +203,7 @@ function buildManagerDashboardData(tickets, text) {
   const active = tickets.filter((ticket) => !isCompleted(ticket));
   const overdue = active.filter(isOverdue);
   const dueSoon = active.filter(isDueSoon);
+  const waitingConfirmation = tickets.filter(isWaitingRequester);
   const unassignedUrgent = active.filter(
     (ticket) => !ticket.assignedTo && ["critical", "high"].includes(ticket.priority),
   );
@@ -234,6 +236,7 @@ function buildManagerDashboardData(tickets, text) {
     overdue,
     statusData: buildRankData(tickets, (ticket) => formatStatus(ticket.status || text.unknownStatus), 5),
     unassignedUrgent,
+    waitingConfirmation,
     workloadData: buildRankData(active, (ticket) => getAssigneeName(ticket, text.unassignedOwner), 6),
   };
 }
@@ -474,6 +477,8 @@ function getManagerDashboardText(t) {
     unknownStatus: pickText(t, "managerDashboard.unknownStatus", "Unknown"),
     urgentRisk: pickText(t, "managerDashboard.urgentRisk", "Urgent work"),
     viewAnalytics: pickText(t, "managerDashboard.viewAnalytics", "View analytics"),
+    waitingConfirmation: pickText(t, "managerDashboard.waitingConfirmation", "Waiting confirm"),
+    waitingConfirmationDetail: pickText(t, "managerDashboard.waitingConfirmationDetail", "Resolved work waiting requester confirmation"),
   };
 }
 

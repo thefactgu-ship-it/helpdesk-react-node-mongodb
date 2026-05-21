@@ -905,7 +905,7 @@ function isCompleted(ticket) {
 }
 
 function isWaitingFeedback(ticket) {
-  return isCompleted(ticket) && !ticket.satisfactionScore;
+  return ticket.status === "resolved" && !ticket.satisfactionScore;
 }
 
 function getTicketHotelId(ticket) {
