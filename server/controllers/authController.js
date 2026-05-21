@@ -384,7 +384,10 @@ async function updateUser(req, res) {
     if (role) updateFields.role = normalizeAssignableRole(req.user, role);
     if (team) updateFields.team = team;
     if (active !== undefined) updateFields.active = Boolean(active);
-    if (password) updateFields.password = await bcrypt.hash(password, 10);
+    if (password) {
+      updateFields.password = await bcrypt.hash(password, 10);
+      updateFields.passwordChangedAt = new Date(Date.now() - 1000);
+    }
     if (hotelId) updateFields.hotelId = await resolveHotelId(req, hotelId);
     if (regions && canManageHotels(req.user)) updateFields.regions = regions;
 

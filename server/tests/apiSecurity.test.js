@@ -8,6 +8,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || "test_secret_with_at_least_32
 process.env.NODE_ENV = "test";
 
 const User = require("../models/User");
+const authController = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 const authRoutes = require("../routes/authRoutes");
 const notificationRoutes = require("../routes/notificationRoutes");
@@ -232,6 +233,54 @@ test("auth middleware rejects inactive accounts with existing tokens", async () 
     assert.equal(res.body.message, "Account is inactive");
   } finally {
     User.findById = originalFindById;
+  }
+});
+
+test("admin password reset invalidates existing user tokens", async () => {
+  const originalFindOne = User.findOne;
+  const originalFindOneAndUpdate = User.findOneAndUpdate;
+  const hotelId = "507f1f77bcf86cd799439012";
+  const targetUserId = "507f1f77bcf86cd799439011";
+  let capturedUpdate = null;
+
+  User.findOne = async () => ({
+    _id: targetUserId,
+    role: "Agent",
+    hotelId,
+    hotelAccess: [hotelId],
+  });
+  User.findOneAndUpdate = (query, update) => {
+    capturedUpdate = update;
+    return {
+      select() {
+        return this;
+      },
+      populate() {
+        return this;
+      },
+      then(resolve) {
+        resolve({ _id: targetUserId, role: "Agent" });
+      },
+    };
+  };
+
+  try {
+    const req = {
+      body: { name: "Agent One", email: "agent@example.com", password: "new-password" },
+      params: { id: targetUserId },
+      query: {},
+      user: { id: "507f1f77bcf86cd799439013", role: "Manager", hotelId, hotelAccess: [hotelId] },
+    };
+    const res = mockResponse();
+
+    await authController.updateUser(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.ok(capturedUpdate.password);
+    assert.ok(capturedUpdate.passwordChangedAt instanceof Date);
+  } finally {
+    User.findOne = originalFindOne;
+    User.findOneAndUpdate = originalFindOneAndUpdate;
   }
 });
 
