@@ -19,7 +19,9 @@ import {
   YAxis,
 } from "recharts";
 import StatCard from "../components/StatCard";
+import PeriodExecutiveSummary from "../components/PeriodExecutiveSummary";
 import ThemedSelect from "../components/ThemedSelect";
+import { buildExecutiveReportInsights } from "../utils/periodReportInsights";
 import { getCompletionStats, getSuccessDetail, isCompletedTicket } from "../utils/ticketMetrics";
 import {
   exportReportPrompt,
@@ -112,6 +114,8 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
         <StatCard title="Avg. Rating" value={report.avgSatisfactionLabel} detail={`${report.satisfactionCount} ratings`} icon={Star} />
       </section>
 
+      <PeriodExecutiveSummary report={report} />
+
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
         <ReportPanel className="xl:col-span-8" title={`${report.label} Ticket Trend`}>
           <div className="h-72">
@@ -193,6 +197,12 @@ function buildPeriodReport(tickets, year, mode) {
     : 0;
 
   const completionStats = getCompletionStats(yearTickets);
+  const executiveInsights = buildExecutiveReportInsights(yearTickets, {
+    active,
+    overdue,
+    resolved,
+    successRate: completionStats.successRate,
+  });
 
   return {
     active,
@@ -210,6 +220,7 @@ function buildPeriodReport(tickets, year, mode) {
     overdue,
     periods,
     resolved,
+    ...executiveInsights,
     satisfactionCount: completionStats.satisfactionCount,
     successDetail: getSuccessDetail(completionStats),
     successRate: completionStats.successRate,
