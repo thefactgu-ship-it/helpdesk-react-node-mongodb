@@ -81,6 +81,20 @@ function DashboardPage({
     );
   }
 
+  if (currentUser?.role === "HotelAdmin") {
+    return (
+      <HotelAdminDashboard
+        currentUser={currentUser}
+        hotels={hotels}
+        loading={loading}
+        onNavigate={onNavigate}
+        selectedHotelId={selectedHotelId}
+        t={t}
+        tickets={tickets}
+      />
+    );
+  }
+
   if (currentUser?.role === "Manager") {
     return (
       <ManagerOperationsDashboard
@@ -124,6 +138,286 @@ function DashboardPage({
   }
 
   return <DashboardAnalytics darkMode={darkMode} tickets={tickets} />;
+}
+
+function HotelAdminDashboard({
+  currentUser,
+  hotels = [],
+  loading,
+  onNavigate,
+  selectedHotelId,
+  t,
+  tickets = [],
+}) {
+  const text = getHotelAdminDashboardText(t);
+  const data = buildHotelAdminDashboardData(tickets, hotels, selectedHotelId, currentUser, text);
+
+  return (
+    <div className="space-y-5">
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700 ring-1 ring-blue-100 dark:bg-blue-500/15 dark:text-blue-200 dark:ring-blue-400/20">
+              <Building2 className="h-4 w-4" aria-hidden="true" />
+              {data.scopeLabel}
+            </div>
+            <h3 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+              {text.title}
+            </h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
+              {text.description}
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[32rem]">
+            <button
+              type="button"
+              onClick={() => onNavigate("tickets")}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 sm:col-span-3"
+            >
+              <ClipboardList className="h-5 w-5" aria-hidden="true" />
+              {text.openQueue}
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate("user-management")}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            >
+              <UsersRound className="h-4 w-4" aria-hidden="true" />
+              {text.manageUsers}
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate("departments")}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            >
+              <Building2 className="h-4 w-4" aria-hidden="true" />
+              {text.departments}
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigate("monthly-report")}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+            >
+              <BarChart3 className="h-4 w-4" aria-hidden="true" />
+              {text.monthlyReport}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <GroupAdminKpi
+          detail={text.activeDetail}
+          icon={ClipboardList}
+          label={text.activeTickets}
+          value={data.activeTickets.length}
+        />
+        <GroupAdminKpi
+          detail={text.unassignedDetail}
+          icon={UserRoundX}
+          label={text.unassigned}
+          tone={data.unassignedTickets.length ? "amber" : "blue"}
+          value={data.unassignedTickets.length}
+        />
+        <GroupAdminKpi
+          detail={text.overdueDetail}
+          icon={AlertTriangle}
+          label={text.overdue}
+          tone={data.overdueTickets.length ? "rose" : "blue"}
+          value={data.overdueTickets.length}
+        />
+        <GroupAdminKpi
+          detail={text.dueSoonDetail}
+          icon={TimerReset}
+          label={text.dueSoon}
+          tone={data.dueSoonTickets.length ? "amber" : "blue"}
+          value={data.dueSoonTickets.length}
+        />
+        <GroupAdminKpi
+          detail={text.waitingDetail}
+          icon={Clock3}
+          label={text.waitingConfirm}
+          value={data.waitingConfirm.length}
+        />
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
+        <GroupAdminPanel
+          actionLabel={text.openQueue}
+          className="xl:col-span-7"
+          icon={ShieldAlert}
+          onAction={() => onNavigate("tickets")}
+          title={text.focusQueue}
+        >
+          {data.riskTickets.length ? (
+            <div className="space-y-3">
+              {data.riskTickets.map((ticket) => (
+                <GroupAdminRiskItem
+                  key={ticket._id || ticket.id}
+                  text={text}
+                  ticket={ticket}
+                />
+              ))}
+            </div>
+          ) : (
+            <GroupAdminEmptyState
+              loading={loading}
+              loadingLabel={text.loading}
+              message={text.noRiskTickets}
+            />
+          )}
+        </GroupAdminPanel>
+
+        <GroupAdminPanel
+          className="xl:col-span-5"
+          icon={UsersRound}
+          title={text.teamLoad}
+        >
+          <GroupAdminRankList
+            empty={text.noWorkloadData}
+            items={data.workloadData}
+            total={data.activeTickets.length}
+          />
+        </GroupAdminPanel>
+
+        <GroupAdminPanel
+          className="xl:col-span-6"
+          icon={Building2}
+          title={text.departmentDemand}
+        >
+          <GroupAdminRankList
+            empty={text.noDepartmentData}
+            items={data.departmentData}
+            total={data.activeTickets.length || tickets.length}
+          />
+        </GroupAdminPanel>
+
+        <GroupAdminPanel
+          className="xl:col-span-6"
+          icon={BarChart3}
+          title={text.recurringIssues}
+        >
+          <GroupAdminRankList
+            empty={text.noCategoryData}
+            items={data.categoryData}
+            total={tickets.length}
+          />
+        </GroupAdminPanel>
+      </section>
+    </div>
+  );
+}
+
+function buildHotelAdminDashboardData(tickets, hotels, selectedHotelId, currentUser, text) {
+  const now = new Date();
+  const activeTickets = tickets.filter((ticket) => !isCompleted(ticket));
+  const overdueTickets = activeTickets.filter((ticket) => isTicketOverdue(ticket, now));
+  const dueSoonTickets = activeTickets.filter((ticket) => isTicketDueSoon(ticket, now));
+  const unassignedTickets = activeTickets.filter((ticket) => !ticket.assignedTo);
+  const waitingConfirm = tickets.filter(isWaitingFeedback);
+  const riskTickets = activeTickets
+    .map((ticket) => ({
+      ...ticket,
+      riskRank: getTicketRiskRank(ticket, now),
+      riskLabel: getTicketRiskLabel(ticket, now, text),
+    }))
+    .filter((ticket) => ticket.riskRank < 99 || !ticket.assignedTo)
+    .sort((a, b) => {
+      const rankDiff = a.riskRank - b.riskRank;
+      if (rankDiff) return rankDiff;
+      return new Date(a.dueDate || a.createdAt) - new Date(b.dueDate || b.createdAt);
+    })
+    .slice(0, 6);
+
+  return {
+    activeTickets,
+    categoryData: buildRankData(tickets, (ticket) => ticket.category || text.unknownCategory, 5),
+    departmentData: buildRankData(
+      activeTickets.length ? activeTickets : tickets,
+      (ticket) => ticket.departmentName || ticket.department || text.unknownDepartment,
+      5,
+    ),
+    dueSoonTickets,
+    overdueTickets,
+    riskTickets,
+    scopeLabel: getHotelAdminScopeLabel(hotels, selectedHotelId, currentUser, text),
+    unassignedTickets,
+    waitingConfirm,
+    workloadData: buildRankData(activeTickets, (ticket) => getAssigneeName(ticket, text.unassignedOwner), 6),
+  };
+}
+
+function getHotelAdminScopeLabel(hotels, selectedHotelId, currentUser, text) {
+  const selectedHotel = selectedHotelId && selectedHotelId !== "all"
+    ? hotels.find((hotel) => getEntityId(hotel) === String(selectedHotelId))
+    : null;
+  if (selectedHotel) return getHotelLabel(selectedHotel) || text.hotelScope;
+
+  const primaryHotel = currentUser?.hotelId;
+  if (primaryHotel && typeof primaryHotel === "object") {
+    return getHotelLabel(primaryHotel) || text.hotelScope;
+  }
+
+  const accessibleHotels = Array.isArray(currentUser?.hotelAccess) ? currentUser.hotelAccess : [];
+  if (accessibleHotels.length === 1 && typeof accessibleHotels[0] === "object") {
+    return getHotelLabel(accessibleHotels[0]) || text.hotelScope;
+  }
+
+  if (accessibleHotels.length > 1) {
+    return `${accessibleHotels.length} ${text.hotelsScope}`;
+  }
+
+  return text.hotelScope;
+}
+
+function getHotelAdminDashboardText(t) {
+  return {
+    activeDetail: pickText(t, "hotelAdminDashboard.activeDetail", "Open work in your hotel scope"),
+    activeTickets: pickText(t, "hotelAdminDashboard.activeTickets", "Active tickets"),
+    departmentDemand: pickText(t, "hotelAdminDashboard.departmentDemand", "Department demand"),
+    departments: pickText(t, "hotelAdminDashboard.departments", "Departments"),
+    description: pickText(
+      t,
+      "hotelAdminDashboard.description",
+      "Control hotel support operations, keep owners assigned, and prevent SLA risk before it reaches guests or operations.",
+    ),
+    dueLabel: pickText(t, "hotelAdminDashboard.dueLabel", "Due"),
+    dueSoon: pickText(t, "hotelAdminDashboard.dueSoon", "Due soon"),
+    dueSoonDetail: pickText(t, "hotelAdminDashboard.dueSoonDetail", "Active tickets due within 4 hours"),
+    dueSoonRisk: pickText(t, "hotelAdminDashboard.dueSoonRisk", "Due soon"),
+    focusQueue: pickText(t, "hotelAdminDashboard.focusQueue", "Hotel action queue"),
+    hotelScope: pickText(t, "hotelAdminDashboard.hotelScope", "Hotel operations"),
+    hotelsScope: pickText(t, "hotelAdminDashboard.hotelsScope", "hotels in scope"),
+    loading: pickText(t, "common.loadingPage", "Loading page..."),
+    manageUsers: pickText(t, "hotelAdminDashboard.manageUsers", "Manage users"),
+    monthlyReport: pickText(t, "hotelAdminDashboard.monthlyReport", "Monthly report"),
+    noCategoryData: pickText(t, "hotelAdminDashboard.noCategoryData", "No issue category data yet."),
+    noDepartmentData: pickText(t, "hotelAdminDashboard.noDepartmentData", "No department demand data yet."),
+    noRiskTickets: pickText(t, "hotelAdminDashboard.noRiskTickets", "No hotel tickets need immediate action right now."),
+    noWorkloadData: pickText(t, "hotelAdminDashboard.noWorkloadData", "No active workload data yet."),
+    openQueue: pickText(t, "hotelAdminDashboard.openQueue", "Open hotel queue"),
+    overdue: pickText(t, "hotelAdminDashboard.overdue", "Overdue"),
+    overdueDetail: pickText(t, "hotelAdminDashboard.overdueDetail", "Active tickets past due"),
+    overdueRisk: pickText(t, "hotelAdminDashboard.overdueRisk", "Overdue"),
+    ownerLabel: pickText(t, "hotelAdminDashboard.ownerLabel", "Owner"),
+    priorityLabel: pickText(t, "hotelAdminDashboard.priorityLabel", "Priority"),
+    recurringIssues: pickText(t, "hotelAdminDashboard.recurringIssues", "Recurring issue categories"),
+    riskTickets: pickText(t, "hotelAdminDashboard.riskTickets", "Risk tickets"),
+    statusLabel: pickText(t, "hotelAdminDashboard.statusLabel", "Status"),
+    teamLoad: pickText(t, "hotelAdminDashboard.teamLoad", "Team workload"),
+    title: pickText(t, "hotelAdminDashboard.title", "Hotel operations dashboard"),
+    unassigned: pickText(t, "hotelAdminDashboard.unassigned", "Unassigned"),
+    unassignedDetail: pickText(t, "hotelAdminDashboard.unassignedDetail", "Active tickets without an owner"),
+    unassignedOwner: pickText(t, "hotelAdminDashboard.unassignedOwner", "Unassigned"),
+    unknownCategory: pickText(t, "hotelAdminDashboard.unknownCategory", "Uncategorized"),
+    unknownDepartment: pickText(t, "hotelAdminDashboard.unknownDepartment", "Unknown department"),
+    unknownHotel: pickText(t, "hotelAdminDashboard.unknownHotel", "Hotel"),
+    urgentRisk: pickText(t, "hotelAdminDashboard.urgentRisk", "Urgent work"),
+    urgentUnassignedRisk: pickText(t, "hotelAdminDashboard.urgentUnassignedRisk", "Urgent unassigned"),
+    waitingConfirm: pickText(t, "hotelAdminDashboard.waitingConfirm", "Waiting confirm"),
+    waitingDetail: pickText(t, "hotelAdminDashboard.waitingDetail", "Resolved tickets waiting requester confirmation"),
+  };
 }
 
 function GroupAdminDashboard({
