@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef, useState } from "react";
 import { MoreVertical } from "lucide-react";
 
 function QueueActionMenu({
@@ -12,11 +13,47 @@ function QueueActionMenu({
   open,
   t,
 }) {
+  const buttonRef = useRef(null);
+  const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 });
   const fullDetailLabel = pickText(t, "queue.actions.fullDetail", "Full detail");
+  const actionCount = canDelete ? 3 : 2;
+
+  useLayoutEffect(() => {
+    if (!open) return undefined;
+
+    const updatePosition = () => {
+      const rect = buttonRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      const menuWidth = 176;
+      const menuHeight = Math.max(48, actionCount * 40 + 8);
+      const viewportPadding = 8;
+      const hasSpaceBelow = window.innerHeight - rect.bottom >= menuHeight + viewportPadding;
+      const left = Math.min(
+        Math.max(viewportPadding, rect.right - menuWidth),
+        window.innerWidth - menuWidth - viewportPadding,
+      );
+      const top = hasSpaceBelow
+        ? rect.bottom + 6
+        : Math.max(viewportPadding, rect.top - menuHeight - 6);
+
+      setMenuPosition({ left, top });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [actionCount, open]);
 
   return (
     <div className="flex justify-end">
       <button
+        ref={buttonRef}
         type="button"
         aria-label={t("queue.action")}
         aria-expanded={open}
@@ -34,7 +71,10 @@ function QueueActionMenu({
             className="fixed inset-0 z-10 cursor-default bg-transparent"
             onClick={onToggle}
           />
-          <div className="absolute right-0 top-10 z-20 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+          <div
+            className="fixed z-50 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900"
+            style={menuPosition}
+          >
             <button
               type="button"
               onClick={() => {
