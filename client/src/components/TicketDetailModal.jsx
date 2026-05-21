@@ -165,10 +165,9 @@ function TicketDetailModalContent({
     setFile(selectedFile);
   };
 
-  const isCompleted = ["resolved", "closed"].includes(ticket.status);
-  const canSubmitSatisfaction = isCompleted && canCurrentUserSubmitSatisfaction(currentUser, ticket);
+  const canSubmitSatisfaction = ticket.status === "resolved" && canCurrentUserSubmitSatisfaction(currentUser, ticket);
   const hasSatisfaction = Number(ticket.satisfactionScore) > 0;
-  const showSatisfactionPanel = isCompleted && (hasSatisfaction || canSubmitSatisfaction);
+  const showSatisfactionPanel = hasSatisfaction || canSubmitSatisfaction;
 
   return createPortal(
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-0 pt-10 backdrop-blur-sm sm:items-center sm:px-3 sm:py-4">
@@ -297,11 +296,14 @@ function TicketDetailModalContent({
             <CompactPanel>
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <SectionLabel>Satisfaction</SectionLabel>
+                  <SectionLabel>{t("detail.resolutionConfirmation")}</SectionLabel>
                   <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
                     {hasSatisfaction
-                      ? `Rated ${ticket.satisfactionScore}/5 by ${ticket.satisfactionSubmittedBy?.name || "requester"}`
-                      : "Please rate the completed support experience."}
+                      ? t("detail.resolutionConfirmedBy", {
+                          score: ticket.satisfactionScore,
+                          requester: ticket.satisfactionSubmittedBy?.name || "requester",
+                        })
+                      : t("detail.confirmResolutionHelp")}
                   </p>
                   {ticket.satisfactionSubmittedAt && (
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
@@ -346,7 +348,7 @@ function TicketDetailModalContent({
                     value={satisfactionComment}
                     maxLength={1000}
                     onChange={(e) => setSatisfactionComment(e.target.value)}
-                    placeholder="Optional feedback"
+                    placeholder={t("detail.confirmResolutionPlaceholder")}
                     className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                   />
                   <button
@@ -354,7 +356,7 @@ function TicketDetailModalContent({
                     disabled={!satisfactionScore || savingSatisfaction}
                     className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
                   >
-                    {savingSatisfaction ? t("common.saving") : hasSatisfaction ? "Update Rating" : "Submit Rating"}
+                    {savingSatisfaction ? t("common.saving") : t("detail.confirmResolutionSubmit")}
                   </button>
                 </form>
               )}

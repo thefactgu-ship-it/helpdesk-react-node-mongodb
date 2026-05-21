@@ -42,6 +42,7 @@ function WorkQueueTicketDrawer({
   const ticketId = ticket._id || ticket.id;
   const drawerText = getDrawerText(t, workQueueProfile);
   const isAgentQueue = workQueueProfile === "agent";
+  const drawerStatusOptions = getDrawerStatusOptions(statusOptions, workQueueProfile);
 
   return (
     <Drawer
@@ -126,7 +127,7 @@ function WorkQueueTicketDrawer({
                 value={ticket.status}
                 disabled={disabled}
                 onChange={(value) => updateStatus(ticketId, value)}
-                options={statusOptions.filter((option) => option.value !== "all")}
+                options={drawerStatusOptions}
               />
             ) : (
               <Badge text={getStatusLabel(ticket.status, t)} />
@@ -410,6 +411,14 @@ function getAgentQuickActions(ticket, drawerText) {
       status: "in_progress",
     },
   ];
+}
+
+function getDrawerStatusOptions(statusOptions, workQueueProfile) {
+  return statusOptions.filter((option) => {
+    if (option.value === "all") return false;
+    if (workQueueProfile === "agent" && option.value === "closed") return false;
+    return true;
+  });
 }
 
 function pickText(t, key, fallback) {

@@ -612,7 +612,7 @@ function App() {
           params: scopedParams,
         },
       );
-      toast.success("Satisfaction submitted");
+      toast.success(t("detail.confirmResolutionSuccess"));
       await fetchTickets();
       await fetchSummaryTickets();
       await openTicketDetails(ticketId);

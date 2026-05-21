@@ -157,7 +157,7 @@ export function isDueSoon(ticket) {
 }
 
 export function isWaitingRequester(ticket) {
-  return ["resolved", "closed"].includes(ticket.status) && !ticket.satisfactionScore;
+  return ticket.status === "resolved" && !ticket.satisfactionScore;
 }
 
 export function getEntityId(entity) {

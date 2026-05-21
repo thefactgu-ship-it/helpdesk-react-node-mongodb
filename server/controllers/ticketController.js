@@ -87,6 +87,11 @@ function canWorkOnTicket(user, ticket) {
   return user?.role === "Agent" && isAssignedToUser(user, ticket);
 }
 
+function canSetTicketStatus(user, status) {
+  if (canManageTickets(user)) return true;
+  return user?.role === "Agent" && status !== "closed";
+}
+
 function buildTicketVisibilityQuery(user) {
   if (canManageTickets(user)) return {};
 
@@ -691,6 +696,10 @@ async function updateTicket(req, res) {
       logDetails.push("Assigned to user");
     }
     if (status) {
+      if (!canSetTicketStatus(req.user, status)) {
+        return res.status(403).json({ message: "Only managers or admins can close tickets" });
+      }
+
       updateFields.status = status;
       logDetails.push(`Status changed to ${status}`);
       applyResolvedAtForStatus(updateFields, existingTicket, status);
@@ -753,6 +762,9 @@ async function updateTicketStatus(req, res) {
     if (!TICKET_STATUSES.includes(status)) {
       return res.status(400).json({ message: "Invalid ticket status" });
     }
+    if (!canSetTicketStatus(req.user, status)) {
+      return res.status(403).json({ message: "Only managers or admins can close tickets" });
+    }
 
     // Build update data
     const updateData = {
@@ -800,8 +812,8 @@ async function submitSatisfaction(req, res) {
     if (!canAccessTicket(req.user, existingTicket)) {
       return res.status(403).json({ message: "Ticket access denied" });
     }
-    if (!isCompletedStatus(existingTicket.status)) {
-      return res.status(400).json({ message: "Satisfaction can only be submitted after the ticket is resolved or closed" });
+    if (existingTicket.status !== "resolved") {
+      return res.status(400).json({ message: "Resolution can only be confirmed after the ticket is resolved" });
     }
     if (!canSubmitSatisfaction(req.user, existingTicket)) {
       return res.status(403).json({ message: "Only the ticket requester can submit satisfaction feedback" });
@@ -820,9 +832,11 @@ async function submitSatisfaction(req, res) {
         satisfactionComment: String(comment || "").trim(),
         satisfactionSubmittedBy: req.user.id,
         satisfactionSubmittedAt: new Date(),
+        status: "closed",
+        resolvedAt: existingTicket.resolvedAt || new Date(),
         updatedBy: req.user.id,
         $push: {
-          activityLog: buildLogEntry("satisfaction", `Satisfaction score submitted: ${score}/5`, req.user.id),
+          activityLog: buildLogEntry("satisfaction", `Resolution confirmed; satisfaction score submitted: ${score}/5`, req.user.id),
         },
       },
       { returnDocument: "after", runValidators: true }
@@ -832,7 +846,8 @@ async function submitSatisfaction(req, res) {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
-    auditLog("ticket.satisfaction_submitted", req, { ticketId: ticket._id, hotelId: ticket.hotelId, score });
+    auditLog("ticket.satisfaction_submitted", req, { ticketId: ticket._id, hotelId: ticket.hotelId, score, status: "closed" });
+    await notifySafely(notifyTicketStatusChanged, ticket, req.user.id);
     res.json(ticket);
   } catch (error) {
     sendError(res, 400, "Failed to submit satisfaction", error);
