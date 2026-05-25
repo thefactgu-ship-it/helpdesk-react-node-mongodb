@@ -8,6 +8,7 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || "test_secret_with_at_least_32
 process.env.NODE_ENV = "test";
 
 const User = require("../models/User");
+const Ticket = require("../models/Ticket");
 const authController = require("../controllers/authController");
 const authMiddleware = require("../middleware/authMiddleware");
 const authRoutes = require("../routes/authRoutes");
@@ -122,6 +123,17 @@ function stubUserFindById(user) {
   });
   return () => {
     User.findById = originalFindById;
+  };
+}
+
+function stubScopedTicket(ticket) {
+  const originalFindOne = Ticket.findOne;
+  Ticket.findOne = () => ({
+    populate: async () => ticket,
+  });
+
+  return () => {
+    Ticket.findOne = originalFindOne;
   };
 }
 
@@ -638,4 +650,120 @@ test("ticket status audit actions are specific for resolved and closed states", 
   assert.equal(ticketController._private.getTicketStatusAuditAction("resolved"), "ticket.resolved");
   assert.equal(ticketController._private.getTicketStatusAuditAction("closed"), "ticket.closed");
   assert.equal(ticketController._private.getTicketStatusAuditAction("in_progress"), "ticket.status_changed");
+});
+
+test("ticket update rejects edits to closed tickets before persistence update", async () => {
+  const originalFindOneAndUpdate = Ticket.findOneAndUpdate;
+  let updateCalled = false;
+  const hotelId = "507f1f77bcf86cd799439012";
+  const restoreTicket = stubScopedTicket({
+    _id: "507f1f77bcf86cd799439021",
+    hotelId,
+    status: "closed",
+    assignedTo: "507f1f77bcf86cd799439014",
+  });
+
+  Ticket.findOneAndUpdate = () => {
+    updateCalled = true;
+    throw new Error("Unexpected update");
+  };
+
+  try {
+    const req = {
+      body: { assignedTo: "507f1f77bcf86cd799439015" },
+      params: { id: "507f1f77bcf86cd799439021" },
+      query: {},
+      user: mockAuthenticatedUser("Manager", { hotelId, hotelAccess: [hotelId] }),
+    };
+    const res = mockResponse();
+
+    await ticketController.updateTicket(req, res);
+
+    assert.equal(res.statusCode, 409);
+    assert.equal(res.body.message, "Ticket is closed. Reopen it before editing or assigning.");
+    assert.equal(updateCalled, false);
+  } finally {
+    restoreTicket();
+    Ticket.findOneAndUpdate = originalFindOneAndUpdate;
+  }
+});
+
+test("ticket status update rejects reopening closed tickets before persistence update", async () => {
+  const originalFindOneAndUpdate = Ticket.findOneAndUpdate;
+  let updateCalled = false;
+  const hotelId = "507f1f77bcf86cd799439012";
+  const restoreTicket = stubScopedTicket({
+    _id: "507f1f77bcf86cd799439021",
+    hotelId,
+    status: "closed",
+    assignedTo: "507f1f77bcf86cd799439014",
+  });
+
+  Ticket.findOneAndUpdate = () => {
+    updateCalled = true;
+    throw new Error("Unexpected update");
+  };
+
+  try {
+    const req = {
+      body: { status: "in_progress" },
+      params: { id: "507f1f77bcf86cd799439021" },
+      query: {},
+      user: mockAuthenticatedUser("Manager", { hotelId, hotelAccess: [hotelId] }),
+    };
+    const res = mockResponse();
+
+    await ticketController.updateTicketStatus(req, res);
+
+    assert.equal(res.statusCode, 409);
+    assert.equal(res.body.message, "Ticket is closed. Reopen it before editing or assigning.");
+    assert.equal(updateCalled, false);
+  } finally {
+    restoreTicket();
+    Ticket.findOneAndUpdate = originalFindOneAndUpdate;
+  }
+});
+
+test("ticket assignment rejects closed tickets before checking assignee", async () => {
+  const originalFindOneAndUpdate = Ticket.findOneAndUpdate;
+  const originalUserFindById = User.findById;
+  let updateCalled = false;
+  let assigneeLookupCalled = false;
+  const hotelId = "507f1f77bcf86cd799439012";
+  const restoreTicket = stubScopedTicket({
+    _id: "507f1f77bcf86cd799439021",
+    hotelId,
+    status: "closed",
+    assignedTo: null,
+  });
+
+  Ticket.findOneAndUpdate = () => {
+    updateCalled = true;
+    throw new Error("Unexpected update");
+  };
+  User.findById = () => {
+    assigneeLookupCalled = true;
+    throw new Error("Unexpected assignee lookup");
+  };
+
+  try {
+    const req = {
+      body: { assignedTo: "507f1f77bcf86cd799439015" },
+      params: { id: "507f1f77bcf86cd799439021" },
+      query: {},
+      user: mockAuthenticatedUser("Manager", { hotelId, hotelAccess: [hotelId] }),
+    };
+    const res = mockResponse();
+
+    await ticketController.assignTicket(req, res);
+
+    assert.equal(res.statusCode, 409);
+    assert.equal(res.body.message, "Ticket is closed. Reopen it before editing or assigning.");
+    assert.equal(updateCalled, false);
+    assert.equal(assigneeLookupCalled, false);
+  } finally {
+    restoreTicket();
+    Ticket.findOneAndUpdate = originalFindOneAndUpdate;
+    User.findById = originalUserFindById;
+  }
 });

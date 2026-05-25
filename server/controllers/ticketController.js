@@ -65,6 +65,16 @@ function isCompletedStatus(status) {
   return ["resolved", "closed"].includes(status);
 }
 
+function isClosedStatus(status) {
+  return status === "closed";
+}
+
+function rejectClosedTicketMutation(res) {
+  return res.status(409).json({
+    message: "Ticket is closed. Reopen it before editing or assigning.",
+  });
+}
+
 function getUserDepartmentId(user) {
   return String(user?.departmentId?._id || user?.departmentId || "");
 }
@@ -665,6 +675,10 @@ async function updateTicket(req, res) {
     const managerCanTriage = canManageTickets(req.user);
     const canAssignTicket = canAssignTickets(req.user);
 
+    if (isClosedStatus(existingTicket.status) && Object.keys(req.body || {}).length) {
+      return rejectClosedTicketMutation(res);
+    }
+
     // Build update fields and log details
     if (title) {
       updateFields.title = title;
@@ -852,6 +866,9 @@ async function updateTicketStatus(req, res) {
     if (!canSetTicketStatus(req.user, status)) {
       return res.status(403).json({ message: "Only managers or admins can close tickets" });
     }
+    if (isClosedStatus(existingTicket.status) && status !== "closed") {
+      return rejectClosedTicketMutation(res);
+    }
 
     // Build update data
     const updateData = {
@@ -962,6 +979,9 @@ async function assignTicket(req, res) {
     const existingTicket = await findScopedTicketById(req, req.params.id);
     if (!existingTicket) {
       return res.status(404).json({ message: "Ticket not found" });
+    }
+    if (isClosedStatus(existingTicket.status)) {
+      return rejectClosedTicketMutation(res);
     }
 
     const assignable = await ensureAssignableUser(assignedTo, getTicketHotelId(existingTicket));
