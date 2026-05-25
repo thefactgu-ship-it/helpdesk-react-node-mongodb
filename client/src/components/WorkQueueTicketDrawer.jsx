@@ -42,6 +42,8 @@ function WorkQueueTicketDrawer({
   const ticketId = ticket._id || ticket.id;
   const drawerText = getDrawerText(t, workQueueProfile);
   const isAgentQueue = workQueueProfile === "agent";
+  const isClosedTicket = ticket.status === "closed";
+  const ticketControlsDisabled = disabled || isClosedTicket;
   const drawerStatusOptions = getDrawerStatusOptions(statusOptions, workQueueProfile);
 
   return (
@@ -110,7 +112,7 @@ function WorkQueueTicketDrawer({
                 compactOptions
                 size="sm"
                 value={ticket.priority}
-                disabled={disabled}
+                disabled={ticketControlsDisabled}
                 onChange={(value) => updatePriority(ticketId, value)}
                 options={priorityOptions}
               />
@@ -125,7 +127,7 @@ function WorkQueueTicketDrawer({
                 compactOptions
                 size="sm"
                 value={ticket.status}
-                disabled={disabled}
+                disabled={ticketControlsDisabled}
                 onChange={(value) => updateStatus(ticketId, value)}
                 options={drawerStatusOptions}
               />
@@ -140,7 +142,7 @@ function WorkQueueTicketDrawer({
                 compactOptions
                 size="sm"
                 value={getEntityId(ticket.assignedTo)}
-                disabled={disabled || !assignableUsers.length}
+                disabled={ticketControlsDisabled || !assignableUsers.length}
                 emptyLabel={t("common.unassigned")}
                 onChange={(value) => assignTicket(ticketId, value)}
                 options={buildAssignableOptions(assignableUsers, false, t)}
@@ -155,7 +157,7 @@ function WorkQueueTicketDrawer({
               <input
                 type="datetime-local"
                 value={toDateTimeLocalValue(ticket.dueDate)}
-                disabled={disabled}
+                disabled={ticketControlsDisabled}
                 onChange={(event) => updateDueDate(ticketId, event.target.value)}
                 className="w-full min-w-0 max-w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950"
               />
