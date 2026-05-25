@@ -224,6 +224,34 @@ function applyResolvedAtForStatus(updateFields, existingTicket, status) {
   updateFields.resolvedAt = null;
 }
 
+function getTicketStatusAuditAction(status) {
+  if (status === "resolved") return "ticket.resolved";
+  if (status === "closed") return "ticket.closed";
+  return "ticket.status_changed";
+}
+
+function auditTicketStatusChange(req, ticket, fromStatus, toStatus) {
+  if (!toStatus || fromStatus === toStatus) return;
+
+  auditLog(getTicketStatusAuditAction(toStatus), req, {
+    ticketId: ticket._id,
+    hotelId: ticket.hotelId,
+    fromStatus,
+    toStatus,
+  });
+}
+
+function auditTicketAssignment(req, ticket, fromAssignee, toAssignee, action = "ticket.assigned") {
+  if (!toAssignee || fromAssignee === toAssignee) return;
+
+  auditLog(action, req, {
+    ticketId: ticket._id,
+    hotelId: ticket.hotelId,
+    fromAssignee,
+    toAssignee,
+  });
+}
+
 function getCompletionStats(tickets) {
   const completedTickets = tickets.filter((ticket) => isCompletedStatus(ticket.status));
   const successEligibleTickets = completedTickets.filter(
@@ -586,6 +614,9 @@ async function createTicket(req, res) {
 
     await ticket.populate(TICKET_POPULATE_CONFIG);
     auditLog("ticket.created", req, { ticketId: ticket._id, hotelId });
+    if (assignedUser) {
+      auditTicketAssignment(req, ticket, "", String(assignedUser));
+    }
     await notifySafely(notifyTicketCreated, ticket, req.user.id);
     res.status(201).json(ticket);
   } catch (error) {
@@ -615,6 +646,7 @@ async function updateTicket(req, res) {
 
     const updateFields = {};
     const logDetails = [];
+    const generalAuditDetails = [];
 
     const {
       title,
@@ -637,14 +669,17 @@ async function updateTicket(req, res) {
     if (title) {
       updateFields.title = title;
       logDetails.push("Title updated");
+      generalAuditDetails.push("title");
     }
     if (description) {
       updateFields.description = description;
       logDetails.push("Description updated");
+      generalAuditDetails.push("description");
     }
     if (requester) {
       updateFields.requester = requester;
       logDetails.push("Requester updated");
+      generalAuditDetails.push("requester");
     }
     if (requesterUserId) {
       const requesterResult = await resolveRequesterUser(requesterUserId, getTicketHotelId(existingTicket));
@@ -654,6 +689,7 @@ async function updateTicket(req, res) {
       updateFields.requesterUserId = requesterResult.user._id;
       updateFields.requester = requesterResult.user.name;
       logDetails.push("Requester account updated");
+      generalAuditDetails.push("requesterUserId");
     }
     if (category) {
       const problemType = await ensureProblemTypeName(category);
@@ -663,11 +699,13 @@ async function updateTicket(req, res) {
 
       updateFields.category = problemType.name;
       logDetails.push("Category updated");
+      generalAuditDetails.push("category");
     }
     if (department) {
       updateFields.department = department;
       updateFields.departmentName = department;
       logDetails.push("Department updated");
+      generalAuditDetails.push("department");
     }
     if (departmentId) {
       const departmentResult = await resolveDepartment(departmentId, getTicketHotelId(existingTicket));
@@ -678,6 +716,7 @@ async function updateTicket(req, res) {
       updateFields.department = departmentResult.department.name;
       updateFields.departmentName = departmentResult.department.name;
       logDetails.push("Department updated");
+      generalAuditDetails.push("departmentId");
     }
     if (priority) {
       if (!managerCanTriage) {
@@ -688,6 +727,7 @@ async function updateTicket(req, res) {
       updateFields.slaHours = getSlaHoursByPriority(priority);
       updateFields.criticalRequested = false;
       logDetails.push("Priority updated");
+      generalAuditDetails.push("priority");
     }
     if (dueDate) {
       if (!managerCanTriage) {
@@ -696,6 +736,7 @@ async function updateTicket(req, res) {
 
       updateFields.dueDate = new Date(dueDate);
       logDetails.push("Due date updated");
+      generalAuditDetails.push("dueDate");
     }
     if (criticalRequested !== undefined) {
       if (!managerCanTriage) {
@@ -707,6 +748,7 @@ async function updateTicket(req, res) {
         : Boolean(criticalRequested);
       updateFields.criticalRequested = nextCriticalRequested;
       logDetails.push(nextCriticalRequested ? "Critical review requested" : "Critical review cleared");
+      generalAuditDetails.push("criticalRequested");
     }
     if (assignedTo) {
       if (!canAssignTicket) {
@@ -755,7 +797,24 @@ async function updateTicket(req, res) {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
-    auditLog("ticket.updated", req, { ticketId: ticket._id, hotelId: ticket.hotelId });
+    if (generalAuditDetails.length) {
+      auditLog("ticket.updated", req, {
+        ticketId: ticket._id,
+        hotelId: ticket.hotelId,
+        fields: generalAuditDetails,
+      });
+    }
+    if (status) {
+      auditTicketStatusChange(req, ticket, existingTicket.status, status);
+    }
+    if (assignedTo) {
+      auditTicketAssignment(
+        req,
+        ticket,
+        String(existingTicket.assignedTo?._id || existingTicket.assignedTo || ""),
+        String(assignedTo)
+      );
+    }
     if (status) {
       await notifySafely(notifyTicketStatusChanged, ticket, req.user.id);
     }
@@ -819,6 +878,7 @@ async function updateTicketStatus(req, res) {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
+    auditTicketStatusChange(req, ticket, existingTicket.status, status);
     await notifySafely(notifyTicketStatusChanged, ticket, req.user.id);
     res.json(ticket);
   } catch (error) {
@@ -874,6 +934,7 @@ async function submitSatisfaction(req, res) {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
+    auditTicketStatusChange(req, ticket, existingTicket.status, "closed");
     auditLog("ticket.satisfaction_submitted", req, { ticketId: ticket._id, hotelId: ticket.hotelId, score, status: "closed" });
     await notifySafely(notifyTicketStatusChanged, ticket, req.user.id);
     res.json(ticket);
@@ -927,6 +988,12 @@ async function assignTicket(req, res) {
       return res.status(404).json({ message: "Ticket not found" });
     }
 
+    auditTicketAssignment(
+      req,
+      ticket,
+      String(existingTicket.assignedTo?._id || existingTicket.assignedTo || ""),
+      String(assignedTo)
+    );
     await notifySafely(notifyTicketAssigned, ticket, req.user.id);
     res.json(ticket);
   } catch (error) {
@@ -1229,6 +1296,7 @@ module.exports = {
   _private: {
     buildTicketVisibilityQuery,
     canAccessTicket,
+    getTicketStatusAuditAction,
     sanitizeRequesterListTicket,
   },
 };

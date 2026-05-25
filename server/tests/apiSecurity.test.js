@@ -633,3 +633,9 @@ test("agent visibility includes active unassigned tickets in hotel scope", () =>
     false
   );
 });
+
+test("ticket status audit actions are specific for resolved and closed states", () => {
+  assert.equal(ticketController._private.getTicketStatusAuditAction("resolved"), "ticket.resolved");
+  assert.equal(ticketController._private.getTicketStatusAuditAction("closed"), "ticket.closed");
+  assert.equal(ticketController._private.getTicketStatusAuditAction("in_progress"), "ticket.status_changed");
+});

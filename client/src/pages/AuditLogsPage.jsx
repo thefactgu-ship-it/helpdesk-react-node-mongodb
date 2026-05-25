@@ -9,7 +9,12 @@ const actionOptions = [
   { value: "all", label: "All actions", prefix: "A" },
   { value: "ticket.created", label: "Ticket created", prefix: "TC" },
   { value: "ticket.updated", label: "Ticket updated", prefix: "TU" },
+  { value: "ticket.status_changed", label: "Ticket status changed", prefix: "TS" },
+  { value: "ticket.assigned", label: "Ticket assigned", prefix: "TA" },
   { value: "ticket.claimed", label: "Ticket claimed", prefix: "CL" },
+  { value: "ticket.resolved", label: "Ticket resolved", prefix: "TR" },
+  { value: "ticket.closed", label: "Ticket closed", prefix: "CX" },
+  { value: "ticket.satisfaction_submitted", label: "Satisfaction submitted", prefix: "SS" },
   { value: "ticket.deleted", label: "Ticket deleted", prefix: "TD" },
   { value: "user.created", label: "User created", prefix: "UC" },
   { value: "user.updated", label: "User updated", prefix: "UU" },
@@ -178,6 +183,11 @@ function AuditLogsPage({ hotels = [], selectedHotelId = "all", token }) {
                     <td className="px-4 py-3">
                       <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
                         {log.action}
+                        {formatActionLabel(log.action) !== log.action && (
+                          <span className="ml-1 font-bold text-blue-500 dark:text-blue-300">
+                            {formatActionLabel(log.action)}
+                          </span>
+                        )}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -251,6 +261,10 @@ function formatDateTime(value) {
 function formatHotel(hotel) {
   if (!hotel) return "-";
   return [hotel.code, hotel.name].filter(Boolean).join(" / ") || "Hotel";
+}
+
+function formatActionLabel(action) {
+  return actionOptions.find((option) => option.value === action)?.label || action;
 }
 
 export default AuditLogsPage;
