@@ -175,45 +175,50 @@ function AuditLogsPage({ hotels = [], selectedHotelId = "all", token }) {
                   </td>
                 </tr>
               ) : logs.length ? (
-                logs.map((log) => (
-                  <tr key={log._id || `${log.action}-${log.createdAt}`} className="align-top">
-                    <td className="whitespace-nowrap px-4 py-3 text-slate-500 dark:text-slate-400">
-                      {formatDateTime(log.createdAt)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
-                        {log.action}
-                        {formatActionLabel(log.action) !== log.action && (
-                          <span className="ml-1 font-bold text-blue-500 dark:text-blue-300">
-                            {formatActionLabel(log.action)}
+                logs.map((log) => {
+                  const actionMeta = getActionMeta(log.action);
+
+                  return (
+                    <tr key={log._id || `${log.action}-${log.createdAt}`} className="align-top">
+                      <td className="whitespace-nowrap px-4 py-3 text-slate-500 dark:text-slate-400">
+                        {formatDateTime(log.createdAt)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          title={log.action}
+                          className="inline-flex max-w-[14rem] items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700 dark:bg-blue-500/15 dark:text-blue-200"
+                        >
+                          <span className="rounded-full bg-white px-1.5 py-0.5 text-[10px] leading-none text-blue-500 shadow-sm dark:bg-blue-950 dark:text-blue-200">
+                            {actionMeta.prefix}
                           </span>
-                        )}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="font-bold text-slate-900 dark:text-white">
-                        {log.actorId?.name || "System"}
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {log.actorRole || log.actorId?.role || "-"}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
-                      {formatHotel(log.hotelId)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <p className="font-semibold text-slate-800 dark:text-slate-100">
-                        {log.targetType || "-"}
-                      </p>
-                      <p className="max-w-[14rem] truncate text-xs text-slate-500 dark:text-slate-400">
-                        {log.targetId || "-"}
-                      </p>
-                    </td>
-                    <td className="max-w-[16rem] truncate px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
-                      {log.method} {log.path}
-                    </td>
-                  </tr>
-                ))
+                          <span className="truncate">{actionMeta.label}</span>
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="font-bold text-slate-900 dark:text-white">
+                          {log.actorId?.name || "System"}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {log.actorRole || log.actorId?.role || "-"}
+                        </p>
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">
+                        {formatHotel(log.hotelId)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <p className="font-semibold text-slate-800 dark:text-slate-100">
+                          {log.targetType || "-"}
+                        </p>
+                        <p className="max-w-[14rem] truncate text-xs text-slate-500 dark:text-slate-400">
+                          {log.targetId || "-"}
+                        </p>
+                      </td>
+                      <td className="max-w-[16rem] truncate px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
+                        {log.method} {log.path}
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td className="px-4 py-10 text-center text-slate-500" colSpan={6}>
@@ -263,8 +268,9 @@ function formatHotel(hotel) {
   return [hotel.code, hotel.name].filter(Boolean).join(" / ") || "Hotel";
 }
 
-function formatActionLabel(action) {
-  return actionOptions.find((option) => option.value === action)?.label || action;
+function getActionMeta(action) {
+  const match = actionOptions.find((option) => option.value === action);
+  return match || { label: action || "-", prefix: "?" };
 }
 
 export default AuditLogsPage;
