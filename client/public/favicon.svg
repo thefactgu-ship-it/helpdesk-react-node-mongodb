@@ -5,7 +5,6 @@
   <path d="M25 27h14v16H25V27Z" fill="#1d4ed8"/>
   <path d="M22 24.5 32 18l10 6.5V28H22v-3.5Z" fill="#0f172a"/>
   <path d="M28 31h3v3h-3v-3Zm5 0h3v3h-3v-3Zm-5 5h3v3h-3v-3Zm5 0h3v3h-3v-3Z" fill="#bfdbfe"/>
-  <path d="M30 43h4v8h-4v-8Z" fill="#0f172a" opacity=".85"/>
   <circle cx="47" cy="47" r="9" fill="#22c55e"/>
   <path d="m43 47 2.6 2.6L51 44" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
 </svg>
