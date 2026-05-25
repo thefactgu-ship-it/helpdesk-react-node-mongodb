@@ -51,6 +51,7 @@ const UserManagementPage = lazyWithDeployRetry(() => import("./pages/UserManagem
 const API_URL = `${API_BASE_URL}/tickets`;
 const AUTH_URL = `${API_BASE_URL}/auth`;
 const attachmentsEnabled = import.meta.env.VITE_ATTACHMENTS_ENABLED === "true";
+const dashboardHotelChipRoles = new Set(["User", "Manager", "Agent"]);
 
 function getErrorMessage(error, fallback) {
   const validationMessage = error?.response?.data?.errors?.[0]?.message;
@@ -917,6 +918,7 @@ function App() {
   const canSelectHotel =
     hotels.length > 1 &&
     (groupRoles.includes(currentUser?.role) || accessibleHotelIds.length > 1);
+  const shouldShowDashboardHotelChip = dashboardHotelChipRoles.has(currentUser?.role);
   const activeHotelContext = useMemo(
     () => getActiveHotelContext({ currentUser, hotels, language, selectedHotelId, t }),
     [currentUser, hotels, language, selectedHotelId, t],
@@ -1136,7 +1138,7 @@ function App() {
                 <p className="break-words text-sm text-slate-500 dark:text-slate-400">
                   {currentPageMeta.subtitle}
                 </p>
-                {visibleActivePage === "dashboard" && activeHotelContext.label && (
+                {visibleActivePage === "dashboard" && shouldShowDashboardHotelChip && activeHotelContext.label && (
                   <div className="mt-3 inline-flex max-w-full items-center gap-3 rounded-xl border border-blue-100 bg-white px-3 py-2 text-left shadow-sm dark:border-slate-800 dark:bg-slate-950">
                     <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
                       <Building2 className="h-4 w-4" aria-hidden="true" />
