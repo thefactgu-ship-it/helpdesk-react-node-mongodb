@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import axios from "axios";
+import { Building2 } from "lucide-react";
 import Sidebar from "./components/Sidebar";
 import toast, { Toaster } from "react-hot-toast";
 import ConfirmModal from "./components/ConfirmModal";
@@ -66,6 +67,88 @@ function getUserHotelAccessIds(user) {
     getEntityId(user?.hotelId),
     ...(Array.isArray(user?.hotelAccess) ? user.hotelAccess.map(getEntityId) : []),
   ].filter(Boolean);
+}
+
+function findHotelById(hotels, hotelId) {
+  if (!hotelId) return null;
+  return hotels.find((hotel) => getEntityId(hotel) === String(hotelId)) || null;
+}
+
+function formatHotelName(hotel) {
+  if (!hotel) return "";
+  if (typeof hotel === "string") return hotel;
+  return [hotel.code, hotel.name].filter(Boolean).join(" / ") || getEntityId(hotel);
+}
+
+function getHotelMeta(hotel, fallback) {
+  if (!hotel || typeof hotel === "string") return fallback;
+  return hotel.region || hotel.timezone || fallback;
+}
+
+function getTextByLanguage(language, thaiText, englishText) {
+  return language === "th" ? thaiText : englishText;
+}
+
+function translateOr(t, key, fallback) {
+  const value = t?.(key);
+  return value && value !== key ? value : fallback;
+}
+
+function getActiveHotelContext({ currentUser, hotels, language, selectedHotelId, t }) {
+  const eyebrow = getTextByLanguage(language, "โรงแรมที่ใช้งาน", "Current hotel");
+  const hotelFallback = getTextByLanguage(language, "ยังไม่ระบุโรงแรม", "No hotel assigned");
+  const currentScope = getTextByLanguage(language, "ขอบเขตปัจจุบัน", "Current scope");
+  const primaryHotelId = getEntityId(currentUser?.hotelId);
+  const selectedHotel = selectedHotelId && selectedHotelId !== "all"
+    ? findHotelById(hotels, selectedHotelId)
+    : null;
+  const primaryHotel =
+    currentUser?.hotelId && typeof currentUser.hotelId === "object"
+      ? currentUser.hotelId
+      : findHotelById(hotels, primaryHotelId);
+  const accessHotels = Array.isArray(currentUser?.hotelAccess)
+    ? currentUser.hotelAccess
+        .map((hotel) => (typeof hotel === "object" ? hotel : findHotelById(hotels, hotel)))
+        .filter(Boolean)
+    : [];
+
+  if (selectedHotelId && selectedHotelId !== "all") {
+    return {
+      detail: getHotelMeta(selectedHotel, currentScope),
+      eyebrow,
+      label: formatHotelName(selectedHotel) || hotelFallback,
+    };
+  }
+
+  if (groupRoles.includes(currentUser?.role) && (hotels.length > 1 || accessHotels.length > 1)) {
+    return {
+      detail: translateOr(t, "common.groupDashboard", "Group dashboard"),
+      eyebrow,
+      label: translateOr(t, "common.allHotels", "All hotels"),
+    };
+  }
+
+  if (primaryHotel) {
+    return {
+      detail: getHotelMeta(primaryHotel, currentScope),
+      eyebrow,
+      label: formatHotelName(primaryHotel),
+    };
+  }
+
+  if (accessHotels.length === 1) {
+    return {
+      detail: getHotelMeta(accessHotels[0], currentScope),
+      eyebrow,
+      label: formatHotelName(accessHotels[0]),
+    };
+  }
+
+  return {
+    detail: currentScope,
+    eyebrow,
+    label: hotelFallback,
+  };
 }
 
 function App() {
@@ -834,6 +917,10 @@ function App() {
   const canSelectHotel =
     hotels.length > 1 &&
     (groupRoles.includes(currentUser?.role) || accessibleHotelIds.length > 1);
+  const activeHotelContext = useMemo(
+    () => getActiveHotelContext({ currentUser, hotels, language, selectedHotelId, t }),
+    [currentUser, hotels, language, selectedHotelId, t],
+  );
   const canUploadSelectedTicketAttachment =
     attachmentsEnabled &&
     (canManageTickets ||
@@ -1049,6 +1136,26 @@ function App() {
                 <p className="break-words text-sm text-slate-500 dark:text-slate-400">
                   {currentPageMeta.subtitle}
                 </p>
+                {visibleActivePage === "dashboard" && activeHotelContext.label && (
+                  <div className="mt-3 inline-flex max-w-full items-center gap-3 rounded-xl border border-blue-100 bg-white px-3 py-2 text-left shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
+                      <Building2 className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block text-[11px] font-black uppercase text-slate-400">
+                        {activeHotelContext.eyebrow}
+                      </span>
+                      <span className="block truncate text-sm font-black text-slate-900 dark:text-white">
+                        {activeHotelContext.label}
+                      </span>
+                    </span>
+                    {activeHotelContext.detail && (
+                      <span className="hidden max-w-[12rem] truncate rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500 dark:bg-slate-900 dark:text-slate-300 sm:block">
+                        {activeHotelContext.detail}
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
