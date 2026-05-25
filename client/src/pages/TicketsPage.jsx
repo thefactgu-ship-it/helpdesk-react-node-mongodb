@@ -22,6 +22,7 @@ function TicketsPage({
   setSearch,
   tickets,
   ticketsPerPage,
+  reopenTicket,
   updatePriority,
   updateDueDate,
   updateStatus,
@@ -55,6 +56,7 @@ function TicketsPage({
       selectedHotelId={selectedHotelId}
       setFilterPriority={setFilterPriority}
       ticketsPerPage={ticketsPerPage}
+      reopenTicket={reopenTicket}
       onViewTicket={onViewTicket}
       setSelectedHotelId={setSelectedHotelId}
       currentUser={currentUser}

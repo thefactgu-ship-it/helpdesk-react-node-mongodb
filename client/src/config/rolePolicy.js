@@ -79,3 +79,14 @@ export function isAgentAssignedToTicket(currentUserId, ticket) {
 export function canUpdateTicketStatus(role, currentUserId, ticket) {
   return canManageTickets(role) || (role === ROLES.AGENT && isAgentAssignedToTicket(currentUserId, ticket));
 }
+
+export function canReopenTicket(role, currentUserId, ticket) {
+  if (ticket?.status !== "closed") return false;
+  if (canManageTickets(role)) return true;
+
+  const userId = String(currentUserId || "");
+  const requesterUserId = String(ticket?.requesterUserId?._id || ticket?.requesterUserId?.id || ticket?.requesterUserId || "");
+  const creatorId = String(ticket?.createdBy?._id || ticket?.createdBy?.id || ticket?.createdBy || "");
+
+  return Boolean(userId) && (requesterUserId ? requesterUserId === userId : creatorId === userId);
+}

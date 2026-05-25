@@ -184,6 +184,10 @@ function canSubmitSatisfaction(user, ticket) {
   return requesterUserId ? requesterUserId === userId : fallbackCreatorId === userId;
 }
 
+function canReopenTicket(user, ticket) {
+  return canManageTickets(user) || canSubmitSatisfaction(user, ticket);
+}
+
 function sanitizeRequesterListTicket(user, ticket) {
   if (isStaffRole(user?.role) || isOwnTicket(user, ticket)) return ticket;
 
@@ -904,6 +908,57 @@ async function updateTicketStatus(req, res) {
 }
 
 /**
+ * Reopen closed ticket
+ * PATCH /api/tickets/:id/reopen
+ */
+async function reopenTicket(req, res) {
+  try {
+    const existingTicket = await findScopedTicketById(req, req.params.id);
+    if (!existingTicket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+    if (!canAccessTicket(req.user, existingTicket)) {
+      return res.status(403).json({ message: "Ticket access denied" });
+    }
+    if (!isClosedStatus(existingTicket.status)) {
+      return res.status(409).json({ message: "Only closed tickets can be reopened" });
+    }
+    if (!canReopenTicket(req.user, existingTicket)) {
+      return res.status(403).json({ message: "Only the requester, manager, or admin can reopen this ticket" });
+    }
+
+    const nextStatus = existingTicket.assignedTo ? "in_progress" : "open";
+    const ticket = await Ticket.findOneAndUpdate(
+      { _id: req.params.id, hotelId: getTicketHotelId(existingTicket) },
+      {
+        status: nextStatus,
+        resolvedAt: null,
+        updatedBy: req.user.id,
+        $push: {
+          activityLog: buildLogEntry("reopened", "Ticket reopened", req.user.id),
+        },
+      },
+      { returnDocument: "after", runValidators: true }
+    ).populate(TICKET_POPULATE_CONFIG);
+
+    if (!ticket) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    auditLog("ticket.reopened", req, {
+      ticketId: ticket._id,
+      hotelId: ticket.hotelId,
+      fromStatus: existingTicket.status,
+      toStatus: nextStatus,
+    });
+    await notifySafely(notifyTicketStatusChanged, ticket, req.user.id);
+    res.json(ticket);
+  } catch (error) {
+    sendError(res, 400, "Failed to reopen ticket", error);
+  }
+}
+
+/**
  * Submit requester satisfaction
  * PATCH /api/tickets/:id/satisfaction
  */
@@ -1306,6 +1361,7 @@ module.exports = {
   createTicket,
   updateTicket,
   updateTicketStatus,
+  reopenTicket,
   submitSatisfaction,
   assignTicket,
   claimTicket,
@@ -1315,6 +1371,7 @@ module.exports = {
   deleteTicket,
   _private: {
     buildTicketVisibilityQuery,
+    canReopenTicket,
     canAccessTicket,
     getTicketStatusAuditAction,
     sanitizeRequesterListTicket,

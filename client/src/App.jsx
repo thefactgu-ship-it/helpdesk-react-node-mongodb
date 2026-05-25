@@ -400,6 +400,33 @@ function App() {
     }
   };
 
+  const reopenTicket = async (id) => {
+    if (!id) return;
+
+    try {
+      setUpdatingTicketId(id);
+      await axios.patch(
+        `${API_URL}/${id}/reopen`,
+        {},
+        {
+          headers: authHeaders,
+          params: scopedParams,
+        },
+      );
+      toast.success("Ticket reopened");
+      await fetchTickets();
+      await fetchSummaryTickets();
+      if (selectedTicket && selectedTicket._id === id) {
+        await openTicketDetails(id);
+      }
+    } catch (error) {
+      console.error("Failed to reopen ticket", error);
+      toast.error(getErrorMessage(error, "Failed to reopen ticket"));
+    } finally {
+      setUpdatingTicketId(null);
+    }
+  };
+
   const updateTicketPriority = async (id, priority) => {
     if (!canManageTickets) {
       toast.error("Only Admin or Manager can update priority");
@@ -1106,6 +1133,7 @@ function App() {
                   updatingTicketId={updatingTicketId}
                   deletingTicketId={deletingTicketId}
                   updateStatus={updateStatus}
+                  reopenTicket={reopenTicket}
                   updatePriority={updateTicketPriority}
                   updateDueDate={updateTicketDueDate}
                   addTicketComment={addTicketComment}

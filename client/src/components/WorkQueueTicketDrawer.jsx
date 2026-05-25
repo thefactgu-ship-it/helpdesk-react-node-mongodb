@@ -21,6 +21,7 @@ function WorkQueueTicketDrawer({
   canClaimTicket,
   canDelete,
   canManageTickets,
+  canReopenTicket,
   canUpdateStatus,
   claimTicket,
   deleting,
@@ -29,6 +30,7 @@ function WorkQueueTicketDrawer({
   onDelete,
   onViewFullDetail,
   priorityOptions,
+  reopenTicket,
   statusOptions,
   t,
   ticket,
@@ -57,6 +59,16 @@ function WorkQueueTicketDrawer({
           >
             {drawerText.fullDetail}
           </button>
+          {isClosedTicket && canReopenTicket && (
+            <button
+              type="button"
+              disabled={disabled || !reopenTicket}
+              onClick={() => reopenTicket(ticketId)}
+              className="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              {drawerText.reopenTicket}
+            </button>
+          )}
           {canDelete && (
             <button
               type="button"
@@ -97,7 +109,7 @@ function WorkQueueTicketDrawer({
             canClaimTicket={canClaimTicket}
             canUpdateStatus={canUpdateStatus}
             claimTicket={claimTicket}
-            disabled={disabled}
+            disabled={ticketControlsDisabled}
             drawerText={drawerText}
             ticket={ticket}
             ticketId={ticketId}
@@ -335,10 +347,12 @@ function DrawerMeta({ label, value }) {
 
 function getDrawerText(t, workQueueProfile) {
   const fullDetail = pickText(t, "queue.actions.fullDetail", "Full detail");
+  const reopenTicket = pickText(t, "queue.actions.reopen", "Reopen");
 
   if (workQueueProfile === "agent") {
     return {
       fullDetail,
+      reopenTicket,
       roleTitle: pickText(t, "agentQueue.drawer.title", "Agent actions"),
       roleDescription: pickText(
         t,
@@ -364,6 +378,7 @@ function getDrawerText(t, workQueueProfile) {
   if (workQueueProfile === "manager" || workQueueProfile === "hotelAdmin") {
     return {
       fullDetail,
+      reopenTicket,
       roleTitle: pickText(t, "managerQueue.drawer.title", "Manager triage"),
       roleDescription: pickText(
         t,
@@ -377,6 +392,7 @@ function getDrawerText(t, workQueueProfile) {
     fullDetail,
     roleTitle: pickText(t, "queue.drawer.title", "Ticket actions"),
     roleDescription: pickText(t, "queue.drawer.description", "Review the ticket and update the fields available to your role."),
+    reopenTicket,
   };
 }
 

@@ -767,3 +767,105 @@ test("ticket assignment rejects closed tickets before checking assignee", async 
     User.findById = originalUserFindById;
   }
 });
+
+test("ticket reopen allows requester and restores active status", async () => {
+  const originalFindOneAndUpdate = Ticket.findOneAndUpdate;
+  const hotelId = "507f1f77bcf86cd799439012";
+  const requesterId = "507f1f77bcf86cd799439011";
+  let capturedUpdate = null;
+  const restoreTicket = stubScopedTicket({
+    _id: "507f1f77bcf86cd799439021",
+    hotelId,
+    status: "closed",
+    assignedTo: requesterId,
+    requesterUserId: requesterId,
+    createdBy: requesterId,
+  });
+
+  Ticket.findOneAndUpdate = (query, update) => {
+    capturedUpdate = update;
+    return {
+      populate: async () => ({
+        _id: query._id,
+        hotelId,
+        status: update.status,
+        assignedTo: requesterId,
+        requesterUserId: requesterId,
+        createdBy: requesterId,
+      }),
+    };
+  };
+
+  try {
+    const req = {
+      body: {},
+      params: { id: "507f1f77bcf86cd799439021" },
+      query: {},
+      user: {
+        id: requesterId,
+        _id: requesterId,
+        role: "User",
+        hotelId,
+        hotelAccess: [hotelId],
+      },
+    };
+    const res = mockResponse();
+
+    await ticketController.reopenTicket(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.status, "in_progress");
+    assert.equal(capturedUpdate.status, "in_progress");
+    assert.equal(capturedUpdate.resolvedAt, null);
+    assert.equal(capturedUpdate.$push.activityLog.action, "reopened");
+  } finally {
+    restoreTicket();
+    Ticket.findOneAndUpdate = originalFindOneAndUpdate;
+  }
+});
+
+test("ticket reopen rejects assigned agent on closed ticket", async () => {
+  const originalFindOneAndUpdate = Ticket.findOneAndUpdate;
+  const hotelId = "507f1f77bcf86cd799439012";
+  const requesterId = "507f1f77bcf86cd799439011";
+  const agentId = "507f1f77bcf86cd799439014";
+  let updateCalled = false;
+  const restoreTicket = stubScopedTicket({
+    _id: "507f1f77bcf86cd799439021",
+    hotelId,
+    status: "closed",
+    assignedTo: agentId,
+    requesterUserId: requesterId,
+    createdBy: requesterId,
+  });
+
+  Ticket.findOneAndUpdate = () => {
+    updateCalled = true;
+    throw new Error("Unexpected update");
+  };
+
+  try {
+    const req = {
+      body: {},
+      params: { id: "507f1f77bcf86cd799439021" },
+      query: {},
+      user: {
+        id: agentId,
+        _id: agentId,
+        role: "Agent",
+        hotelId,
+        hotelAccess: [hotelId],
+      },
+    };
+    const res = mockResponse();
+
+    await ticketController.reopenTicket(req, res);
+
+    assert.equal(res.statusCode, 403);
+    assert.equal(res.body.message, "Only the requester, manager, or admin can reopen this ticket");
+    assert.equal(updateCalled, false);
+  } finally {
+    restoreTicket();
+    Ticket.findOneAndUpdate = originalFindOneAndUpdate;
+  }
+});

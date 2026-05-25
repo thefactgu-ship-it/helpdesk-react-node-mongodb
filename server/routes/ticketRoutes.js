@@ -91,6 +91,14 @@ router.patch(
   asyncHandler(ticketController.updateTicketStatus)
 );
 
+// PATCH reopen closed ticket
+router.patch(
+  "/:id/reopen",
+  authMiddleware,
+  mongoIdValidator,
+  asyncHandler(ticketController.reopenTicket)
+);
+
 // PATCH submit requester satisfaction
 router.patch(
   "/:id/satisfaction",

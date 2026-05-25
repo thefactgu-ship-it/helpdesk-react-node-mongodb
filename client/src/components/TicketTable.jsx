@@ -9,6 +9,7 @@ import ThemedSelect from "./ThemedSelect";
 import WorkQueueTicketDrawer from "./WorkQueueTicketDrawer";
 import {
   canManageTickets as roleCanManageTickets,
+  canReopenTicket as roleCanReopenTicket,
   canUpdateTicketStatus as roleCanUpdateTicketStatus,
   canUseGroupControlQueue,
   getWorkQueueProfile,
@@ -59,6 +60,7 @@ function TicketTable({
   selectedHotelId = "all",
   setFilterPriority,
   ticketsPerPage = 5,
+  reopenTicket,
   onViewTicket,
   setSelectedHotelId,
   currentUser,
@@ -135,6 +137,7 @@ function TicketTable({
     [hotels, t],
   );
   const canUpdateTicketStatus = (ticket) => roleCanUpdateTicketStatus(currentUser?.role, currentUserId, ticket);
+  const canReopenTicket = (ticket) => roleCanReopenTicket(currentUser?.role, currentUserId, ticket);
   const canClaimTicket = (ticket) =>
     workQueueProfile === "agent" &&
     ticket &&
@@ -481,6 +484,7 @@ function TicketTable({
           canClaimTicket={activeDrawerTicket ? canClaimTicket(activeDrawerTicket) : false}
           canDelete={canManageTickets}
           canManageTickets={canManageTickets}
+          canReopenTicket={activeDrawerTicket ? canReopenTicket(activeDrawerTicket) : false}
           canUpdateStatus={activeDrawerTicket ? canUpdateTicketStatus(activeDrawerTicket) : false}
           workQueueProfile={workQueueProfile}
           deleting={activeDrawerTicket ? deletingTicketId === (activeDrawerTicket._id || activeDrawerTicket.id) : false}
@@ -502,6 +506,7 @@ function TicketTable({
           statusOptions={statusOptions}
           t={t}
           ticket={activeDrawerTicket}
+          reopenTicket={reopenTicket}
           updatePriority={updatePriority}
           updateDueDate={updateDueDate}
           updateStatus={updateStatus}
