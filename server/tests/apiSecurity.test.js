@@ -490,7 +490,7 @@ test("requester can read problem types for ticket creation", async () => {
 
     assert.equal(response.status, 200);
     assert.deepEqual(response.data, []);
-    assert.ok(capturedQuery.$or.some((condition) => condition.hotelId === null));
+    assert.deepEqual(capturedQuery, {});
   } finally {
     ProblemType.find = originalFind;
     restoreUserFindById();

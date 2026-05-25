@@ -70,19 +70,8 @@ async function deleteProblemType(req, res) {
   }
 }
 
-async function buildProblemTypeReadQuery(req) {
-  if (canManageHotels(req.user) && !req.query.hotelId && !req.query.hotelIds) {
-    return {};
-  }
-
-  const hotelScope = await buildHotelScopeQuery(req.user, req.query);
-  return {
-    $or: [
-      { hotelId: { $exists: false } },
-      { hotelId: null },
-      hotelScope,
-    ],
-  };
+async function buildProblemTypeReadQuery() {
+  return {};
 }
 
 async function resolveProblemTypeHotelId(req) {
