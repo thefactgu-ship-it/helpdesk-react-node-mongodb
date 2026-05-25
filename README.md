@@ -50,6 +50,8 @@ Backend:
   - Waiting requester
   - All
 - Ticket detail modal with comments, activity log, assignment, status updates, priority updates, protected attachment viewing, and requester satisfaction feedback
+- Closed tickets are protected from accidental edits. Assignment, status, priority, and due date controls are disabled in the queue drawer, and the backend rejects direct edits with HTTP 409.
+- Closed tickets can be reopened through a dedicated Reopen action instead of the normal status dropdown. Reopen is available to the requester/creator, Manager, and Admin-level ticket managers.
 - Problem Types management so Add Ticket categories are controlled by admins
 - Department management for cleaner ticket ownership and reporting
 
@@ -254,11 +256,18 @@ npm run db:fix-problem-type-indexes
 - `HotelAdmin`: can manage users, departments, assets, problem types, and ticket workflow for hotels in `hotelAccess`
 - `Manager`: can manage ticket queues, assign work, and update ticket workflow for hotels in `hotelAccess`
 - `Agent`: can work on assigned tickets and tickets they created
-- `User`: can create tickets, view their own or assigned tickets, add comments, and submit satisfaction feedback
+- `User`: can create tickets, view their own or assigned tickets, add comments, submit satisfaction feedback, and reopen their own closed tickets
 
 `Admin` and `RegionalManager` are legacy roles kept for existing data compatibility. They are hidden from new user creation and should be migrated to `GroupAdmin`, `HotelAdmin`, or `Manager` when possible.
 
 Ticket visibility is permission-limited on the backend. Frontend filters are convenience controls only.
+
+Closed ticket rules are enforced on the backend:
+
+- `PATCH /api/tickets/:id`, `PATCH /api/tickets/:id/status`, and `PATCH /api/tickets/:id/assign` reject edits to closed tickets.
+- `PATCH /api/tickets/:id/reopen` is the intentional path for reopening.
+- Reopened tickets return to `in_progress` when they still have an assignee, or `open` when unassigned.
+- Reopen events are written to audit logs as `ticket.reopened`.
 
 ## API Overview
 
@@ -312,6 +321,7 @@ GET    /api/tickets/:id
 POST   /api/tickets
 PATCH  /api/tickets/:id
 PATCH  /api/tickets/:id/status
+PATCH  /api/tickets/:id/reopen
 PATCH  /api/tickets/:id/assign
 POST   /api/tickets/:id/comment
 PATCH  /api/tickets/:id/satisfaction
@@ -402,9 +412,11 @@ After each deployment:
 5. Create a ticket from Add Ticket.
 6. Assign it from Work Queue.
 7. Update status and add a comment.
-8. Confirm another user receives a notification without waiting for long polling.
-9. Check Dashboard, Monthly Report, and Quarterly / Yearly views.
-10. Toggle TH/EN and refresh to confirm the language preference is remembered.
+8. Resolve and close the ticket through requester confirmation.
+9. Confirm closed ticket controls are disabled, then reopen the ticket from the dedicated Reopen action.
+10. Confirm another user receives a notification without waiting for long polling.
+11. Check Dashboard, Monthly Report, and Quarterly / Yearly views.
+12. Toggle TH/EN and refresh to confirm the language preference is remembered.
 
 ## Validation Status
 
