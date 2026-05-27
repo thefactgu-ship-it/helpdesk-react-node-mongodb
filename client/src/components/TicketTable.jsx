@@ -722,7 +722,7 @@ function buildQueueOptions(tickets, currentUserId, t, workQueueProfile) {
     const requesterText = getRequesterQueueText(t);
     return [
       { id: "mine", label: requesterText.tabs.mine, count: count("mine"), activeClass: primaryActive },
-      { id: "department", label: requesterText.tabs.department, count: count("department"), activeClass: "border-sky-600 bg-sky-600 text-white" },
+      { id: "department", label: requesterText.tabs.department, count: count("department"), activeClass: "border-emerald-600 bg-emerald-600 text-white" },
       { id: "feedback", label: requesterText.tabs.feedback, count: count("feedback"), activeClass: "border-amber-500 bg-amber-500 text-white" },
       { id: "all", label: requesterText.tabs.all, count: count("all"), activeClass: primaryActive },
     ];
@@ -734,7 +734,7 @@ function buildQueueOptions(tickets, currentUserId, t, workQueueProfile) {
       { id: "now", label: text.tabs.now, count: count("now"), activeClass: primaryActive },
       { id: "overdue", label: text.tabs.overdue, count: count("overdue"), activeClass: "border-rose-600 bg-rose-600 text-white" },
       { id: "urgent", label: text.tabs.urgent, count: count("urgent"), activeClass: "border-amber-500 bg-amber-500 text-white" },
-      { id: "unassigned", label: text.tabs.unassigned, count: count("unassigned"), activeClass: "border-sky-600 bg-sky-600 text-white" },
+      { id: "unassigned", label: text.tabs.unassigned, count: count("unassigned"), activeClass: "border-emerald-600 bg-emerald-600 text-white" },
       { id: "waitingRequester", label: text.tabs.waitingRequester, count: count("waitingRequester"), activeClass: "border-slate-700 bg-slate-700 text-white" },
       { id: "all", label: text.tabs.all, count: count("all"), activeClass: primaryActive },
     ];

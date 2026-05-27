@@ -1,6 +1,7 @@
 node_modules
 .npm-cache
 client/.npm-cache
+.codex/
 .env
 dist
 .DS_Store

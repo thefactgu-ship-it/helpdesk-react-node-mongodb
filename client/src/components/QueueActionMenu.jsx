@@ -58,7 +58,7 @@ function QueueActionMenu({
         aria-label={t("queue.action")}
         aria-expanded={open}
         onClick={onToggle}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-purple-100 bg-white/90 text-slate-600 shadow-sm backdrop-blur-sm transition hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 dark:border-purple-400/15 dark:bg-white/5 dark:text-slate-300 dark:hover:border-purple-400/25 dark:hover:bg-purple-500/10 dark:hover:text-purple-200"
       >
         <MoreVertical size={17} strokeWidth={2.4} />
       </button>
@@ -72,7 +72,7 @@ function QueueActionMenu({
             onClick={onToggle}
           />
           <div
-            className="fixed z-50 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900"
+            className="fixed z-50 w-44 overflow-hidden rounded-xl border border-purple-100/90 bg-white/95 p-1.5 shadow-[0_18px_44px_rgba(29,10,52,0.18)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95"
             style={menuPosition}
           >
             <button
@@ -81,7 +81,7 @@ function QueueActionMenu({
                 onToggle();
                 onOpenDrawer();
               }}
-              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-700 dark:text-slate-200 dark:hover:bg-purple-500/10 dark:hover:text-purple-200"
             >
               {t("common.view")}
             </button>
@@ -92,7 +92,7 @@ function QueueActionMenu({
                 onToggle();
                 onViewFullDetail();
               }}
-              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-slate-800 dark:disabled:text-slate-600"
+              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-purple-500/10 dark:hover:text-purple-200 dark:disabled:text-slate-600"
             >
               {fullDetailLabel}
             </button>

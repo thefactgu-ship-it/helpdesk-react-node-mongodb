@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { DrawerShell } from "./ui";
 
 function Drawer({
@@ -30,7 +31,7 @@ function Drawer({
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-40 flex justify-end bg-slate-950/30 backdrop-blur-sm">
       <button
         type="button"
@@ -48,7 +49,8 @@ function Drawer({
       >
         {children}
       </DrawerShell>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
