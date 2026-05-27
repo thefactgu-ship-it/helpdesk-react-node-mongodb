@@ -80,8 +80,8 @@ function ProfilePage({
 
   return (
     <div className="space-y-5">
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40">
-        <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-300">
+      <section className="ops-panel p-6">
+        <p className="ops-section-label mb-2">
           Account
         </p>
         <h3 className="text-2xl font-black text-slate-950 dark:text-white">
@@ -93,7 +93,7 @@ function ProfilePage({
       </section>
 
       <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40">
+        <div className="ops-panel p-6">
           <h4 className="text-lg font-black text-slate-950 dark:text-white">
             Profile Details
           </h4>
@@ -149,7 +149,7 @@ function ProfilePage({
             <button
               type="submit"
               disabled={savingProfile}
-              className="w-full rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400"
+              className="ops-button-primary w-full px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
             >
               {savingProfile ? "Saving..." : "Save Profile"}
             </button>
@@ -158,7 +158,7 @@ function ProfilePage({
 
         <div
           ref={passwordSectionRef}
-          className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40"
+          className="ops-panel p-6"
         >
           <h4 className="text-lg font-black text-slate-950 dark:text-white">
             Change Password
@@ -231,7 +231,7 @@ function ProfilePage({
 }
 
 const inputClass =
-  "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400";
+  "ops-input disabled:cursor-not-allowed disabled:opacity-60";
 
 function Field({ children, label }) {
   return (

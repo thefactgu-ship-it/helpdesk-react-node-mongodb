@@ -82,28 +82,28 @@ function ManagerOperationsDashboard({
               detail={text.needsTriageDetail}
               icon={ShieldAlert}
               label={text.needsTriage}
-              tone={data.needsTriage.length ? "amber" : "blue"}
+              tone={data.needsTriage.length ? "amber" : "purple"}
               value={data.needsTriage.length}
             />
             <ManagerKpi
               detail={text.unassignedUrgentDetail}
               icon={UserRoundX}
               label={text.unassignedUrgent}
-              tone={data.unassignedUrgent.length ? "rose" : "blue"}
+              tone={data.unassignedUrgent.length ? "rose" : "purple"}
               value={data.unassignedUrgent.length}
             />
             <ManagerKpi
               detail={text.overdueDetail}
               icon={AlertTriangle}
               label={text.overdue}
-              tone={data.overdue.length ? "rose" : "blue"}
+              tone={data.overdue.length ? "rose" : "purple"}
               value={data.overdue.length}
             />
             <ManagerKpi
               detail={text.dueSoonDetail}
               icon={TimerReset}
               label={text.dueSoon}
-              tone={data.dueSoon.length ? "amber" : "blue"}
+              tone={data.dueSoon.length ? "amber" : "purple"}
               value={data.dueSoon.length}
             />
             <ManagerKpi
@@ -233,10 +233,10 @@ function buildManagerDashboardData(tickets, text) {
   };
 }
 
-function ManagerKpi({ detail, icon: Icon, label, tone = "blue", value }) {
+function ManagerKpi({ detail, icon: Icon, label, tone = "purple", value }) {
   const toneClasses = {
     amber: "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200",
-    blue: "bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200",
+    purple: "bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200",
     rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
   };
 
@@ -254,7 +254,7 @@ function ManagerKpi({ detail, icon: Icon, label, tone = "blue", value }) {
             {detail}
           </p>
         </div>
-        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg ${toneClasses[tone]}`}>
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg ${toneClasses[tone] || toneClasses.purple}`}>
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
       </div>

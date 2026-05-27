@@ -2,9 +2,8 @@ import { cx } from "./classNames";
 
 const tones = {
   amber: "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200",
-  blue: "bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200",
   emerald: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200",
-  indigo: "bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200",
+  purple: "bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200",
   rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
 };
 
@@ -13,7 +12,7 @@ function KpiCard({
   detail,
   icon: Icon,
   label,
-  tone = "indigo",
+  tone = "purple",
   value,
 }) {
   return (
@@ -33,7 +32,7 @@ function KpiCard({
           )}
         </div>
         {Icon && (
-          <span className={cx("grid h-11 w-11 shrink-0 place-items-center rounded-lg", tones[tone] || tones.indigo)}>
+          <span className={cx("grid h-11 w-11 shrink-0 place-items-center rounded-lg", tones[tone] || tones.purple)}>
             <Icon className="h-5 w-5" aria-hidden="true" />
           </span>
         )}

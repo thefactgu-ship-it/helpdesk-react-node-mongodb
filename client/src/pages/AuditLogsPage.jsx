@@ -103,10 +103,10 @@ function AuditLogsPage({ hotels = [], selectedHotelId = "all", token }) {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+      <section className="ops-panel">
         <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
           <div>
-            <p className="text-xs font-black uppercase tracking-wide text-blue-600 dark:text-blue-300">
+            <p className="ops-section-label">
               Security audit
             </p>
             <h3 className="mt-2 text-2xl font-black text-slate-950 dark:text-white">
@@ -116,7 +116,7 @@ function AuditLogsPage({ hotels = [], selectedHotelId = "all", token }) {
               Review operational changes, account actions, and scoped system activity.
             </p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="ops-card px-4 py-3 text-sm">
             <span className="font-black text-slate-950 dark:text-white">{meta.total || 0}</span>
             <span className="ml-2 text-slate-500 dark:text-slate-400">events found</span>
           </div>
@@ -127,7 +127,7 @@ function AuditLogsPage({ hotels = [], selectedHotelId = "all", token }) {
             value={filters.q}
             onChange={(event) => updateFilter("q", event.target.value)}
             placeholder="Search action, role, target..."
-            className="min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+            className="ops-input"
           />
           <ThemedSelect
             value={filters.action}
@@ -143,21 +143,21 @@ function AuditLogsPage({ hotels = [], selectedHotelId = "all", token }) {
             type="date"
             value={filters.from}
             onChange={(event) => updateFilter("from", event.target.value)}
-            className="min-w-0 max-w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+            className="ops-input max-w-full appearance-none"
           />
           <input
             type="date"
             value={filters.to}
             onChange={(event) => updateFilter("to", event.target.value)}
-            className="min-w-0 max-w-full appearance-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+            className="ops-input max-w-full appearance-none"
           />
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950">
+      <section className="ops-surface overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-[56rem] w-full text-left text-sm">
-            <thead className="bg-slate-50 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+            <thead className="bg-purple-50/60 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-white/5 dark:text-slate-400">
               <tr>
                 <th className="px-4 py-3">Time</th>
                 <th className="px-4 py-3">Action</th>
@@ -186,9 +186,9 @@ function AuditLogsPage({ hotels = [], selectedHotelId = "all", token }) {
                       <td className="px-4 py-3">
                         <span
                           title={log.action}
-                          className="inline-flex max-w-[14rem] items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700 dark:bg-blue-500/15 dark:text-blue-200"
+                          className="inline-flex max-w-[14rem] items-center gap-1.5 rounded-full bg-purple-50 px-2.5 py-1 text-xs font-black text-purple-700 ring-1 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20"
                         >
-                          <span className="rounded-full bg-white px-1.5 py-0.5 text-[10px] leading-none text-blue-500 shadow-sm dark:bg-blue-950 dark:text-blue-200">
+                          <span className="rounded-full bg-white px-1.5 py-0.5 text-[10px] leading-none text-purple-600 shadow-sm dark:bg-[#140d24] dark:text-purple-200">
                             {actionMeta.prefix}
                           </span>
                           <span className="truncate">{actionMeta.label}</span>
@@ -239,7 +239,7 @@ function AuditLogsPage({ hotels = [], selectedHotelId = "all", token }) {
               type="button"
               disabled={loading || (meta.page || 1) <= 1}
               onClick={() => setMeta((current) => ({ ...current, page: Math.max(1, current.page - 1) }))}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold disabled:opacity-50 dark:border-slate-700"
+              className="ops-button-secondary px-4 py-2 text-sm font-bold disabled:opacity-50"
             >
               Previous
             </button>
@@ -247,7 +247,7 @@ function AuditLogsPage({ hotels = [], selectedHotelId = "all", token }) {
               type="button"
               disabled={loading || (meta.page || 1) >= (meta.totalPages || 1)}
               onClick={() => setMeta((current) => ({ ...current, page: current.page + 1 }))}
-              className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-bold disabled:opacity-50 dark:border-slate-700"
+              className="ops-button-secondary px-4 py-2 text-sm font-bold disabled:opacity-50"
             >
               Next
             </button>

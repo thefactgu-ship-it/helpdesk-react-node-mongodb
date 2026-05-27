@@ -1373,7 +1373,7 @@ function App() {
 function PageLoading() {
   return (
     <div className="flex min-h-[24rem] items-center justify-center">
-      <div className="ops-surface px-6 py-4 text-sm font-semibold text-blue-700 dark:text-blue-200">
+      <div className="ops-surface px-6 py-4 text-sm font-semibold text-purple-700 dark:text-purple-200">
         {createTranslator(getInitialLanguage())("common.loadingPage")}
       </div>
     </div>

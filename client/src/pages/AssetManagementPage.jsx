@@ -208,8 +208,8 @@ function AssetManagementPage({ currentUser, hotelId = "all", t = (key) => key, t
         updating={updating}
       />
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
-        <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-300">
+      <section className="ops-panel md:p-6">
+        <p className="ops-section-label mb-2">
           System
         </p>
         <h3 className="text-2xl font-black text-slate-950 dark:text-white">
@@ -225,7 +225,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", t = (key) => key, t
         )}
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+      <section className="ops-panel md:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h4 className="text-lg font-black text-slate-950 dark:text-white">
@@ -239,7 +239,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", t = (key) => key, t
             type="button"
             onClick={openCreateDrawer}
             disabled={!isAdmin}
-            className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            className="ops-button-primary px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-50"
           >
             {t("settings.asset.add")}
           </button>
@@ -363,14 +363,14 @@ function AssetManagementPage({ currentUser, hotelId = "all", t = (key) => key, t
             <button
               type="submit"
               disabled={saving || !isAdmin}
-              className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400 md:col-span-2"
+              className="ops-button-primary px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60 md:col-span-2"
             >
               {saving ? t("settings.actions.saving") : t("settings.asset.create")}
             </button>
           </form>
       </Drawer>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+      <section className="ops-panel md:p-6">
           <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <h4 className="text-lg font-black text-slate-950 dark:text-white">
@@ -389,7 +389,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", t = (key) => key, t
               return (
                 <article
                   key={assetId}
-                  className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
+                  className="ops-card"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
@@ -473,7 +473,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", t = (key) => key, t
                           {asset.assetType} / {asset.department}
                         </div>
                       </td>
-                      <td className="max-w-44 break-words px-3 font-semibold text-blue-700 dark:text-blue-300">
+                      <td className="max-w-44 break-words px-3 font-semibold text-purple-700 dark:text-purple-200">
                         {asset.serialNumber}
                       </td>
                       <td className="max-w-44 break-words px-3 text-slate-600 dark:text-slate-300">
@@ -527,7 +527,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", t = (key) => key, t
 }
 
 const inputClass =
-  "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400";
+  "ops-input disabled:cursor-not-allowed disabled:opacity-60";
 const dateInputClass = `${inputClass} min-w-0 max-w-full appearance-none`;
 
 function AssetDetailModal({
@@ -552,7 +552,7 @@ function AssetDetailModal({
       widthClass="max-w-4xl"
     >
         <div className="grid gap-4 lg:grid-cols-2">
-          <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+          <section className="ops-card p-4">
             <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
               Summary
             </h3>
@@ -570,7 +570,7 @@ function AssetDetailModal({
               />
             </div>
             {asset.lifeCycle?.notes && (
-              <div className="mt-3 rounded-xl bg-white p-3 text-sm text-slate-600 shadow-sm dark:bg-slate-800 dark:text-slate-300">
+              <div className="mt-3 rounded-lg border border-purple-100/70 bg-white/90 p-3 text-sm text-slate-600 shadow-sm dark:border-purple-400/10 dark:bg-white/5 dark:text-slate-300">
                 <p className="mb-1 text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   {t("settings.asset.notes")}
                 </p>
@@ -579,7 +579,7 @@ function AssetDetailModal({
             )}
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-950">
+          <section className="ops-card p-4">
             <h3 className="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
               {isAdmin ? t("settings.asset.edit") : t("settings.asset.readOnly")}
             </h3>
@@ -689,7 +689,7 @@ function AssetDetailModal({
                 <button
                   type="submit"
                   disabled={updating}
-                  className="rounded-2xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400 sm:col-span-2"
+                  className="ops-button-primary px-5 py-3 text-sm disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2"
                 >
                   {updating ? t("settings.actions.saving") : t("settings.asset.saveChanges")}
                 </button>
@@ -824,8 +824,8 @@ function AssetActions({ deleting, isAdmin, onDelete, onToggle, onView, open, t }
 
 function SystemEmptyState({ description, title }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900">
-      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-black text-blue-600 shadow-sm dark:bg-slate-950 dark:text-blue-300">
+    <div className="ops-empty-state p-6">
+      <div className="ops-icon-primary mx-auto grid h-10 w-10 place-items-center text-sm font-black">
         0
       </div>
       <p className="mt-3 font-bold text-slate-800 dark:text-slate-100">{title}</p>
@@ -843,7 +843,7 @@ function StatusBadge({ status }) {
     <span
       className={`rounded-full px-3 py-1 text-xs font-bold ${
         isActive
-          ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200"
+          ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20"
           : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
       }`}
     >
@@ -864,7 +864,7 @@ function RecommendationBadge({ value = "Good" }) {
           ? "bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-200"
           : isMonitor
             ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200"
-            : "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200"
+            : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20"
       }`}
     >
       {value}

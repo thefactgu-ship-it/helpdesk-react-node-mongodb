@@ -56,10 +56,10 @@ function PeriodExecutiveSummary({ report }) {
 function ExecutivePanel({ children, className = "", icon: Icon, title }) {
   return (
     <section
-      className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950/80 ${className}`}
+      className={`ops-panel ${className}`}
     >
       <h3 className="mb-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
-        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
+        <span className="grid h-7 w-7 place-items-center rounded-lg bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200">
           <Icon size={15} />
         </span>
         <span>{title}</span>
@@ -103,7 +103,7 @@ function ProgressRow({ name, total, value }) {
       </div>
       <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400"
+          className="h-full rounded-full bg-gradient-to-r from-purple-700 to-purple-400"
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -121,13 +121,13 @@ function FocusList({ emptyText, items = [] }) {
       {items.map((item) => (
         <div
           key={item.name}
-          className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900"
+          className="ops-card p-3"
         >
           <div className="flex items-start justify-between gap-3">
             <p className="min-w-0 text-sm font-black text-slate-900 dark:text-white">
               {item.name}
             </p>
-            <span className="shrink-0 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-black text-blue-700 dark:bg-blue-950 dark:text-blue-200">
+            <span className="shrink-0 rounded-full bg-purple-50 px-2.5 py-1 text-xs font-black text-purple-700 ring-1 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20">
               {item.value}
             </span>
           </div>
@@ -146,7 +146,7 @@ function InsightList({ insights = [] }) {
       {insights.map((insight) => (
         <div
           key={insight}
-          className="border-l-4 border-blue-500 bg-blue-50 px-3 py-2 text-sm font-semibold leading-6 text-slate-700 dark:border-blue-400 dark:bg-blue-950/30 dark:text-slate-200"
+          className="rounded-lg border-l-4 border-purple-500 bg-purple-50/80 px-3 py-2 text-sm font-semibold leading-6 text-slate-700 dark:border-purple-300 dark:bg-purple-500/10 dark:text-slate-200"
         >
           {insight}
         </div>
@@ -165,7 +165,7 @@ function RecurringIssueList({ emptyText, items = [] }) {
       {items.map((item) => (
         <div
           key={item.name}
-          className="flex items-start justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
+          className="ops-card flex items-start justify-between gap-4"
         >
           <p className="min-w-0 text-sm font-bold leading-6 text-slate-800 dark:text-slate-100">
             {item.name}
@@ -181,7 +181,7 @@ function RecurringIssueList({ emptyText, items = [] }) {
 
 function EmptyReportText({ children }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-200 px-4 py-6 text-center text-sm font-semibold text-slate-500 dark:border-slate-800 dark:text-slate-400">
+    <div className="rounded-xl border border-dashed border-purple-200/80 bg-white/70 px-4 py-6 text-center text-sm font-semibold text-slate-500 dark:border-purple-400/20 dark:bg-white/5 dark:text-slate-400">
       {children}
     </div>
   );

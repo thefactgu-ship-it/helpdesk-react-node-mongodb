@@ -186,10 +186,10 @@ function UserManagement({
   return (
     <div className="space-y-6">
       {isGroupAdmin && (
-        <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+        <section className="ops-panel md:p-6">
           <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600 dark:text-blue-300">
+              <p className="ops-section-label">
                 Access control
               </p>
               <h3 className="mt-1 text-xl font-black text-slate-950 dark:text-white">
@@ -211,7 +211,7 @@ function UserManagement({
         </section>
       )}
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+      <section className="ops-panel md:p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <h3 className="text-xl font-black text-slate-950 dark:text-white">
@@ -224,7 +224,7 @@ function UserManagement({
           <button
             type="button"
             onClick={openCreateUserDrawer}
-            className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700"
+            className="ops-button-primary px-5 py-3 text-sm"
           >
             Create User
           </button>
@@ -363,7 +363,7 @@ function UserManagement({
               <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
                 Hotel Access
               </span>
-              <div className="grid max-h-48 gap-2 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-900 sm:grid-cols-2">
+              <div className="grid max-h-48 gap-2 overflow-y-auto rounded-lg border border-purple-100/80 bg-white/70 p-3 dark:border-purple-400/10 dark:bg-white/5 sm:grid-cols-2">
                 {hotels.map((hotel) => {
                   const hotelId = getEntityId(hotel);
                   const selected = normalizeHotelAccess(
@@ -378,8 +378,8 @@ function UserManagement({
                       key={hotelId}
                       className={`flex min-w-0 items-center gap-3 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
                         selected
-                          ? "border-blue-200 bg-white text-blue-700 shadow-sm dark:border-blue-500/40 dark:bg-slate-950 dark:text-blue-200"
-                          : "border-transparent bg-transparent text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-950"
+                          ? "border-purple-200 bg-white text-purple-700 shadow-sm dark:border-purple-400/30 dark:bg-[#140d24] dark:text-purple-200"
+                          : "border-transparent bg-transparent text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-white/5"
                       }`}
                     >
                       <input
@@ -395,13 +395,13 @@ function UserManagement({
                             hotelAccess: normalizeHotelAccess(form.hotelId, nextAccess, form.role),
                           });
                         }}
-                        className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 disabled:opacity-60"
+                        className="h-4 w-4 rounded border-slate-300 text-purple-700 focus:ring-purple-500 disabled:opacity-60"
                       />
                       <span className="min-w-0 flex-1 truncate">
                         {getHotelLabel(hotel)}
                       </span>
                       {isPrimary && (
-                        <span className="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-blue-700 dark:bg-blue-500/20 dark:text-blue-200">
+                        <span className="shrink-0 rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-purple-700 ring-1 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20">
                           Primary
                         </span>
                       )}
@@ -421,7 +421,7 @@ function UserManagement({
             <button
               type="submit"
               disabled={savingUser}
-              className="w-full rounded-2xl bg-blue-600 px-5 py-3 font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400"
+              className="ops-button-primary w-full px-5 py-3 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {savingUser
                 ? "Saving..."
@@ -433,7 +433,7 @@ function UserManagement({
         </form>
       </Drawer>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+      <section className="ops-panel md:p-6">
         <div className="mb-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
@@ -444,14 +444,14 @@ function UserManagement({
                 {filteredUsers.length} visible accounts in this view
               </p>
             </div>
-            <div className="grid grid-cols-2 rounded-2xl border border-slate-200 bg-slate-50 p-1 text-sm font-bold dark:border-slate-800 dark:bg-slate-900">
+            <div className="grid grid-cols-2 rounded-lg border border-purple-100/80 bg-white/70 p-1 text-sm font-bold dark:border-purple-400/10 dark:bg-white/5">
               <button
                 type="button"
                 onClick={() => handleAccountViewChange("staff")}
                 className={`rounded-xl px-4 py-2 transition ${
                   accountView === "staff"
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "text-slate-600 hover:text-blue-700 dark:text-slate-300"
+                    ? "bg-purple-700 text-white shadow-sm"
+                    : "text-slate-600 hover:text-purple-700 dark:text-slate-300"
                 }`}
               >
                 Staff
@@ -461,8 +461,8 @@ function UserManagement({
                 onClick={() => handleAccountViewChange("requester")}
                 className={`rounded-xl px-4 py-2 transition ${
                   accountView === "requester"
-                    ? "bg-blue-600 text-white shadow-sm"
-                    : "text-slate-600 hover:text-blue-700 dark:text-slate-300"
+                    ? "bg-purple-700 text-white shadow-sm"
+                    : "text-slate-600 hover:text-purple-700 dark:text-slate-300"
                 }`}
               >
                 Requesters
@@ -478,7 +478,7 @@ function UserManagement({
               value={search}
               onChange={(event) => updateFilter(setSearch, event.target.value)}
               placeholder="Search name, email, team..."
-              className="min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 lg:col-span-2"
+              className="ops-input lg:col-span-2"
             />
             <ThemedSelect
               size="sm"
@@ -524,7 +524,7 @@ function UserManagement({
             return (
               <article
                 key={userId}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
+                className="ops-card"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -558,7 +558,7 @@ function UserManagement({
                     type="button"
                     disabled={!canManageThisUser}
                     onClick={() => startEdit(user)}
-                    className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
+                    className="ops-button-primary px-4 py-2.5 text-sm disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
                   >
                     Edit
                   </button>
@@ -614,7 +614,7 @@ function UserManagement({
                         {user.email}
                       </div>
                       {isSelf && (
-                        <div className="mt-1 text-[11px] font-bold text-blue-600 dark:text-blue-300">
+                        <div className="mt-1 text-[11px] font-bold text-purple-700 dark:text-purple-200">
                           Current account
                         </div>
                       )}
@@ -694,7 +694,7 @@ function UserManagement({
 }
 
 const inputClass =
-  "w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400";
+  "ops-input disabled:cursor-not-allowed disabled:opacity-60";
 
 function Field({ children, className = "", label }) {
   return (
@@ -756,7 +756,7 @@ function UserActionMenu({
         aria-label="Open user actions"
         aria-expanded={open}
         onClick={onToggle}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 hover:text-slate-950 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-purple-100 bg-white/90 text-slate-600 shadow-sm backdrop-blur-sm transition hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 dark:border-purple-400/15 dark:bg-white/5 dark:text-slate-300 dark:hover:border-purple-400/25 dark:hover:bg-purple-500/10 dark:hover:text-purple-200"
       >
         <MoreVertical size={17} strokeWidth={2.4} />
       </button>
@@ -769,14 +769,14 @@ function UserActionMenu({
             className="fixed inset-0 z-10 cursor-default bg-transparent"
             onClick={onToggle}
           />
-          <div className="absolute right-3 top-10 z-20 w-40 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-900">
+          <div className="absolute right-3 top-10 z-20 w-40 overflow-hidden rounded-xl border border-purple-100/90 bg-white/95 p-1.5 shadow-[0_18px_44px_rgba(29,10,52,0.18)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95">
             <button
               type="button"
               onClick={() => {
                 onToggle();
                 onDetails();
               }}
-              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-700 dark:text-slate-200 dark:hover:bg-purple-500/10 dark:hover:text-purple-200"
             >
               View details
             </button>
@@ -787,7 +787,7 @@ function UserActionMenu({
                 onToggle();
                 onEdit();
               }}
-              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-slate-800 dark:disabled:text-slate-600"
+              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-purple-500/10 dark:hover:text-purple-200 dark:disabled:text-slate-600"
             >
               Edit user
             </button>
@@ -832,7 +832,7 @@ function PaginationControls({
           <select
             value={pageSize}
             onChange={(event) => onPageSizeChange(Number(event.target.value))}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 font-bold text-slate-700 outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+            className="rounded-lg border border-purple-100 bg-white/90 px-3 py-2 font-bold text-slate-700 outline-none focus:border-purple-500 dark:border-purple-400/15 dark:bg-white/5 dark:text-slate-100"
           >
             {pageSizeOptions.map((option) => (
               <option key={option} value={option}>
@@ -847,7 +847,7 @@ function PaginationControls({
             type="button"
             disabled={currentPage <= 1}
             onClick={() => onPageChange(currentPage - 1)}
-            className="rounded-xl border border-slate-200 px-3 py-2 font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+            className="ops-button-secondary px-3 py-2 font-bold disabled:cursor-not-allowed disabled:opacity-40"
           >
             Previous
           </button>
@@ -858,7 +858,7 @@ function PaginationControls({
             type="button"
             disabled={currentPage >= totalPages}
             onClick={() => onPageChange(currentPage + 1)}
-            className="rounded-xl border border-slate-200 px-3 py-2 font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900"
+            className="ops-button-secondary px-3 py-2 font-bold disabled:cursor-not-allowed disabled:opacity-40"
           >
             Next
           </button>
@@ -893,7 +893,7 @@ function UserDetailDrawer({
             type="button"
             disabled={!canManageThisUser}
             onClick={() => onEdit(user)}
-            className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
+            className="ops-button-primary px-4 py-3 text-sm disabled:cursor-not-allowed disabled:bg-slate-300 dark:disabled:bg-slate-700"
           >
             Edit user
           </button>
@@ -934,7 +934,7 @@ function UserDetailDrawer({
               {accessHotels.map((label) => (
                 <div
                   key={label}
-                  className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+                  className="rounded-lg border border-purple-100/70 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-700 dark:border-purple-400/10 dark:bg-white/5 dark:text-slate-200"
                 >
                   {label}
                 </div>
@@ -953,7 +953,7 @@ function UserDetailDrawer({
 
 function DetailItem({ label, value }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+    <div className="ops-card p-3">
       <div className="text-[11px] font-black uppercase tracking-wide text-slate-400">
         {label}
       </div>
@@ -989,7 +989,7 @@ function RoleBadge({ role }) {
         isLegacy
           ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
           : isAdmin
-          ? "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200"
+          ? "bg-purple-50 text-purple-700 ring-1 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20"
           : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
       }`}
     >
@@ -1000,7 +1000,7 @@ function RoleBadge({ role }) {
 
 function MobileMeta({ label, value }) {
   return (
-    <div className="rounded-lg bg-white p-3 dark:bg-slate-950">
+    <div className="rounded-lg border border-purple-100/70 bg-white/90 p-3 dark:border-purple-400/10 dark:bg-white/5">
       <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
         {label}
       </dt>
@@ -1013,8 +1013,8 @@ function MobileMeta({ label, value }) {
 
 function UserEmptyState() {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900">
-      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-black text-blue-600 shadow-sm dark:bg-slate-950 dark:text-blue-300">
+    <div className="ops-empty-state p-6">
+      <div className="ops-icon-primary mx-auto grid h-10 w-10 place-items-center text-sm font-black">
         0
       </div>
       <p className="mt-3 font-bold text-slate-800 dark:text-slate-100">

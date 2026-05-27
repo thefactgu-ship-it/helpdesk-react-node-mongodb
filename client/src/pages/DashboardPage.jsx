@@ -140,8 +140,8 @@ function DashboardPage({
 
   if (!tickets.length) {
     return (
-      <section className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-100 text-sm font-black text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/20 dark:text-blue-200 dark:ring-blue-400/20">
+      <section className="ops-empty-state p-8">
+        <div className="ops-icon-primary mx-auto mb-4 grid h-12 w-12 place-items-center text-sm font-black">
           IT
         </div>
         <h3 className="text-2xl font-black text-slate-950 dark:text-white">
@@ -722,10 +722,10 @@ function RequesterDashboard({ currentUser, loading, onNavigate, t, tickets }) {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+      <section className="ops-panel md:p-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-blue-600 dark:text-blue-300">
+            <p className="ops-section-label">
               {text.eyebrow}
             </p>
             <h3 className="mt-2 text-2xl font-black text-slate-950 dark:text-white">
@@ -739,7 +739,7 @@ function RequesterDashboard({ currentUser, loading, onNavigate, t, tickets }) {
             <button
               type="button"
               onClick={() => onNavigate("add-ticket")}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700"
+              className="ops-button-primary min-h-12 px-5 py-3 text-sm"
             >
               <PlusCircle className="h-5 w-5" aria-hidden="true" />
               {text.createTicket}
@@ -747,7 +747,7 @@ function RequesterDashboard({ currentUser, loading, onNavigate, t, tickets }) {
             <button
               type="button"
               onClick={() => onNavigate("tickets")}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:bg-slate-800"
+              className="ops-button-secondary min-h-12 px-5 py-3 text-sm"
             >
               <Search className="h-5 w-5" aria-hidden="true" />
               {text.checkDepartment}
@@ -860,9 +860,9 @@ function pickText(t, key, fallback) {
 
 function RequesterStat({ detail, icon: Icon, label, value }) {
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <article className="ops-soft-kpi p-4">
       <div className="flex items-center gap-3">
-        <span className="grid h-11 w-11 place-items-center rounded-xl bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
+        <span className="ops-soft-icon h-11 w-11">
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
         <div>
@@ -881,10 +881,10 @@ function RequesterStat({ detail, icon: Icon, label, value }) {
 
 function RequesterPanel({ actionLabel, children, icon: Icon, onAction, title }) {
   return (
-    <section className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <section className="ops-panel">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+          <span className="ops-soft-icon h-10 w-10">
             <Icon className="h-5 w-5" aria-hidden="true" />
           </span>
           <h3 className="truncate text-sm font-black text-slate-900 dark:text-white">
@@ -895,7 +895,7 @@ function RequesterPanel({ actionLabel, children, icon: Icon, onAction, title }) 
           <button
             type="button"
             onClick={onAction}
-            className="shrink-0 rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="ops-button-secondary shrink-0 px-3 py-2 text-xs"
           >
             {actionLabel}
           </button>
@@ -909,13 +909,13 @@ function RequesterPanel({ actionLabel, children, icon: Icon, onAction, title }) 
 function TicketList({ empty, emptyAction, onEmptyAction, summaryOnly = false, summaryOnlyLabel = "", tickets = [] }) {
   if (!tickets.length) {
     return (
-      <div className="rounded-xl border border-dashed border-slate-300 p-5 text-center dark:border-slate-700">
+      <div className="rounded-xl border border-dashed border-purple-200/80 bg-white/70 p-5 text-center dark:border-purple-400/20 dark:bg-white/5">
         <p className="text-sm text-slate-500 dark:text-slate-400">{empty}</p>
         {emptyAction && onEmptyAction && (
           <button
             type="button"
             onClick={onEmptyAction}
-            className="mt-3 rounded-lg bg-blue-600 px-4 py-2 text-xs font-black text-white transition hover:bg-blue-700"
+            className="ops-button-primary mt-3 px-4 py-2 text-xs"
           >
             {emptyAction}
           </button>
@@ -929,11 +929,11 @@ function TicketList({ empty, emptyAction, onEmptyAction, summaryOnly = false, su
       {tickets.map((ticket) => (
         <article
           key={ticket._id || ticket.id}
-          className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
+          className="ops-card"
         >
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-xs font-bold text-blue-600 dark:text-blue-300">
+              <p className="text-xs font-bold text-purple-700 dark:text-purple-200">
                 {ticket.ticketNumber}
               </p>
               <h4 className="mt-1 line-clamp-2 text-sm font-black text-slate-950 dark:text-white">
@@ -1001,7 +1001,7 @@ function OpsDashboardHero({
   );
 }
 
-function GroupAdminKpi({ detail, icon: Icon, label, tone = "blue", value }) {
+function GroupAdminKpi({ detail, icon: Icon, label, tone = "purple", value }) {
   const accentClasses = {
     purple: "ops-kpi-accent-purple",
     orange: "ops-kpi-accent-amber",
@@ -1011,7 +1011,6 @@ function GroupAdminKpi({ detail, icon: Icon, label, tone = "blue", value }) {
     pink: "ops-kpi-accent-pink",
     teal: "ops-kpi-accent-emerald",
     emerald: "ops-kpi-accent-emerald",
-    blue: "",
   };
 
   const toneClasses = {
@@ -1023,7 +1022,6 @@ function GroupAdminKpi({ detail, icon: Icon, label, tone = "blue", value }) {
     pink: "bg-pink-50 text-pink-600 dark:bg-pink-500/15 dark:text-pink-200",
     teal: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-200",
     emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-200",
-    blue: "bg-purple-50 text-purple-600 dark:bg-purple-500/15 dark:text-purple-200",
   };
 
   return (

@@ -87,21 +87,21 @@ function AgentWorkDashboard({
           detail={text.dueSoonDetail}
           icon={TimerReset}
           label={text.dueSoon}
-          tone={data.dueSoon.length ? "amber" : "blue"}
+          tone={data.dueSoon.length ? "amber" : "purple"}
           value={data.dueSoon.length}
         />
         <AgentKpi
           detail={text.overdueDetail}
           icon={Clock3}
           label={text.overdue}
-          tone={data.overdue.length ? "rose" : "blue"}
+          tone={data.overdue.length ? "rose" : "purple"}
           value={data.overdue.length}
         />
         <AgentKpi
           detail={text.availableDetail}
           icon={CircleDot}
           label={text.availableToClaim}
-          tone={data.availableToClaim.length ? "emerald" : "blue"}
+          tone={data.availableToClaim.length ? "emerald" : "purple"}
           value={data.availableToClaim.length}
         />
         <AgentKpi
@@ -217,10 +217,10 @@ function buildAgentDashboardData(tickets, currentUserId) {
   };
 }
 
-function AgentKpi({ detail, icon: Icon, label, tone = "blue", value }) {
+function AgentKpi({ detail, icon: Icon, label, tone = "purple", value }) {
   const toneClasses = {
     amber: "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200",
-    blue: "bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200",
+    purple: "bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200",
     emerald: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200",
     rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
   };
@@ -239,7 +239,7 @@ function AgentKpi({ detail, icon: Icon, label, tone = "blue", value }) {
             {detail}
           </p>
         </div>
-        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg ${toneClasses[tone]}`}>
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg ${toneClasses[tone] || toneClasses.purple}`}>
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
       </div>

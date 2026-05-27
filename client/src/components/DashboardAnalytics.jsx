@@ -283,7 +283,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
             <AnalyticsFocusChip
               icon={CheckCircle2}
               label="Success"
-              tone="blue"
+              tone="purple"
               value={`${data.completionStats.successRate}%`}
             />
           </div>
@@ -469,7 +469,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
             </div>
             <div className="relative h-5 rounded-full bg-slate-100 dark:bg-slate-800">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-blue-400 to-emerald-300"
+                className="h-full rounded-full bg-gradient-to-r from-purple-600 via-fuchsia-400 to-emerald-300"
                 style={{ width: `${data.completionStats.successRate}%` }}
               />
               <div
@@ -582,7 +582,7 @@ function ProgressRow({ label, percent, value }) {
       </div>
       <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-blue-300"
+          className="h-full rounded-full bg-gradient-to-r from-purple-600 to-purple-300"
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -618,10 +618,10 @@ function EmptyState({ message }) {
   );
 }
 
-function AnalyticsFocusChip({ icon: Icon, label, tone = "blue", value }) {
+function AnalyticsFocusChip({ icon: Icon, label, tone = "purple", value }) {
   const toneClasses = {
     amber: "bg-amber-50 text-amber-700 ring-amber-100 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/20",
-    blue: "bg-purple-50 text-purple-700 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20",
+    purple: "bg-purple-50 text-purple-700 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20",
     emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20",
   };
 
@@ -636,7 +636,7 @@ function AnalyticsFocusChip({ icon: Icon, label, tone = "blue", value }) {
             {typeof value === "number" ? value.toLocaleString() : value}
           </p>
         </div>
-        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ring-1 ${toneClasses[tone]}`}>
+        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ring-1 ${toneClasses[tone] || toneClasses.purple}`}>
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
       </div>

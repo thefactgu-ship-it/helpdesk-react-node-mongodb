@@ -42,9 +42,9 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
 
   return (
     <div className="space-y-5">
-      <section className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40 md:flex-row md:items-center md:justify-between">
+      <section className="ops-panel flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-300">
+          <p className="ops-section-label mb-2">
             Monthly Report
           </p>
           <h3 className="text-2xl font-black text-slate-950 dark:text-white">
@@ -64,7 +64,7 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
               type="month"
               value={selectedMonth}
               onChange={(event) => setSelectedMonth(event.target.value)}
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400 md:w-56"
+              className="ops-input font-bold md:w-56"
             />
           </label>
 
@@ -72,7 +72,7 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
             <button
               type="button"
               onClick={() => exportReportPrompt({ ...exportPayload, filename: `${filenameBase}-ai-prompt.txt` })}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500"
+              className="ops-button-secondary px-4 py-3 text-sm"
             >
               <FileText size={16} />
               Export Prompt
@@ -101,9 +101,9 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
                 <Line
                   type="monotone"
                   dataKey="total"
-                  stroke="#2563eb"
+                  stroke="#7c3aed"
                   strokeWidth={3}
-                  dot={{ fill: "#2563eb", r: 3 }}
+                  dot={{ fill: "#7c3aed", r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -134,7 +134,7 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
                 <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
                 <YAxis hide allowDecimals={false} />
                 <Tooltip content={<ChartTooltip labelSuffix="tickets" />} />
-                <Bar dataKey="value" radius={[12, 12, 0, 0]} fill="#2563eb" />
+                <Bar dataKey="value" radius={[12, 12, 0, 0]} fill="#7c3aed" />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -285,7 +285,7 @@ function capitalize(value) {
 function ReportPanel({ children, className = "", title }) {
   return (
     <section
-      className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950/80 ${className}`}
+      className={`ops-panel ${className}`}
     >
       <h3 className="mb-5 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
         {title}
@@ -310,7 +310,7 @@ function ProgressRow({ name, total, value }) {
       </div>
       <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400"
+          className="h-full rounded-full bg-gradient-to-r from-purple-700 to-purple-400"
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -320,7 +320,7 @@ function ProgressRow({ name, total, value }) {
 
 function SnapshotRow({ label, value }) {
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+    <div className="flex items-center justify-between rounded-lg border border-purple-100/80 bg-white/90 p-4 dark:border-purple-400/10 dark:bg-white/5">
       <span className="text-slate-500 dark:text-slate-400">{label}</span>
       <strong className="text-slate-900 dark:text-white">{value}</strong>
     </div>
@@ -331,7 +331,7 @@ function ChartTooltip({ active, label, labelSuffix, payload }) {
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+    <div className="rounded-xl border border-purple-100 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(29,10,52,0.16)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95 dark:text-slate-200">
       <p className="font-semibold">{label}</p>
       <p>
         {payload[0].value.toLocaleString()} {labelSuffix}
@@ -342,7 +342,7 @@ function ChartTooltip({ active, label, labelSuffix, payload }) {
 
 function EmptyState({ message }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+    <div className="rounded-xl border border-dashed border-purple-200/80 bg-white/70 p-5 text-center text-sm text-slate-500 dark:border-purple-400/20 dark:bg-white/5 dark:text-slate-400">
       {message}
     </div>
   );

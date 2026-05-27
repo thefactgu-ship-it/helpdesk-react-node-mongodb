@@ -48,9 +48,9 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
 
   return (
     <div className="space-y-5">
-      <section className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:shadow-slate-950/40 lg:flex-row lg:items-center lg:justify-between">
+      <section className="ops-panel flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-300">
+          <p className="ops-section-label mb-2">
             Reports
           </p>
           <h3 className="text-2xl font-black text-slate-950 dark:text-white">
@@ -97,7 +97,7 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
             <button
               type="button"
               onClick={() => exportReportPrompt({ ...exportPayload, filename: `${filenameBase}-ai-prompt.txt` })}
-              className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black text-slate-700 transition hover:border-blue-200 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500"
+              className="ops-button-secondary px-4 py-3 text-sm"
             >
               <FileText size={16} />
               Export Prompt
@@ -128,9 +128,9 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
                 <Line
                   type="monotone"
                   dataKey="total"
-                  stroke="#2563eb"
+                  stroke="#7c3aed"
                   strokeWidth={3}
-                  dot={{ fill: "#2563eb", r: 3 }}
+                  dot={{ fill: "#7c3aed", r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -156,7 +156,7 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
                 <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
                 <YAxis allowDecimals={false} tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
                 <Tooltip content={<ChartTooltip />} />
-                <Bar dataKey="active" fill="#2563eb" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="active" fill="#7c3aed" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="resolved" fill="#f59e0b" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="closed" fill="#22c55e" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="overdue" fill="#e11d48" radius={[8, 8, 0, 0]} />
@@ -164,7 +164,7 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
             </ResponsiveContainer>
           </div>
           <div className="mt-4 flex flex-wrap gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            <LegendDot color="#2563eb" label="Active" />
+            <LegendDot color="#7c3aed" label="Active" />
             <LegendDot color="#f59e0b" label="Waiting confirm" />
             <LegendDot color="#22c55e" label="Closed" />
             <LegendDot color="#e11d48" label="Overdue" />
@@ -291,7 +291,7 @@ function isOverdue(ticket) {
 function ReportPanel({ children, className = "", title }) {
   return (
     <section
-      className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950/80 ${className}`}
+      className={`ops-panel ${className}`}
     >
       <h3 className="mb-5 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
         {title}
@@ -303,7 +303,7 @@ function ReportPanel({ children, className = "", title }) {
 
 function SnapshotRow({ label, value }) {
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+    <div className="flex items-center justify-between rounded-lg border border-purple-100/80 bg-white/90 p-4 dark:border-purple-400/10 dark:bg-white/5">
       <span className="text-slate-500 dark:text-slate-400">{label}</span>
       <strong className="text-slate-900 dark:text-white">{value}</strong>
     </div>
@@ -323,7 +323,7 @@ function ChartTooltip({ active, label, payload }) {
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+    <div className="rounded-xl border border-purple-100 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(29,10,52,0.16)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95 dark:text-slate-200">
       <p className="font-semibold">{label}</p>
       {payload.map((item) => (
         <p key={item.dataKey}>

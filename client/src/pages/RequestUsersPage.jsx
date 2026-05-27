@@ -29,8 +29,8 @@ function RequestUsersPage({ users }) {
 
   return (
     <div className="space-y-5">
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
-        <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-blue-600 dark:text-blue-300">
+      <section className="ops-panel md:p-6">
+        <p className="ops-section-label mb-2">
           System
         </p>
         <h3 className="text-2xl font-black text-slate-950 dark:text-white">
@@ -47,14 +47,14 @@ function RequestUsersPage({ users }) {
         <SummaryCard label="Visible" value={filteredRequesters.length} />
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+      <section className="ops-panel md:p-6">
         <div className="mb-5 flex min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <input
             type="text"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Search requesters..."
-            className="w-full min-w-0 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-blue-500 focus:bg-white dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-blue-400 md:w-80"
+            className="ops-input md:w-80"
           />
           <ThemedSelect
             className="w-full min-w-0 md:w-56"
@@ -72,18 +72,18 @@ function RequestUsersPage({ users }) {
           {filteredRequesters.map((user) => (
             <article
               key={user._id || user.id}
-              className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
+              className="ops-card"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <h4 className="break-words text-base font-black text-slate-950 dark:text-white">
                     {user.name}
                   </h4>
-                  <p className="mt-1 break-words text-sm font-semibold text-blue-700 dark:text-blue-300">
+                  <p className="mt-1 break-words text-sm font-semibold text-purple-700 dark:text-purple-200">
                     {user.email}
                   </p>
                 </div>
-                <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/20 dark:text-blue-200">
+                <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-bold text-purple-700 ring-1 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20">
                   {user.role}
                 </span>
               </div>
@@ -133,14 +133,14 @@ function RequestUsersPage({ users }) {
                       ID: {user._id || user.id}
                     </div>
                   </td>
-                  <td className="max-w-64 break-words px-3 font-semibold text-blue-700 dark:text-blue-300">
+                  <td className="max-w-64 break-words px-3 font-semibold text-purple-700 dark:text-purple-200">
                     {user.email}
                   </td>
                   <td className="max-w-56 break-words px-3 text-slate-600 dark:text-slate-300">
                     {user.departmentId?.name || user.departmentName || user.team || "Support"}
                   </td>
                   <td className="px-3">
-                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/20 dark:text-blue-200">
+                    <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-bold text-purple-700 ring-1 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20">
                       {user.role}
                     </span>
                   </td>
@@ -167,7 +167,7 @@ function RequestUsersPage({ users }) {
 
 function SummaryCard({ label, value }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950/80">
+    <div className="ops-soft-kpi p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
         {label}
       </p>
@@ -180,7 +180,7 @@ function SummaryCard({ label, value }) {
 
 function MobileMeta({ label, value }) {
   return (
-    <div className="rounded-lg bg-white p-3 dark:bg-slate-950">
+    <div className="rounded-lg border border-purple-100/70 bg-white/90 p-3 dark:border-purple-400/10 dark:bg-white/5">
       <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
         {label}
       </dt>
