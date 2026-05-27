@@ -79,15 +79,15 @@ function RequesterQueueCard({ canViewTicket, onViewTicket, requesterText, t, tic
 
   return (
     <article
-      className={`rounded-xl border bg-white p-4 shadow-sm dark:bg-slate-950 ${
+      className={`ops-soft-card ${
         summaryOnly
-          ? "border-sky-200 dark:border-sky-500/30"
-          : "border-slate-200 dark:border-slate-800"
+          ? "border-amber-200/80 dark:border-amber-400/25"
+          : ""
       }`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-black text-blue-600 dark:text-blue-300">
+          <p className="text-xs font-black text-purple-700 dark:text-purple-200">
             {ticket.ticketNumber}
           </p>
           <h4 className="mt-1 line-clamp-2 break-words text-base font-black text-slate-950 dark:text-white">
@@ -97,7 +97,7 @@ function RequesterQueueCard({ canViewTicket, onViewTicket, requesterText, t, tic
         <span
           className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${
             isActive
-              ? "bg-blue-50 text-blue-700 ring-1 ring-blue-200 dark:bg-blue-500/15 dark:text-blue-200 dark:ring-blue-400/20"
+              ? "bg-purple-50 text-purple-700 ring-1 ring-purple-200 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20"
               : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20"
           }`}
         >
@@ -134,7 +134,7 @@ function RequesterQueueCard({ canViewTicket, onViewTicket, requesterText, t, tic
           <button
             type="button"
             onClick={() => onViewTicket(ticket._id)}
-            className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-xs font-black text-white transition hover:bg-blue-700"
+            className="ops-button-primary min-h-10 shrink-0 px-4 py-2 text-xs"
           >
             {t("common.view")}
           </button>
@@ -150,7 +150,7 @@ function RequesterQueueCard({ canViewTicket, onViewTicket, requesterText, t, tic
 
 function RequesterMeta({ label, value }) {
   return (
-    <div className="rounded-lg bg-slate-50 p-3 dark:bg-slate-900">
+    <div className="rounded-lg border border-purple-100/70 bg-white/80 p-3 dark:border-purple-400/10 dark:bg-white/5">
       <dt className="text-[11px] font-bold text-slate-400">{label}</dt>
       <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
         {value}
@@ -163,8 +163,8 @@ function RequesterEmptyState({ activeQueue, requesterText }) {
   const message = getRequesterEmptyQueueMessage(activeQueue, requesterText);
 
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900">
-      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-black text-blue-600 shadow-sm dark:bg-slate-950 dark:text-blue-300">
+    <div className="ops-empty-state p-6">
+      <div className="ops-icon-primary mx-auto grid h-10 w-10 place-items-center text-sm font-black">
         0
       </div>
       <p className="mt-3 font-bold text-slate-800 dark:text-slate-100">{message.title}</p>
@@ -177,7 +177,7 @@ function RequesterEmptyState({ activeQueue, requesterText }) {
 
 function MobileTicketSkeleton() {
   return (
-    <div className="animate-pulse rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+    <div className="ops-soft-card animate-pulse p-4">
       <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-700" />
       <div className="mt-3 h-5 w-3/4 rounded bg-slate-200 dark:bg-slate-700" />
       <div className="mt-2 h-4 w-full rounded bg-slate-200 dark:bg-slate-700" />
@@ -198,7 +198,7 @@ function PaginationControls({ currentPage, setCurrentPage, totalPages, t }) {
         type="button"
         disabled={currentPage === 1}
         onClick={() => setCurrentPage(currentPage - 1)}
-        className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold disabled:opacity-40 dark:border-slate-700"
+        className="ops-button-secondary px-4 py-2 text-sm font-semibold disabled:opacity-40"
       >
         {t("queue.previous")}
       </button>
@@ -211,7 +211,7 @@ function PaginationControls({ currentPage, setCurrentPage, totalPages, t }) {
         type="button"
         disabled={currentPage === totalPages}
         onClick={() => setCurrentPage(currentPage + 1)}
-        className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold disabled:opacity-40 dark:border-slate-700"
+        className="ops-button-secondary px-4 py-2 text-sm font-semibold disabled:opacity-40"
       >
         {t("queue.next")}
       </button>

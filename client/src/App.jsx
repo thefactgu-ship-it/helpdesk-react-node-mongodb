@@ -15,6 +15,7 @@ import LoginPage from "./components/LoginPage";
 import NotificationBell from "./components/NotificationBell";
 import ThemedSelect from "./components/ThemedSelect";
 import TicketDetailModal from "./components/TicketDetailModal";
+import { Button } from "./components/ui";
 import { groupRoles } from "./config/appConfig";
 import {
   canAssignTickets as roleCanAssignTickets,
@@ -1120,8 +1121,8 @@ function App() {
         onUpdatePriority={updateTicketPriority}
         t={t}
       />
-      <div className="min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-white md:p-6">
-        <div className="mx-auto flex min-h-screen w-full max-w-[96rem] flex-col bg-white dark:bg-slate-900 md:min-h-[calc(100vh-3rem)] md:overflow-hidden md:rounded-2xl md:border md:border-slate-200 md:shadow-xl md:dark:border-slate-800 md:flex-row">
+      <div className="ops-shell">
+        <div className="ops-frame">
           <Sidebar
             activePage={visibleActivePage}
             currentUser={currentUser}
@@ -1131,20 +1132,22 @@ function App() {
             onOpenProfile={() => openProfilePage("profile")}
             t={t}
           />
-          <main className="min-h-[calc(100vh-3rem)] min-w-0 flex-1 overflow-y-auto bg-slate-50/90 p-4 pb-28 dark:bg-slate-900 md:p-6">
-            <header className="mb-6 flex min-w-0 flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <main className="ops-main">
+            <header className="ops-topbar">
               <div className="min-w-0">
-                <h2 className="break-words text-2xl font-bold">{currentPageMeta.title}</h2>
-                <p className="break-words text-sm text-slate-500 dark:text-slate-400">
+                <h2 className="break-words text-2xl font-black tracking-tight text-slate-950 dark:text-white">
+                  {currentPageMeta.title}
+                </h2>
+                <p className="mt-1 break-words text-sm leading-6 text-slate-600 dark:text-slate-300">
                   {currentPageMeta.subtitle}
                 </p>
                 {visibleActivePage === "dashboard" && shouldShowDashboardHotelChip && activeHotelContext.label && (
-                  <div className="mt-3 inline-flex max-w-full items-center gap-3 rounded-xl border border-blue-100 bg-white px-3 py-2 text-left shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
+                  <div className="ops-context-chip">
+                    <span className="ops-soft-icon h-9 w-9">
                       <Building2 className="h-4 w-4" aria-hidden="true" />
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-[11px] font-black uppercase text-slate-400">
+                      <span className="ops-section-label block">
                         {activeHotelContext.eyebrow}
                       </span>
                       <span className="block truncate text-sm font-black text-slate-900 dark:text-white">
@@ -1152,7 +1155,7 @@ function App() {
                       </span>
                     </span>
                     {activeHotelContext.detail && (
-                      <span className="hidden max-w-[12rem] truncate rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500 dark:bg-slate-900 dark:text-slate-300 sm:block">
+                      <span className="hidden max-w-[12rem] truncate rounded-full bg-purple-50 px-2.5 py-1 text-xs font-bold text-purple-700 dark:bg-slate-950 dark:text-purple-200 sm:block">
                         {activeHotelContext.detail}
                       </span>
                     )}
@@ -1187,22 +1190,22 @@ function App() {
                     ]}
                   />
                 )}
-                <button
-                  type="button"
+                <Button
                   onClick={() => setLanguage((current) => (current === "th" ? "en" : "th"))}
-                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-blue-400 dark:hover:bg-slate-800"
+                  className="rounded-full px-4 py-2 text-sm font-black"
                   aria-label={t("common.languageToggle")}
                   title={t("common.languageToggle")}
+                  variant="secondary"
                 >
                   {language === "th" ? "TH" : "EN"}
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
                   onClick={() => setDarkMode(!darkMode)}
-                  className="rounded-full border border-blue-200 bg-white px-5 py-2 text-sm font-semibold text-blue-700 shadow-sm transition hover:border-blue-400 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-950 dark:text-blue-200 dark:hover:border-blue-400 dark:hover:bg-slate-800"
+                  className="rounded-full px-5 py-2 text-sm font-black"
+                  variant="secondary"
                 >
                   {darkMode ? t("common.lightMode") : t("common.darkMode")}
-                </button>
+                </Button>
               </div>
             </header>
 
@@ -1370,7 +1373,7 @@ function App() {
 function PageLoading() {
   return (
     <div className="flex min-h-[24rem] items-center justify-center">
-      <div className="rounded-2xl border border-blue-100 bg-white px-6 py-4 text-sm font-semibold text-blue-700 shadow-sm dark:border-slate-700 dark:bg-slate-950 dark:text-blue-200">
+      <div className="ops-surface px-6 py-4 text-sm font-semibold text-blue-700 dark:text-blue-200">
         {createTranslator(getInitialLanguage())("common.loadingPage")}
       </div>
     </div>

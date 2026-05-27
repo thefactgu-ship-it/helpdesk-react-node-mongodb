@@ -1,5 +1,6 @@
 import { AlertTriangle, CheckCircle2, Clock3, Send, Sparkles } from "lucide-react";
 import ThemedSelect from "./ThemedSelect";
+import { Button, Card } from "./ui";
 
 function AddTicketForm({
   form,
@@ -14,9 +15,9 @@ function AddTicketForm({
   t,
 }) {
   const fieldClass =
-    "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400";
+    "ops-input";
   const dateFieldClass = `${fieldClass} min-w-0 max-w-full appearance-none`;
-  const labelClass = "text-sm font-bold text-slate-800 dark:text-slate-200";
+  const labelClass = "text-sm font-black text-slate-800 dark:text-slate-200";
 
   const categoryOptions = problemTypes.filter((type) => type.active !== false);
   const hasProblemTypes = categoryOptions.length > 0;
@@ -37,21 +38,21 @@ function AddTicketForm({
   const GuidanceIcon = selectedGuidance.icon;
 
   return (
-    <section className="mx-auto max-w-4xl rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
-      <div className="mb-6 flex flex-col gap-3 border-b border-slate-100 pb-5 dark:border-slate-800 md:flex-row md:items-start md:justify-between">
+    <section className="ops-soft-panel mx-auto max-w-4xl md:p-6">
+      <div className="mb-6 flex flex-col gap-3 border-b border-blue-100 pb-5 dark:border-slate-800 md:flex-row md:items-start md:justify-between">
         <div className="max-w-2xl">
-          <p className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
+          <p className="ops-chip-primary">
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
             {t("addTicket.quickReport")}
           </p>
-          <h3 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+          <h3 className="mt-3 text-2xl font-black tracking-tight text-slate-950 dark:text-white">
             {t("addTicket.title")}
           </h3>
-          <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-sm leading-6 text-slate-600 dark:text-slate-300">
             {t("addTicket.intro")}
           </p>
         </div>
-        <div className="rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
+        <div className="rounded-lg border border-blue-100 bg-indigo-50/70 px-4 py-3 text-sm text-indigo-950 shadow-[0_8px_24px_rgba(79,70,229,0.05)] dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
           <p className="font-bold">{t("addTicket.goalTitle")}</p>
           <p className="mt-1 text-xs leading-5">{t("addTicket.goalBody")}</p>
         </div>
@@ -102,10 +103,10 @@ function AddTicketForm({
                         type="button"
                         disabled={submitting}
                         onClick={() => setForm({ ...form, category: type.name })}
-                        className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
+                        className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-colors duration-200 ${
                           selected
-                            ? "border-blue-600 bg-blue-600 text-white"
-                            : "border-slate-200 bg-slate-50 text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                            ? "border-indigo-500 bg-indigo-500 text-white dark:border-blue-500 dark:bg-blue-500"
+                            : "border-blue-100 bg-white/85 text-slate-600 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
                         }`}
                       >
                         {type.name}
@@ -137,9 +138,9 @@ function AddTicketForm({
           </div>
 
           <aside className="space-y-4">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+            <Card>
               <div className="flex items-start gap-3">
-                <span className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full ${selectedGuidance.iconClass}`}>
+                <span className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg ${selectedGuidance.iconClass}`}>
                   <GuidanceIcon className="h-4 w-4" aria-hidden="true" />
                 </span>
                 <div>
@@ -153,7 +154,7 @@ function AddTicketForm({
               </div>
 
               {!canAssignTickets && (
-                <label className="mt-4 flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-100">
+                <label className="mt-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50/80 p-3 text-sm text-amber-950 dark:border-amber-400/20 dark:bg-amber-500/10 dark:text-amber-100">
                   <input
                     type="checkbox"
                     checked={Boolean(form.criticalRequested)}
@@ -175,10 +176,10 @@ function AddTicketForm({
                   </span>
                 </label>
               )}
-            </div>
+            </Card>
 
             {canAssignTickets && (
-              <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+              <Card>
                 <p className="text-sm font-black text-slate-900 dark:text-white">
                   {t("addTicket.triage")}
                 </p>
@@ -226,11 +227,11 @@ function AddTicketForm({
                     />
                   </Field>
                 </div>
-              </div>
+              </Card>
             )}
 
-            <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-500/20 dark:bg-blue-500/10">
-              <p className="text-sm font-black text-blue-950 dark:text-blue-100">
+            <Card className="bg-indigo-50/55 dark:bg-blue-500/10">
+              <p className="text-sm font-black text-indigo-950 dark:text-blue-100">
                 {t("addTicket.summary")}
               </p>
               <dl className="mt-3 space-y-2 text-sm">
@@ -239,22 +240,23 @@ function AddTicketForm({
                 <SummaryItem label={t("addTicket.priority")} value={submissionSummary?.priority} />
               </dl>
               {submitting && (
-                <p className="mt-3 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-blue-700 dark:bg-slate-900 dark:text-blue-200">
+                  <p className="mt-3 rounded-md bg-white/90 px-3 py-2 text-xs font-semibold text-indigo-700 dark:bg-slate-900 dark:text-blue-200">
                   {t("addTicket.creating")}
                 </p>
               )}
-            </div>
+            </Card>
           </aside>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-slate-100 pt-5 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-t border-blue-100 pt-5 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {t("addTicket.submitHint")}
           </p>
-          <button
+          <Button
             type="submit"
             disabled={submitting || !hasProblemTypes}
-            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:shadow-slate-950/30 dark:hover:bg-blue-400"
+            className="min-h-12 px-6 py-3"
+            variant="primary"
           >
             {submitting ? (
               <>
@@ -267,7 +269,7 @@ function AddTicketForm({
                 {t("addTicket.submitTicket")}
               </>
             )}
-          </button>
+          </Button>
         </div>
       </form>
     </section>
@@ -292,7 +294,7 @@ function buildPriorityGuidance(t) {
     },
     medium: {
       icon: Clock3,
-      iconClass: "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200",
+      iconClass: "bg-indigo-100 text-indigo-700 dark:bg-blue-500/20 dark:text-blue-200",
       description: t("addTicket.guidance.medium"),
     },
     high: {
@@ -326,7 +328,7 @@ function Field({ children, label, labelClass, required = false }) {
 
 function SummaryItem({ label, value }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg bg-white px-3 py-2 dark:bg-slate-900">
+    <div className="flex items-center justify-between gap-3 rounded-md bg-white/90 px-3 py-2 ring-1 ring-blue-100 dark:bg-slate-900 dark:ring-slate-800">
       <dt className="text-xs font-semibold text-slate-500 dark:text-slate-400">
         {label}
       </dt>

@@ -107,11 +107,11 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
       </section>
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
-        <StatCard title="Tickets" value={report.total} detail={year} icon={ClipboardList} />
-        <StatCard title="Waiting Confirm" value={report.resolved} detail="resolved, not closed" icon={Activity} />
-        <StatCard title="Closed" value={report.closed} detail={`${report.completionRate}% of tickets`} icon={CheckCircle2} />
-        <StatCard title="SLA Success" value={`${report.successRate}%`} detail={report.successDetail} icon={Gauge} />
-        <StatCard title="Avg. Rating" value={report.avgSatisfactionLabel} detail={`${report.satisfactionCount} ratings`} icon={Star} />
+        <StatCard className="pl-5" title="Tickets" value={report.total} detail={year} icon={ClipboardList} />
+        <StatCard className="pl-5" title="Waiting Confirm" value={report.resolved} detail="resolved, not closed" icon={Activity} />
+        <StatCard className="pl-5" title="Closed" value={report.closed} detail={`${report.completionRate}% of tickets`} icon={CheckCircle2} />
+        <StatCard className="pl-5" title="SLA Success" value={`${report.successRate}%`} detail={report.successDetail} icon={Gauge} />
+        <StatCard className="pl-5" title="Avg. Rating" value={report.avgSatisfactionLabel} detail={`${report.satisfactionCount} ratings`} icon={Star} />
       </section>
 
       <PeriodExecutiveSummary report={report} />

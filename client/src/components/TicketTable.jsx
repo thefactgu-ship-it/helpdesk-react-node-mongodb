@@ -7,6 +7,7 @@ import SkeletonRow from "./SkeletonRow";
 import StatusPill from "./StatusPill";
 import ThemedSelect from "./ThemedSelect";
 import WorkQueueTicketDrawer from "./WorkQueueTicketDrawer";
+import { Card, EmptyState } from "./ui";
 import {
   canManageTickets as roleCanManageTickets,
   canReopenTicket as roleCanReopenTicket,
@@ -165,7 +166,7 @@ function TicketTable({
   };
 
   return (
-    <section className="mt-6 min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
+    <section className="ops-panel mt-6 min-w-0 md:p-6">
       <div className="mb-5 flex min-w-0 flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div className="min-w-0 lg:max-w-sm">
           <p className="text-sm font-black text-slate-900 dark:text-white">
@@ -183,7 +184,7 @@ function TicketTable({
             value={search}
             disabled={loading}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900"
+            className="ops-input"
           />
 
           <ThemedSelect
@@ -261,10 +262,10 @@ function TicketTable({
               key={queue.id}
               type="button"
               onClick={() => handleQueueChange(queue.id)}
-              className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition ${
+              className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition-colors duration-200 ${
                 active
                   ? `${queue.activeClass} shadow-sm`
-                  : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                  : "border-purple-100 bg-white/85 text-slate-600 hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 dark:border-purple-400/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-purple-400/25 dark:hover:bg-purple-500/10"
               }`}
             >
               <span>{queue.label}</span>
@@ -397,10 +398,10 @@ function TicketTable({
                 return (
                   <tr
                     key={ticketId}
-                    className="cursor-pointer border-b last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900/70"
+                    className="ops-table-row"
                     onClick={() => openQueueDrawer(ticket)}
                   >
-                    <td className="max-w-36 break-words px-3 py-4 font-semibold text-blue-700">
+                    <td className="max-w-36 break-words px-3 py-4 font-semibold text-purple-700 dark:text-purple-200">
                       {ticket.ticketNumber}
                     </td>
                     <td className="min-w-0 px-3 py-4">
@@ -532,13 +533,14 @@ function TicketMobileCard({
   const ticketId = ticket._id || ticket.id;
 
   return (
-    <article
-      className="rounded-xl border border-slate-200 bg-slate-50 p-4 transition hover:border-blue-200 hover:bg-white dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500/30 dark:hover:bg-slate-950"
+    <Card
+      className="transition-colors duration-200"
+      variant="interactive"
       onClick={() => onOpenDrawer(ticket)}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold text-blue-600 dark:text-blue-300">
+          <p className="text-xs font-bold text-purple-700 dark:text-purple-200">
             {ticket.ticketNumber}
           </p>
           <h4 className="mt-1 line-clamp-2 break-words text-base font-black text-slate-950 dark:text-white">
@@ -594,13 +596,13 @@ function TicketMobileCard({
           />
         </div>
       </div>
-    </article>
+    </Card>
   );
 }
 
 function MobileMeta({ label, value }) {
   return (
-    <div className="rounded-lg bg-white p-3 dark:bg-slate-950">
+    <div className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-[0_10px_26px_rgba(76,29,149,0.06)] backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5">
       <dt className="text-[11px] font-bold text-slate-400">
         {label}
       </dt>
@@ -621,21 +623,13 @@ function QueueEmptyState({ activeQueue, groupAdminText, requesterText, staffQueu
       : getEmptyQueueMessage(activeQueue, t);
 
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900">
-      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-black text-blue-600 shadow-sm dark:bg-slate-950 dark:text-blue-300">
-        0
-      </div>
-      <p className="mt-3 font-bold text-slate-800 dark:text-slate-100">{message.title}</p>
-      <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-500 dark:text-slate-400">
-        {message.description}
-      </p>
-    </div>
+    <EmptyState description={message.description} title={message.title} />
   );
 }
 
 function StaffQueueKpis({ kpis, text }) {
   const items = [
-    { label: text.kpis.primary, value: kpis.primary, tone: kpis.primary ? "text-blue-700 dark:text-blue-200" : "" },
+    { label: text.kpis.primary, value: kpis.primary, tone: kpis.primary ? "text-purple-700 dark:text-purple-200" : "" },
     { label: text.kpis.overdue, value: kpis.overdue, tone: kpis.overdue ? "text-rose-700 dark:text-rose-200" : "" },
     { label: text.kpis.dueSoon, value: kpis.dueSoon, tone: kpis.dueSoon ? "text-amber-700 dark:text-amber-200" : "" },
     { label: text.kpis.waitingRequester, value: kpis.waitingRequester, tone: kpis.waitingRequester ? "text-slate-700 dark:text-slate-200" : "" },
@@ -644,9 +638,9 @@ function StaffQueueKpis({ kpis, text }) {
   return (
     <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
       {items.map((item) => (
-        <div
+        <Card
           key={item.label}
-          className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900"
+          className="p-3"
         >
           <p className={`text-2xl font-black text-slate-950 dark:text-white ${item.tone}`}>
             {item.value.toLocaleString()}
@@ -654,7 +648,7 @@ function StaffQueueKpis({ kpis, text }) {
           <p className="mt-1 break-words text-xs font-bold text-slate-500 dark:text-slate-400">
             {item.label}
           </p>
-        </div>
+        </Card>
       ))}
     </div>
   );
@@ -662,7 +656,7 @@ function StaffQueueKpis({ kpis, text }) {
 
 function MobileTicketSkeleton() {
   return (
-    <div className="animate-pulse rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+    <div className="animate-pulse rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
       <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-700" />
       <div className="mt-3 h-5 w-3/4 rounded bg-slate-200 dark:bg-slate-700" />
       <div className="mt-2 h-4 w-full rounded bg-slate-200 dark:bg-slate-700" />
@@ -683,7 +677,7 @@ function PaginationControls({ currentPage, setCurrentPage, totalPages, t }) {
         type="button"
         disabled={currentPage === 1}
         onClick={() => setCurrentPage(currentPage - 1)}
-        className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold disabled:opacity-40 dark:border-slate-700"
+        className="ops-button-secondary px-4 py-2 text-sm font-semibold disabled:opacity-40"
       >
         {t("queue.previous")}
       </button>
@@ -696,7 +690,7 @@ function PaginationControls({ currentPage, setCurrentPage, totalPages, t }) {
         type="button"
         disabled={currentPage === totalPages}
         onClick={() => setCurrentPage(currentPage + 1)}
-        className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold disabled:opacity-40 dark:border-slate-700"
+        className="ops-button-secondary px-4 py-2 text-sm font-semibold disabled:opacity-40"
       >
         {t("queue.next")}
       </button>
@@ -722,59 +716,60 @@ function DueLabel({ ticket }) {
 function buildQueueOptions(tickets, currentUserId, t, workQueueProfile) {
   const count = (queueId) =>
     tickets.filter((ticket) => matchesQueue(ticket, queueId, currentUserId, workQueueProfile)).length;
+  const primaryActive = "border-purple-700 bg-purple-700 text-white dark:border-purple-500 dark:bg-purple-500";
 
   if (workQueueProfile === "requester") {
     const requesterText = getRequesterQueueText(t);
     return [
-      { id: "mine", label: requesterText.tabs.mine, count: count("mine"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+      { id: "mine", label: requesterText.tabs.mine, count: count("mine"), activeClass: primaryActive },
       { id: "department", label: requesterText.tabs.department, count: count("department"), activeClass: "border-sky-600 bg-sky-600 text-white" },
       { id: "feedback", label: requesterText.tabs.feedback, count: count("feedback"), activeClass: "border-amber-500 bg-amber-500 text-white" },
-      { id: "all", label: requesterText.tabs.all, count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+      { id: "all", label: requesterText.tabs.all, count: count("all"), activeClass: primaryActive },
     ];
   }
 
   if (workQueueProfile === "groupAdmin") {
     const text = getGroupAdminQueueText(t);
     return [
-      { id: "now", label: text.tabs.now, count: count("now"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+      { id: "now", label: text.tabs.now, count: count("now"), activeClass: primaryActive },
       { id: "overdue", label: text.tabs.overdue, count: count("overdue"), activeClass: "border-rose-600 bg-rose-600 text-white" },
       { id: "urgent", label: text.tabs.urgent, count: count("urgent"), activeClass: "border-amber-500 bg-amber-500 text-white" },
       { id: "unassigned", label: text.tabs.unassigned, count: count("unassigned"), activeClass: "border-sky-600 bg-sky-600 text-white" },
       { id: "waitingRequester", label: text.tabs.waitingRequester, count: count("waitingRequester"), activeClass: "border-slate-700 bg-slate-700 text-white" },
-      { id: "all", label: text.tabs.all, count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+      { id: "all", label: text.tabs.all, count: count("all"), activeClass: primaryActive },
     ];
   }
 
   if (workQueueProfile === "agent") {
     const text = getStaffQueueText(t, workQueueProfile);
     return [
-      { id: "assignedToMe", label: text.tabs.assignedToMe, count: count("assignedToMe"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+      { id: "assignedToMe", label: text.tabs.assignedToMe, count: count("assignedToMe"), activeClass: primaryActive },
       { id: "availableToClaim", label: text.tabs.availableToClaim, count: count("availableToClaim"), activeClass: "border-emerald-600 bg-emerald-600 text-white" },
       { id: "dueSoon", label: text.tabs.dueSoon, count: count("dueSoon"), activeClass: "border-amber-500 bg-amber-500 text-white" },
       { id: "waitingRequester", label: text.tabs.waitingRequester, count: count("waitingRequester"), activeClass: "border-slate-700 bg-slate-700 text-white" },
-      { id: "all", label: text.tabs.all, count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+      { id: "all", label: text.tabs.all, count: count("all"), activeClass: primaryActive },
     ];
   }
 
   if (isManagerWorkQueueProfile(workQueueProfile)) {
     const text = getStaffQueueText(t, workQueueProfile);
     return [
-      { id: "now", label: text.tabs.now, count: count("now"), activeClass: "border-blue-600 bg-blue-600 text-white" },
-      { id: "unassigned", label: text.tabs.unassigned, count: count("unassigned"), activeClass: "border-sky-600 bg-sky-600 text-white" },
-      { id: "assignedToTeam", label: text.tabs.assignedToTeam, count: count("assignedToTeam"), activeClass: "border-indigo-600 bg-indigo-600 text-white" },
+      { id: "now", label: text.tabs.now, count: count("now"), activeClass: primaryActive },
+      { id: "unassigned", label: text.tabs.unassigned, count: count("unassigned"), activeClass: "border-purple-600 bg-purple-600 text-white" },
+      { id: "assignedToTeam", label: text.tabs.assignedToTeam, count: count("assignedToTeam"), activeClass: "border-emerald-600 bg-emerald-600 text-white" },
       { id: "dueSoon", label: text.tabs.dueSoon, count: count("dueSoon"), activeClass: "border-amber-500 bg-amber-500 text-white" },
-      { id: "all", label: text.tabs.all, count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+      { id: "all", label: text.tabs.all, count: count("all"), activeClass: primaryActive },
     ];
   }
 
   return [
-    { id: "now", label: t("queue.tabs.now"), count: count("now"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+    { id: "now", label: t("queue.tabs.now"), count: count("now"), activeClass: primaryActive },
     { id: "overdue", label: t("queue.tabs.overdue"), count: count("overdue"), activeClass: "border-rose-600 bg-rose-600 text-white" },
     { id: "dueSoon", label: t("queue.tabs.dueSoon"), count: count("dueSoon"), activeClass: "border-amber-500 bg-amber-500 text-white" },
-    { id: "unassigned", label: t("queue.tabs.unassigned"), count: count("unassigned"), activeClass: "border-sky-600 bg-sky-600 text-white" },
-    { id: "assignedToMe", label: t("queue.tabs.assignedToMe"), count: count("assignedToMe"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+    { id: "unassigned", label: t("queue.tabs.unassigned"), count: count("unassigned"), activeClass: "border-purple-600 bg-purple-600 text-white" },
+    { id: "assignedToMe", label: t("queue.tabs.assignedToMe"), count: count("assignedToMe"), activeClass: primaryActive },
     { id: "waitingRequester", label: t("queue.tabs.waitingRequester"), count: count("waitingRequester"), activeClass: "border-slate-700 bg-slate-700 text-white" },
-    { id: "all", label: t("queue.tabs.all"), count: count("all"), activeClass: "border-blue-600 bg-blue-600 text-white" },
+    { id: "all", label: t("queue.tabs.all"), count: count("all"), activeClass: primaryActive },
   ];
 }
 

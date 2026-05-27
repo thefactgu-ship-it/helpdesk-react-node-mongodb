@@ -24,9 +24,10 @@ import {
 import StatCard from "./StatCard";
 import { getCompletionStats, getSuccessDetail, isCompletedTicket } from "../utils/ticketMetrics";
 
-const blue = "#2563eb";
-const blueDark = "#60a5fa";
-const gridLight = "#e5e7eb";
+const softBlue = "#6366f1";
+const softBlueDark = "#93c5fd";
+const softRose = "#fb7185";
+const gridLight = "#e8edf5";
 const gridDark = "#334155";
 const textLight = "#64748b";
 const textDark = "#cbd5e1";
@@ -237,7 +238,10 @@ function DashboardAnalytics({ darkMode, tickets }) {
   const data = buildDashboardData(tickets);
   const axisColor = darkMode ? textDark : textLight;
   const gridColor = darkMode ? gridDark : gridLight;
-  const accent = darkMode ? blueDark : blue;
+  const accent = darkMode ? softBlueDark : softBlue;
+  const activeWork = data.open + data.inProgress;
+  const watchCount =
+    data.sla.breached + data.sla.dueSoon + data.sla.unassignedUrgent;
 
   const chartTheme = {
     axisColor,
@@ -249,6 +253,43 @@ function DashboardAnalytics({ darkMode, tickets }) {
 
   return (
     <div className="space-y-5">
+      <section className="ops-dashboard-hero md:p-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-3xl">
+            <div className="ops-chip-primary">
+              <Gauge className="h-4 w-4" aria-hidden="true" />
+              Operations analytics
+            </div>
+            <h3 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
+              Workload, SLA risk, and service quality
+            </h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+              Start with active work and escalation risk, then use the charts below for patterns and follow-up decisions.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[30rem]">
+            <AnalyticsFocusChip
+              icon={ClipboardList}
+              label="Active work"
+              value={activeWork}
+            />
+            <AnalyticsFocusChip
+              icon={ShieldAlert}
+              label="SLA watch"
+              tone={watchCount ? "amber" : "emerald"}
+              value={watchCount}
+            />
+            <AnalyticsFocusChip
+              icon={CheckCircle2}
+              label="Success"
+              tone="blue"
+              value={`${data.completionStats.successRate}%`}
+            />
+          </div>
+        </div>
+      </section>
+
       <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
         <StatCard
           title="Tickets"
@@ -393,7 +434,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
                   {data.severityData.map((entry, index) => (
                     <Cell
                       key={entry.name}
-                      fill={index === 0 || index === 1 ? "#e11d48" : accent}
+                      fill={index === 0 || index === 1 ? softRose : accent}
                     />
                   ))}
                 </Bar>
@@ -428,11 +469,11 @@ function DashboardAnalytics({ darkMode, tickets }) {
             </div>
             <div className="relative h-5 rounded-full bg-slate-100 dark:bg-slate-800">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400"
+                className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-blue-400 to-emerald-300"
                 style={{ width: `${data.completionStats.successRate}%` }}
               />
               <div
-                className="absolute top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-white bg-blue-500 text-sm font-bold text-white shadow-lg dark:border-slate-950"
+                className="absolute top-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-4 border-white bg-purple-600 text-sm font-bold text-white shadow-lg dark:border-slate-950"
                 style={{ left: `${Math.max(8, data.completionStats.successRate)}%` }}
               >
                 {data.completionStats.successRate}
@@ -466,7 +507,7 @@ function EscalationItem({ ticket }) {
   const isL2 = ticket.escalationLevel === "L2";
 
   return (
-    <article className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+    <article className="ops-soft-card">
       <div className="mb-3 flex items-center justify-between gap-3">
         <span
           className={`rounded-full px-2.5 py-1 text-[11px] font-black ${
@@ -518,7 +559,7 @@ function percent(value, total) {
 function DashboardPanel({ children, className = "", title }) {
   return (
     <section
-      className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950/80 ${className}`}
+      className={`ops-soft-panel ${className}`}
     >
       <h3 className="mb-5 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
         {title}
@@ -541,7 +582,7 @@ function ProgressRow({ label, percent, value }) {
       </div>
       <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-blue-600 to-blue-400"
+          className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-blue-300"
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -552,7 +593,7 @@ function ProgressRow({ label, percent, value }) {
 function LegendDot({ label }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+      <span className="h-2.5 w-2.5 rounded-full bg-purple-600" />
       {label}
     </span>
   );
@@ -571,8 +612,34 @@ function ChartTooltip({ active, label, payload }) {
 
 function EmptyState({ message }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+    <div className="ops-empty-state p-5 text-sm text-slate-500 dark:text-slate-400">
       {message}
+    </div>
+  );
+}
+
+function AnalyticsFocusChip({ icon: Icon, label, tone = "blue", value }) {
+  const toneClasses = {
+    amber: "bg-amber-50 text-amber-700 ring-amber-100 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/20",
+    blue: "bg-purple-50 text-purple-700 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20",
+    emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20",
+  };
+
+  return (
+    <div className="ops-soft-card p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+            {label}
+          </p>
+          <p className="mt-2 text-2xl font-black text-slate-950 dark:text-white">
+            {typeof value === "number" ? value.toLocaleString() : value}
+          </p>
+        </div>
+        <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ring-1 ${toneClasses[tone]}`}>
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </span>
+      </div>
     </div>
   );
 }

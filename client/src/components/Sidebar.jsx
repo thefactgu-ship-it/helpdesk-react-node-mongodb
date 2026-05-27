@@ -185,7 +185,7 @@ function Sidebar({
         visibleGroups={visibleGroups}
       />
 
-      <aside className="hidden w-72 flex-col border-r border-slate-200 bg-white text-slate-700 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 md:flex md:min-h-[calc(100vh-3rem)]">
+      <aside className="hidden w-72 flex-col border-r border-[var(--ops-sidebar-border)] bg-[var(--ops-sidebar-bg)] text-slate-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 md:flex md:min-h-dvh">
         <BrandHeader compact={false} />
 
         <nav className="flex-1 space-y-6 px-4 py-5 text-sm" aria-label="Primary navigation">
@@ -202,7 +202,7 @@ function Sidebar({
 
         <div
           ref={userMenuRef}
-          className="relative border-t border-slate-100 p-4 dark:border-slate-800"
+          className="relative border-t border-[#2d1c45] p-4 dark:border-slate-800"
         >
           {userMenuOpen && (
             <ProfileMenu
@@ -216,7 +216,7 @@ function Sidebar({
           <button
             type="button"
             onClick={() => setUserMenuOpen((open) => !open)}
-            className="flex w-full items-center gap-3 rounded-xl bg-slate-50 p-3 text-left transition hover:bg-blue-50 dark:bg-slate-900 dark:hover:bg-slate-800"
+            className="flex w-full items-center gap-3 rounded-xl bg-[#2d1c45] p-3 text-left transition hover:bg-white/10"
             aria-expanded={userMenuOpen}
             aria-haspopup="menu"
             aria-label={t("nav.accountMenu")}
@@ -224,16 +224,16 @@ function Sidebar({
             <Avatar name={userName} />
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold text-slate-950 dark:text-white">
+              <p className="truncate text-sm font-bold text-white">
                 {userName}
               </p>
-              <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+              <p className="truncate, text-xs text-purple-300">
                 {userRole}
                 {userTeam ? ` / ${userTeam}` : ""}
               </p>
             </div>
             <ChevronDown
-              className={`h-4 w-4 shrink-0 text-slate-400 transition ${
+              className={`h-4 w-4 shrink-0 text-purple-300 transition ${
                 userMenuOpen ? "rotate-180" : ""
               }`}
               aria-hidden="true"
@@ -269,21 +269,21 @@ function MobileChrome({
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 md:hidden">
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-[#2d1c45] bg-[#1e0a3d] px-4 py-3 md:hidden">
         <button
           type="button"
           onClick={onOpenDrawer}
-          className="grid h-11 w-11 place-items-center rounded-xl border border-slate-200 text-slate-700 dark:border-slate-800 dark:text-slate-200"
+          className="grid h-11 w-11 place-items-center rounded-xl border border-[#2d1c45] text-purple-200 bg-white/5 hover:bg-white/10"
           aria-label={t("nav.openMenu")}
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
         </button>
 
         <div className="min-w-0 px-3 text-center">
-          <p className="truncate text-sm font-black text-slate-950 dark:text-white">
+          <p className="truncate text-sm font-black text-white">
             IT Help Desk
           </p>
-          <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+          <p className="truncate text-xs text-purple-300">
             {userName}
           </p>
         </div>
@@ -291,7 +291,7 @@ function MobileChrome({
         <button
           type="button"
           onClick={onOpenProfile}
-          className="grid h-11 w-11 place-items-center rounded-xl bg-blue-600 text-xs font-black text-white"
+          className="grid h-11 w-11 place-items-center rounded-xl bg-purple-600 text-xs font-black text-white"
           aria-label={t("nav.profile")}
         >
           {getInitials(userName)}
@@ -306,13 +306,13 @@ function MobileChrome({
             onClick={onCloseDrawer}
             aria-label={t("nav.closeMenu")}
           />
-          <div className="absolute inset-y-0 left-0 flex w-[min(22rem,88vw)] flex-col bg-white shadow-2xl dark:bg-slate-950">
-            <div className="flex items-center justify-between border-b border-slate-100 p-4 dark:border-slate-800">
+          <div className="absolute inset-y-0 left-0 flex w-[min(22rem,88vw)] flex-col bg-[#1e0a3d] border-r border-[#2d1c45] shadow-2xl">
+            <div className="flex items-center justify-between border-b border-[#2d1c45] p-4">
               <BrandHeader compact />
               <button
                 type="button"
                 onClick={onCloseDrawer}
-                className="grid h-11 w-11 place-items-center rounded-xl border border-slate-200 text-slate-700 dark:border-slate-800 dark:text-slate-200"
+                className="grid h-11 w-11 place-items-center rounded-xl border border-[#2d1c45] text-purple-200 bg-white/5 hover:bg-white/10"
                 aria-label={t("nav.closeMenu")}
               >
                 <X className="h-5 w-5" aria-hidden="true" />
@@ -331,11 +331,11 @@ function MobileChrome({
               ))}
             </nav>
 
-            <div className="border-t border-slate-100 p-4 dark:border-slate-800">
+            <div className="border-t border-[#2d1c45] p-4">
               <button
                 type="button"
                 onClick={onLogout}
-                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-bold text-rose-600 hover:bg-rose-50 dark:text-rose-200 dark:hover:bg-rose-500/10"
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-bold text-rose-400 hover:bg-rose-500/10"
               >
                 <LogOut className="h-5 w-5" aria-hidden="true" />
                 {t("nav.logout")}
@@ -345,7 +345,7 @@ function MobileChrome({
         </div>
       )}
 
-      <nav className={`fixed inset-x-0 bottom-0 z-40 grid ${isRequester ? "grid-cols-4" : "grid-cols-5"} border-t border-slate-200 bg-white/95 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 md:hidden`} aria-label="Mobile primary navigation">
+      <nav className={`fixed inset-x-0 bottom-0 z-40 grid ${isRequester ? "grid-cols-4" : "grid-cols-5"} border-t border-[#2d1c45] bg-[#1e0a3d] px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-10px_30px_rgba(0,0,0,0.2)] backdrop-blur md:hidden`} aria-label="Mobile primary navigation">
         {bottomItems.map((item) => {
           const Icon = item.icon;
           const active =
@@ -357,10 +357,10 @@ function MobileChrome({
               key={item.id}
               type="button"
               onClick={item.action}
-              className={`flex flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[11px] font-bold transition ${
+              className={`flex flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[11px] font-bold transition-colors duration-200 ${
                 active
-                  ? "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200"
-                  : "text-slate-500 hover:text-blue-700 dark:text-slate-400"
+                  ? "bg-purple-600 text-white shadow-sm dark:bg-purple-500"
+                  : "text-purple-300 hover:bg-white/10 hover:text-white dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-purple-200"
               }`}
               aria-current={active ? "page" : undefined}
             >
@@ -376,16 +376,16 @@ function MobileChrome({
 
 function BrandHeader({ compact }) {
   return (
-    <div className={`${compact ? "flex items-center gap-3" : "border-b border-slate-100 p-5 dark:border-slate-800"}`}>
-      <div className={`${compact ? "" : "mb-5"} flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white`}>
+    <div className={`${compact ? "flex items-center gap-3" : "border-b border-purple-100/15 p-5 dark:border-purple-200/10"}`}>
+      <div className={`${compact ? "" : "mb-5"} flex h-10 w-10 items-center justify-center rounded-lg bg-[#6B21A8] text-sm font-bold text-white shadow-[0_10px_28px_rgba(107,33,168,0.25)] ring-1 ring-purple-900/10 dark:bg-purple-600`}>
         <ShieldCheck className="h-5 w-5" aria-hidden="true" />
       </div>
 
       <div>
-        <h1 className={`${compact ? "text-base" : "text-2xl"} font-black leading-tight text-slate-950 dark:text-white`}>
+        <h1 className={`${compact ? "text-base" : "text-2xl"} font-black leading-tight text-white`}>
           IT Help Desk
         </h1>
-        <p className="text-xs font-medium text-blue-600 dark:text-blue-300">
+        <p className="text-xs font-bold text-purple-300 dark:text-purple-200">
           Multi-Hotel Support
         </p>
       </div>
@@ -396,7 +396,7 @@ function BrandHeader({ compact }) {
 function NavGroup({ activePage, group, onNavigate, t }) {
   return (
     <div>
-      <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-600">
+      <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-purple-400/60">
         {t(group.labelKey)}
       </p>
 
@@ -418,26 +418,26 @@ function NavGroup({ activePage, group, onNavigate, t }) {
 
 function ProfileMenu({ onLogout, onOpenPassword, onOpenProfile, t }) {
   return (
-    <div className="absolute bottom-[5.25rem] left-4 right-4 z-20 overflow-hidden rounded-xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-200/80 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/50">
+    <div className="absolute bottom-[5.25rem] left-4 right-4 z-20 overflow-hidden rounded-lg border border-purple-100/15 bg-purple-950/50 p-2 shadow-xl backdrop-blur dark:border-purple-200/10 dark:bg-purple-950/70 dark:shadow-slate-950/50">
       <button
         type="button"
         onClick={onOpenProfile}
-        className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-blue-200"
+        className="w-full rounded-md px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-purple-500/10 hover:text-white dark:text-slate-200 dark:hover:bg-purple-500/20 dark:hover:text-purple-100"
       >
         {t("nav.updateProfile")}
       </button>
       <button
         type="button"
         onClick={onOpenPassword}
-        className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-bold text-slate-700 transition hover:bg-blue-50 hover:text-blue-700 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-blue-200"
+        className="w-full rounded-md px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-purple-500/10 hover:text-white dark:text-slate-200 dark:hover:bg-purple-500/20 dark:hover:text-purple-100"
       >
         {t("nav.changePassword")}
       </button>
-      <div className="my-2 h-px bg-slate-100 dark:bg-slate-800" />
+      <div className="my-2 h-px bg-purple-100/15 dark:bg-purple-200/10" />
       <button
         type="button"
         onClick={onLogout}
-        className="w-full rounded-lg px-3 py-2.5 text-left text-sm font-bold text-rose-600 transition hover:bg-rose-50 dark:text-rose-200 dark:hover:bg-rose-500/10"
+        className="w-full rounded-md px-3 py-2.5 text-left text-sm font-bold text-rose-400 transition-colors hover:bg-rose-500/10"
       >
         {t("nav.logout")}
       </button>
@@ -447,7 +447,7 @@ function ProfileMenu({ onLogout, onOpenPassword, onOpenProfile, t }) {
 
 function Avatar({ name }) {
   return (
-    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple-600 text-xs font-bold text-white shadow-sm dark:bg-purple-500">
       {getInitials(name)}
     </div>
   );
@@ -459,23 +459,23 @@ function MenuItem({ text, icon: Icon, active, enabled, onClick }) {
       type="button"
       disabled={!enabled}
       onClick={onClick}
-      className={`relative flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition ${
+      className={`ops-nav-item ${
         active
-          ? "bg-blue-600 text-white shadow-sm"
+          ? "ops-nav-item-active"
           : enabled
-            ? "text-slate-600 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-blue-200"
-            : "cursor-not-allowed text-slate-300 dark:text-slate-700"
+            ? "ops-nav-item-idle"
+            : "cursor-not-allowed text-slate-500"
       }`}
       aria-current={active ? "page" : undefined}
     >
       {active && (
-        <span className="absolute -left-4 top-2 h-[calc(100%-1rem)] w-1 rounded-r bg-blue-600 dark:bg-blue-300" />
+        <span className="absolute -left-4 top-2 h-[calc(100%-1rem)] w-1 rounded-r bg-purple-500 dark:bg-purple-300" />
       )}
       <span
-        className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${
+        className={`grid h-8 w-8 shrink-0 place-items-center rounded-md ${
           active
-            ? "bg-white/20 text-white"
-            : "bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-500"
+            ? "bg-purple-600 text-white"
+            : "bg-purple-950/25 text-purple-200"
         }`}
       >
         <Icon className="h-4 w-4" aria-hidden="true" />

@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { ChevronDown } from "lucide-react";
 
 function ThemedSelect({
   className = "",
@@ -181,7 +182,7 @@ function ThemedSelect({
     <div
       ref={menuRef}
       style={menuPortal ? menuStyle : undefined}
-      className={`${menuPortal ? "fixed" : `absolute mt-2 w-full min-w-48 ${isPill ? "right-0" : "left-0"}`} z-[9999] overflow-hidden rounded-2xl border border-blue-100 bg-white p-1.5 shadow-xl shadow-slate-200/60 dark:border-slate-700 dark:bg-slate-950 dark:shadow-slate-950/60`}
+      className={`${menuPortal ? "fixed" : `absolute mt-2 w-full min-w-48 ${isPill ? "right-0" : "left-0"}`} z-[9999] overflow-hidden rounded-2xl border border-purple-100 bg-white p-1.5 shadow-xl shadow-slate-200/60 dark:border-slate-700 dark:bg-slate-950 dark:shadow-slate-950/60`}
     >
       <div
         id={`${selectId}-listbox`}
@@ -208,10 +209,10 @@ function ThemedSelect({
                 isSmall ? "px-2.5 py-2" : "px-3 py-2.5"
               } ${
                 selected
-                  ? "bg-blue-600 text-white shadow-sm dark:bg-blue-500 dark:shadow-slate-950/30"
+                  ? "bg-purple-700 text-white shadow-sm dark:bg-purple-500 dark:shadow-slate-950/30"
                   : active
-                    ? "bg-blue-50 text-blue-700 dark:bg-slate-900 dark:text-blue-200"
-                  : "text-slate-700 hover:bg-blue-50 hover:text-blue-700 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-blue-200"
+                    ? "bg-purple-50 text-purple-700 dark:bg-slate-900 dark:text-purple-200"
+                  : "text-slate-700 hover:bg-purple-50 hover:text-purple-700 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-purple-200"
               }`}
             >
               {prefix && (
@@ -276,8 +277,8 @@ function ThemedSelect({
             : `${isSmall ? "min-h-11 rounded-xl px-3 py-2 text-xs" : "min-h-12 rounded-2xl px-4 py-3 text-sm"} gap-3`
         } ${
           open
-            ? `${isSmall ? "ring-2" : "ring-4"} border-blue-500 text-blue-700 shadow-sm ring-blue-100 dark:border-blue-400 dark:text-blue-200 dark:shadow-slate-950/30 dark:ring-blue-500/10`
-            : "border-blue-200 text-slate-700 hover:border-blue-400 hover:bg-blue-50/60 dark:border-slate-700 dark:text-slate-200 dark:hover:border-blue-400 dark:hover:bg-slate-900"
+            ? `${isSmall ? "ring-2" : "ring-4"} border-purple-500 text-purple-800 shadow-sm ring-purple-100 dark:border-purple-400 dark:text-purple-200 dark:shadow-slate-950/30 dark:ring-purple-500/10`
+            : "border-purple-100 text-slate-700 hover:border-purple-200 hover:bg-purple-50/50 dark:border-slate-700 dark:text-slate-200 dark:hover:border-purple-400 dark:hover:bg-slate-900"
         }`}
       >
         <span className="min-w-0 flex-1 truncate">{selectedLabel}</span>
@@ -286,11 +287,14 @@ function ThemedSelect({
             isSmall ? "h-5 w-5 text-[10px]" : "h-6 w-6 text-xs"
           } ${
             open
-              ? "bg-blue-600 text-white"
-              : "bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-200"
+              ? "bg-purple-700 text-white"
+              : "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200"
           }`}
         >
-          {open ? "^" : "v"}
+          <ChevronDown
+            className={`${isSmall ? "h-3.5 w-3.5" : "h-4 w-4"} transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+            aria-hidden="true"
+          />
         </span>
       </button>
 

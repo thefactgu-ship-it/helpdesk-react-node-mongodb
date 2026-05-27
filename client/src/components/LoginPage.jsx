@@ -21,20 +21,21 @@ function LoginPage({ onLogin }) {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-950 p-6">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.28),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(15,118,110,0.18),transparent_30%)]" />
-      <div className="absolute inset-x-0 top-0 h-px bg-blue-400/40" />
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#1d0a34] p-6">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_18%_0%,rgba(124,58,237,0.36),transparent_56%),radial-gradient(ellipse_58%_42%_at_100%_100%,rgba(236,72,153,0.18),transparent_52%),linear-gradient(155deg,#13051f_0%,#1d0a34_38%,#4c1d95_100%)]" />
+      <div className="absolute inset-x-0 top-0 h-px bg-purple-200/35" />
+      <div className="absolute inset-x-10 top-10 h-24 rounded-full bg-purple-400/10 blur-3xl" />
 
-      <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-white p-8 shadow-xl shadow-slate-950/40">
+      <div className="relative w-full max-w-md rounded-xl border border-white/25 bg-white/90 p-8 shadow-[0_24px_70px_rgba(9,5,20,0.46)] backdrop-blur-xl">
         <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-sm">
+          <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-xl bg-purple-700 text-white shadow-[0_12px_32px_rgba(109,40,217,0.38)] ring-1 ring-white/25">
             <ShieldCheck className="h-6 w-6" aria-hidden="true" />
           </div>
-          <p className="mb-2 inline-flex items-center justify-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-slate-500">
+          <p className="mb-2 inline-flex items-center justify-center gap-2 rounded-full border border-purple-100 bg-white/85 px-3 py-1 text-xs font-bold uppercase tracking-wide text-purple-700 shadow-sm backdrop-blur-sm">
             <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
             Multi-Hotel Operations
           </p>
-          <h1 className="text-3xl font-bold text-slate-900">IT Help Desk</h1>
+          <h1 className="text-3xl font-black tracking-tight text-slate-950">IT Help Desk</h1>
           <p className="mt-2 text-sm text-slate-500">
             Sign in with the account created by your administrator.
           </p>
@@ -53,7 +54,7 @@ function LoginPage({ onLogin }) {
               onChange={(e) =>
                 setLoginForm({ ...loginForm, email: e.target.value })
               }
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="ops-input"
             />
           </label>
 
@@ -69,14 +70,14 @@ function LoginPage({ onLogin }) {
               onChange={(e) =>
                 setLoginForm({ ...loginForm, password: e.target.value })
               }
-              className="w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+              className="ops-input"
             />
           </label>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-2xl bg-blue-600 py-3.5 font-semibold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400 disabled:shadow-none"
+            className="ops-button-primary w-full py-3.5"
           >
             {loading ? "Signing in..." : "Login"}
           </button>
@@ -86,14 +87,14 @@ function LoginPage({ onLogin }) {
           <button
             type="button"
             onClick={() => setShowResetHelp((current) => !current)}
-            className="text-sm font-semibold text-blue-700 transition hover:text-blue-800"
+            className="text-sm font-semibold text-purple-700 transition hover:text-purple-900"
           >
             Forgot password?
           </button>
         </div>
 
         {showResetHelp && (
-          <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+          <div className="mt-4 rounded-lg border border-purple-100 bg-purple-50/80 px-4 py-3 text-sm text-purple-950 shadow-sm">
             Please contact your administrator to reset your password. Admins can
             update temporary passwords from User Management.
           </div>

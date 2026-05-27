@@ -1,9 +1,15 @@
+import { Badge as UiBadge } from "./ui";
+
 function Badge({ text }) {
-  return (
-    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700 dark:bg-blue-500/15 dark:text-blue-200">
-      {text}
-    </span>
-  );
+  return <UiBadge tone={getBadgeTone(text)}>{text}</UiBadge>;
+}
+
+function getBadgeTone(text = "") {
+  const value = String(text).toLowerCase();
+  if (value.includes("critical") || value.includes("high") || value.includes("เกิน")) return "rose";
+  if (value.includes("medium") || value.includes("รอ") || value.includes("due")) return "amber";
+  if (value.includes("low") || value.includes("closed") || value.includes("done") || value.includes("ปิด")) return "emerald";
+  return "indigo";
 }
 
 export default Badge;

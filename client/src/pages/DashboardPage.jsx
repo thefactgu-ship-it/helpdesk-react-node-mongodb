@@ -171,90 +171,57 @@ function HotelAdminDashboard({
 
   return (
     <div className="space-y-5">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700 ring-1 ring-blue-100 dark:bg-blue-500/15 dark:text-blue-200 dark:ring-blue-400/20">
-              <Building2 className="h-4 w-4" aria-hidden="true" />
-              {data.scopeLabel}
-            </div>
-            <h3 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
-              {text.title}
-            </h3>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-              {text.description}
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[32rem]">
-            <button
-              type="button"
-              onClick={() => onNavigate("tickets")}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 sm:col-span-3"
-            >
-              <ClipboardList className="h-5 w-5" aria-hidden="true" />
-              {text.openQueue}
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate("user-management")}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <UsersRound className="h-4 w-4" aria-hidden="true" />
-              {text.manageUsers}
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate("departments")}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <Building2 className="h-4 w-4" aria-hidden="true" />
-              {text.departments}
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate("monthly-report")}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <BarChart3 className="h-4 w-4" aria-hidden="true" />
-              {text.monthlyReport}
-            </button>
-          </div>
-        </div>
-      </section>
+      <OpsDashboardHero
+        description={text.description}
+        primaryAction={{
+          icon: ClipboardList,
+          label: text.openQueue,
+          onClick: () => onNavigate("tickets"),
+        }}
+        scopeIcon={Building2}
+        scopeLabel={data.scopeLabel}
+        secondaryActions={[
+          { icon: UsersRound, label: text.manageUsers, onClick: () => onNavigate("user-management") },
+          { icon: Building2, label: text.departments, onClick: () => onNavigate("departments") },
+          { icon: BarChart3, label: text.monthlyReport, onClick: () => onNavigate("monthly-report") },
+        ]}
+        title={text.title}
+      />
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
         <GroupAdminKpi
           detail={text.activeDetail}
           icon={ClipboardList}
           label={text.activeTickets}
+          tone="purple"
           value={data.activeTickets.length}
         />
         <GroupAdminKpi
           detail={text.unassignedDetail}
           icon={UserRoundX}
           label={text.unassigned}
-          tone={data.unassignedTickets.length ? "amber" : "blue"}
+          tone={data.unassignedTickets.length ? "amber" : "purple"}
           value={data.unassignedTickets.length}
         />
         <GroupAdminKpi
           detail={text.overdueDetail}
           icon={AlertTriangle}
           label={text.overdue}
-          tone={data.overdueTickets.length ? "rose" : "blue"}
+          tone={data.overdueTickets.length ? "rose" : "purple"}
           value={data.overdueTickets.length}
         />
         <GroupAdminKpi
           detail={text.dueSoonDetail}
           icon={TimerReset}
           label={text.dueSoon}
-          tone={data.dueSoonTickets.length ? "amber" : "blue"}
+          tone={data.dueSoonTickets.length ? "amber" : "purple"}
           value={data.dueSoonTickets.length}
         />
         <GroupAdminKpi
           detail={text.waitingDetail}
           icon={Clock3}
           label={text.waitingConfirm}
+          tone="teal"
           value={data.waitingConfirm.length}
         />
       </section>
@@ -451,91 +418,57 @@ function GroupAdminDashboard({
 
   return (
     <div className="space-y-5">
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 md:p-6">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700 ring-1 ring-blue-100 dark:bg-blue-500/15 dark:text-blue-200 dark:ring-blue-400/20">
-              <Building2 className="h-4 w-4" aria-hidden="true" />
-              {data.scopeLabel}
-            </div>
-            <h3 className="mt-3 text-2xl font-black text-slate-950 dark:text-white">
-              {text.title}
-            </h3>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
-              {text.description}
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3 xl:min-w-[32rem]">
-            <button
-              type="button"
-              onClick={() => onNavigate("tickets")}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 sm:col-span-3"
-            >
-              <ClipboardList className="h-5 w-5" aria-hidden="true" />
-              {text.openQueue}
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate("monthly-report")}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <BarChart3 className="h-4 w-4" aria-hidden="true" />
-              {text.monthlyReport}
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate("user-management")}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <UsersRound className="h-4 w-4" aria-hidden="true" />
-              {text.manageUsers}
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate("hotels")}
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-black text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
-            >
-              <Building2 className="h-4 w-4" aria-hidden="true" />
-              {text.manageHotels}
-            </button>
-          </div>
-        </div>
-      </section>
+      <OpsDashboardHero
+        description={text.description}
+        primaryAction={{
+          icon: ClipboardList,
+          label: text.openQueue,
+          onClick: () => onNavigate("tickets"),
+        }}
+        scopeIcon={Building2}
+        scopeLabel={data.scopeLabel}
+        secondaryActions={[
+          { icon: BarChart3, label: text.monthlyReport, onClick: () => onNavigate("monthly-report") },
+          { icon: UsersRound, label: text.manageUsers, onClick: () => onNavigate("user-management") },
+          { icon: Building2, label: text.manageHotels, onClick: () => onNavigate("hotels") },
+        ]}
+        title={text.title}
+      />
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
         <GroupAdminKpi
           detail={text.activeDetail}
           icon={ClipboardList}
           label={text.activeTickets}
+          tone="purple"
           value={data.activeTickets.length}
         />
         <GroupAdminKpi
           detail={text.riskDetail}
           icon={ShieldAlert}
           label={text.riskTickets}
-          tone={data.riskTickets.length ? "rose" : "blue"}
+          tone="orange"
           value={data.riskTickets.length}
         />
         <GroupAdminKpi
           detail={text.overdueDetail}
           icon={AlertTriangle}
           label={text.overdueTickets}
-          tone={data.overdueTickets.length ? "rose" : "blue"}
+          tone="red"
           value={data.overdueTickets.length}
         />
         <GroupAdminKpi
           detail={text.unassignedDetail}
           icon={UserRoundX}
           label={text.unassignedUrgent}
-          tone={data.unassignedUrgent.length ? "amber" : "blue"}
+          tone="pink"
           value={data.unassignedUrgent.length}
         />
         <GroupAdminKpi
           detail={showAllHotels ? text.hotelWatchDetail : text.selectedHotelDetail}
           icon={Gauge}
           label={text.hotelsToWatch}
-          tone={data.watchHotelCount ? "amber" : "blue"}
+          tone="teal"
           value={data.watchHotelCount}
         />
       </section>
@@ -1021,16 +954,81 @@ function TicketList({ empty, emptyAction, onEmptyAction, summaryOnly = false, su
   );
 }
 
+function OpsDashboardHero({
+  description,
+  primaryAction,
+  scopeIcon: ScopeIcon,
+  scopeLabel,
+  secondaryActions = [],
+  title,
+}) {
+  const PrimaryIcon = primaryAction?.icon;
+
+  return (
+    <section className="ops-hero-banner">
+      <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+        <div className="max-w-3xl">
+          <div className="ops-hero-eyebrow">
+            {ScopeIcon && <ScopeIcon className="h-4 w-4" aria-hidden="true" />}
+            {scopeLabel}
+          </div>
+          <h3 className="ops-hero-title">{title}</h3>
+          <p className="ops-hero-description">{description}</p>
+        </div>
+
+        <div className="ops-hero-actions">
+          <button type="button" onClick={primaryAction.onClick} className="ops-hero-primary">
+            {PrimaryIcon && <PrimaryIcon className="h-5 w-5" aria-hidden="true" />}
+            {primaryAction.label}
+          </button>
+          {secondaryActions.map((action) => {
+            const ActionIcon = action.icon;
+            return (
+              <button
+                key={action.label}
+                type="button"
+                onClick={action.onClick}
+                className="ops-hero-secondary"
+              >
+                {ActionIcon && <ActionIcon className="h-4 w-4" aria-hidden="true" />}
+                {action.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function GroupAdminKpi({ detail, icon: Icon, label, tone = "blue", value }) {
+  const accentClasses = {
+    purple: "ops-kpi-accent-purple",
+    orange: "ops-kpi-accent-amber",
+    amber: "ops-kpi-accent-amber",
+    red: "ops-kpi-accent-rose",
+    rose: "ops-kpi-accent-rose",
+    pink: "ops-kpi-accent-pink",
+    teal: "ops-kpi-accent-emerald",
+    emerald: "ops-kpi-accent-emerald",
+    blue: "",
+  };
+
   const toneClasses = {
-    amber: "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200",
-    blue: "bg-blue-50 text-blue-700 dark:bg-blue-500/15 dark:text-blue-200",
-    rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
+    purple: "bg-purple-50 text-purple-600 dark:bg-purple-500/15 dark:text-purple-200",
+    orange: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-200",
+    amber: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-200",
+    red: "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-200",
+    rose: "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-200",
+    pink: "bg-pink-50 text-pink-600 dark:bg-pink-500/15 dark:text-pink-200",
+    teal: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-200",
+    emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-200",
+    blue: "bg-purple-50 text-purple-600 dark:bg-purple-500/15 dark:text-purple-200",
   };
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-      <div className="flex items-start justify-between gap-3">
+    <article className={`ops-soft-kpi ops-realtime-pulse ${accentClasses[tone] || ""}`}>
+      <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-3xl font-black text-slate-950 dark:text-white">
             {Number(value || 0).toLocaleString()}
@@ -1042,7 +1040,7 @@ function GroupAdminKpi({ detail, icon: Icon, label, tone = "blue", value }) {
             {detail}
           </p>
         </div>
-        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${toneClasses[tone]}`}>
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg ${toneClasses[tone] || ""}`}>
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
       </div>
@@ -1052,10 +1050,10 @@ function GroupAdminKpi({ detail, icon: Icon, label, tone = "blue", value }) {
 
 function GroupAdminPanel({ actionLabel, children, className = "", icon: Icon, onAction, title }) {
   return (
-    <section className={`rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-950 ${className}`}>
+    <section className={`ops-soft-panel ${className}`}>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+          <span className="ops-soft-icon grid h-10 w-10 place-items-center">
             <Icon className="h-5 w-5" aria-hidden="true" />
           </span>
           <h3 className="text-sm font-black text-slate-900 dark:text-white">
@@ -1066,9 +1064,9 @@ function GroupAdminPanel({ actionLabel, children, className = "", icon: Icon, on
           <button
             type="button"
             onClick={onAction}
-            className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-black text-slate-700 transition hover:bg-blue-50 hover:text-blue-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className="flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-xs font-bold text-purple-600 transition hover:text-purple-700 hover:underline dark:text-purple-200 dark:hover:text-purple-100"
           >
-            {actionLabel}
+            {actionLabel} &rarr;
           </button>
         )}
       </div>
@@ -1083,7 +1081,7 @@ function GroupAdminRiskItem({ text, ticket }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-blue-700 ring-1 ring-blue-100 dark:bg-slate-950 dark:text-blue-200 dark:ring-blue-400/20">
+            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-purple-700 ring-1 ring-purple-100 dark:bg-slate-950 dark:text-purple-200 dark:ring-purple-400/20">
               {ticket.ticketNumber || "-"}
             </span>
             <span className="rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-black text-rose-700 ring-1 ring-rose-100 dark:bg-rose-500/15 dark:text-rose-200 dark:ring-rose-400/20">
@@ -1117,25 +1115,30 @@ function GroupAdminHotelCard({ hotel, text }) {
         : "bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20";
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
-      <div className="flex items-start justify-between gap-3">
+    <article className="ops-soft-card relative overflow-hidden pb-4">
+      <div className="flex items-start justify-between gap-3 px-1">
         <div className="min-w-0">
           <h4 className="truncate text-sm font-black text-slate-950 dark:text-white">
             {hotel.label}
           </h4>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-0.5 text-[10px] font-semibold text-slate-400">
             {hotel.active.toLocaleString()} {text.activeShort} / {hotel.overdue.toLocaleString()} {text.overdueShort}
           </p>
         </div>
-        <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ring-1 ${toneClass}`}>
+        <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-black ${toneClass}`}>
           {hotel.statusLabel}
         </span>
       </div>
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        <GroupAdminMiniMetric label={text.urgentShort} value={hotel.urgent} />
-        <GroupAdminMiniMetric label={text.unassignedOwner} value={hotel.unassigned} />
-        <GroupAdminMiniMetric label={text.overdueTickets} value={hotel.overdue} />
+
+      <div className="my-3 border-b border-slate-100 dark:border-slate-800" />
+
+      <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-800">
+        <GroupAdminMiniMetric label={text.urgentShort} value={hotel.urgent} colorClass="text-rose-500" />
+        <GroupAdminMiniMetric label={text.unassignedOwner} value={hotel.unassigned} colorClass="text-amber-500" />
+        <GroupAdminMiniMetric label={text.overdueTickets} value={hotel.overdue} colorClass="text-purple-600 dark:text-purple-400" />
       </div>
+
+      <div className={`h-[3px] w-full absolute bottom-0 left-0 ${hotel.level === "attention" ? "bg-purple-600" : "bg-slate-200/50 dark:bg-slate-800"}`} />
     </article>
   );
 }
@@ -1161,7 +1164,7 @@ function GroupAdminRankList({ empty, items, total }) {
             </div>
             <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
               <div
-                className="h-full rounded-full bg-blue-600"
+                className="h-full rounded-full bg-purple-600 dark:bg-purple-500"
                 style={{ width: `${Math.max(percentValue, 4)}%` }}
               />
             </div>
@@ -1181,19 +1184,32 @@ function GroupAdminMeta({ label, value }) {
   );
 }
 
-function GroupAdminMiniMetric({ label, value }) {
+function GroupAdminMiniMetric({ label, value, colorClass = "" }) {
   return (
-    <div className="rounded-lg bg-white px-3 py-2 text-center ring-1 ring-slate-200 dark:bg-slate-950 dark:ring-slate-800">
-      <p className="text-lg font-black text-slate-950 dark:text-white">{value}</p>
+    <div className="text-center py-1 bg-transparent ring-0">
+      <p className={`text-lg font-black ${colorClass}`}>{value}</p>
       <p className="truncate text-[10px] font-bold text-slate-400">{label}</p>
     </div>
   );
 }
 
 function GroupAdminEmptyState({ loading, loadingLabel = "Loading...", message }) {
+  if (loading) {
+    return (
+      <div className="py-12 text-center text-sm text-slate-400">
+        {loadingLabel}
+      </div>
+    );
+  }
+
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 p-5 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-      {loading ? loadingLabel : message}
+    <div className="ops-empty-state">
+      <span className="ops-empty-state-icon">
+        <ClipboardList className="h-6 w-6 stroke-[1.5]" aria-hidden="true" />
+      </span>
+      <p className="mt-4 max-w-xs text-sm font-semibold leading-6 text-slate-500 dark:text-slate-400">
+        {message}
+      </p>
     </div>
   );
 }

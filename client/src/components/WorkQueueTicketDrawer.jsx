@@ -3,6 +3,7 @@ import Badge from "./Badge";
 import Drawer from "./Drawer";
 import StatusPill from "./StatusPill";
 import ThemedSelect from "./ThemedSelect";
+import { Button, Card, TextField } from "./ui";
 import {
   buildAssignableOptions,
   getEntityId,
@@ -52,32 +53,32 @@ function WorkQueueTicketDrawer({
     <Drawer
       actions={
         <div className="grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
+          <Button
             onClick={() => onViewFullDetail(ticketId)}
-            className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-black text-white transition hover:bg-blue-700"
+            size="lg"
+            variant="primary"
           >
             {drawerText.fullDetail}
-          </button>
+          </Button>
           {isClosedTicket && canReopenTicket && (
-            <button
-              type="button"
+            <Button
               disabled={disabled || !reopenTicket}
               onClick={() => reopenTicket(ticketId)}
-              className="rounded-xl bg-emerald-600 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-45"
+              size="lg"
+              variant="success"
             >
               {drawerText.reopenTicket}
-            </button>
+            </Button>
           )}
           {canDelete && (
-            <button
-              type="button"
+            <Button
               disabled={disabled || deleting}
               onClick={() => onDelete(ticketId)}
-              className="rounded-xl border border-rose-200 px-4 py-3 text-sm font-black text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-transparent dark:border-rose-500/30 dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:border-slate-800 dark:disabled:text-slate-600"
+              size="lg"
+              variant="danger"
             >
               {deleting ? t("common.deleting") : t("common.delete")}
-            </button>
+            </Button>
           )}
         </div>
       }
@@ -88,10 +89,10 @@ function WorkQueueTicketDrawer({
       title={ticket.title}
     >
       <div className="space-y-5">
-        <section className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-blue-900 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-100">
+        <Card className="border-purple-100/80 bg-purple-50/70 text-sm leading-6 text-purple-950 dark:border-purple-400/10 dark:bg-purple-500/10 dark:text-purple-100">
           <p className="font-black">{drawerText.roleTitle}</p>
           <p className="mt-1">{drawerText.roleDescription}</p>
-        </section>
+        </Card>
 
         <div className="flex flex-wrap gap-2">
           {getQueueBadges(ticket, t).map((badge) => (
@@ -171,7 +172,7 @@ function WorkQueueTicketDrawer({
                 value={toDateTimeLocalValue(ticket.dueDate)}
                 disabled={ticketControlsDisabled}
                 onChange={(event) => updateDueDate(ticketId, event.target.value)}
-                className="w-full min-w-0 max-w-full appearance-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950"
+                className="ops-input max-w-full appearance-none px-3 py-2 font-semibold"
               />
             ) : (
               <DueLabel ticket={ticket} />
@@ -179,14 +180,14 @@ function WorkQueueTicketDrawer({
           </DrawerField>
         </section>
 
-        <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+        <Card>
           <p className="text-xs font-black uppercase tracking-wide text-slate-400">
             {t("detail.description")}
           </p>
           <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700 dark:text-slate-200">
             {ticket.description || t("detail.noDescription")}
           </p>
-        </section>
+        </Card>
 
         <section className="grid gap-3 sm:grid-cols-2">
           <DrawerMeta label={t("detail.requester")} value={ticket.requester || t("common.unknown")} />
@@ -254,7 +255,7 @@ function AgentQuickUpdatePanel({
   };
 
   return (
-    <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+    <Card>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-black uppercase tracking-wide text-slate-400">
@@ -270,14 +271,14 @@ function AgentQuickUpdatePanel({
         </div>
         <div className="flex flex-wrap gap-2">
           {canClaimTicket && (
-            <button
-              type="button"
+            <Button
               disabled={disabled}
               onClick={handleClaim}
-              className="rounded-xl bg-emerald-600 px-3 py-2 text-sm font-black text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-45"
+              size="sm"
+              variant="success"
             >
               {disabled ? drawerText.claimingTicket : drawerText.claimTicket}
-            </button>
+            </Button>
           )}
           {agentQuickActions.map((action) => (
             <button
@@ -294,36 +295,35 @@ function AgentQuickUpdatePanel({
       </div>
 
       <div className="mt-4">
-        <label className="text-xs font-black uppercase tracking-wide text-slate-400" htmlFor={`quick-comment-${ticketId}`}>
-          {drawerText.quickCommentLabel}
-        </label>
-        <textarea
+        <TextField
+          textarea
           id={`quick-comment-${ticketId}`}
+          label={drawerText.quickCommentLabel}
           value={quickComment}
           disabled={!canUpdateStatus || commenting}
           onChange={(event) => setQuickComment(event.target.value)}
           placeholder={drawerText.quickCommentPlaceholder}
           rows={3}
-          className="mt-2 w-full resize-none rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm leading-6 outline-none focus:border-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-950"
+          className="resize-none px-3 py-2 leading-6"
         />
         <div className="mt-3 flex justify-end">
-          <button
-            type="button"
+          <Button
             disabled={!quickComment.trim() || !canUpdateStatus || commenting}
             onClick={submitQuickComment}
-            className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-black text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+            size="sm"
+            variant="primary"
           >
             {commenting ? drawerText.quickCommentSending : drawerText.quickCommentSubmit}
-          </button>
+          </Button>
         </div>
       </div>
-    </section>
+    </Card>
   );
 }
 
 function DrawerField({ children, label }) {
   return (
-    <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+    <div className="min-w-0 rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-[0_10px_26px_rgba(76,29,149,0.06)] backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5">
       <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-400">
         {label}
       </p>
@@ -334,7 +334,7 @@ function DrawerField({ children, label }) {
 
 function DrawerMeta({ label, value }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+    <div className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-[0_10px_26px_rgba(76,29,149,0.06)] backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5">
       <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">
         {label}
       </p>
@@ -400,7 +400,7 @@ function getAgentQuickActions(ticket, drawerText) {
   if (ticket.status === "open") {
     return [
       {
-        className: "bg-blue-600 text-white hover:bg-blue-700",
+        className: "bg-purple-700 text-white hover:bg-purple-800 dark:bg-purple-500 dark:hover:bg-purple-400",
         label: drawerText.startWork,
         status: "in_progress",
       },
@@ -424,7 +424,7 @@ function getAgentQuickActions(ticket, drawerText) {
 
   return [
     {
-      className: "border border-blue-200 bg-white text-blue-700 hover:bg-blue-50 dark:border-blue-500/30 dark:bg-slate-950 dark:text-blue-300 dark:hover:bg-blue-500/10",
+      className: "border border-purple-200 bg-white text-purple-700 hover:bg-purple-50 dark:border-purple-500/30 dark:bg-white/5 dark:text-purple-200 dark:hover:bg-purple-500/10",
       label: drawerText.reopenWork,
       status: "in_progress",
     },

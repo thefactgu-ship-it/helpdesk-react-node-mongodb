@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { X } from "lucide-react";
 import { API_BASE_URL } from "../services/api";
 import ThemedSelect from "./ThemedSelect";
+import { Badge, Button, Card } from "./ui";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
@@ -170,7 +172,7 @@ function TicketDetailModalContent({
   const showSatisfactionPanel = hasSatisfaction || canSubmitSatisfaction;
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-0 pt-10 backdrop-blur-sm sm:items-center sm:px-3 sm:py-4">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-[#090514]/58 px-0 pt-10 backdrop-blur-sm sm:items-center sm:px-3 sm:py-4">
       <button
         type="button"
         className="absolute inset-0 h-full w-full"
@@ -178,29 +180,29 @@ function TicketDetailModalContent({
         aria-label={t("detail.closeBackdrop")}
       />
       <div
-        className="relative max-h-[90dvh] w-full overflow-y-auto rounded-t-2xl bg-white p-4 shadow-2xl dark:bg-slate-900 sm:max-w-[52rem] sm:rounded-2xl md:p-5"
+        className="relative max-h-[90dvh] w-full overflow-y-auto rounded-t-xl border border-purple-100/90 bg-white/95 p-4 shadow-2xl shadow-purple-950/15 backdrop-blur-xl dark:border-purple-400/15 dark:bg-[#140d24]/95 dark:shadow-slate-950/70 sm:max-w-[52rem] sm:rounded-xl md:p-5"
         role="dialog"
         aria-modal="true"
         aria-labelledby="ticket-detail-title"
       >
-        <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="mb-4 flex items-start justify-between gap-4 border-b border-purple-100/80 pb-4 dark:border-purple-400/10">
           <div className="min-w-0">
-            <h2 id="ticket-detail-title" className="text-xl font-bold text-slate-900 dark:text-white">
+            <h2 id="ticket-detail-title" className="text-xl font-black tracking-tight text-slate-950 dark:text-white">
               {t("detail.title")}
             </h2>
-            <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
               {ticket.ticketNumber} / {ticket.category} / {ticket.departmentName || ticket.department}
             </p>
           </div>
 
-          <button
-            type="button"
+          <Button
             onClick={onClose}
-            className="shrink-0 rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            icon={X}
+            iconOnly
             aria-label={t("common.close")}
-          >
-            {t("common.close")}
-          </button>
+            title={t("common.close")}
+            variant="secondary"
+          />
         </div>
 
         <div className={`grid gap-3 ${ticket.attachments?.length ? "lg:grid-cols-2" : ""}`}>
@@ -210,9 +212,9 @@ function TicketDetailModalContent({
               {ticket.title}
             </p>
             {ticket.criticalRequested && (
-              <span className="mt-3 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800 ring-1 ring-amber-200 dark:bg-amber-500/20 dark:text-amber-100 dark:ring-amber-400/20">
+              <Badge className="mt-3" tone="amber">
                 {t("detail.criticalReview")}
-              </span>
+              </Badge>
             )}
 
             <div className="mt-3">
@@ -264,11 +266,11 @@ function TicketDetailModalContent({
                   {ticket.attachments.map((attachment) => (
                     <li
                       key={attachment._id}
-                      className="rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800"
+                      className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5"
                     >
                       <button
                         type="button"
-                        className="text-left text-sm font-semibold text-blue-700 hover:text-blue-900 dark:text-blue-300 dark:hover:text-blue-200"
+                        className="text-left text-sm font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-200 dark:hover:text-purple-100"
                         onClick={() => handleViewAttachment(attachment)}
                       >
                         {attachment.originalName}
@@ -278,7 +280,7 @@ function TicketDetailModalContent({
                       </p>
                       <button
                         type="button"
-                        className="mt-2 text-xs font-semibold text-slate-500 hover:text-blue-700 dark:text-slate-400 dark:hover:text-blue-200"
+                        className="mt-2 text-xs font-semibold text-slate-500 hover:text-purple-700 dark:text-slate-400 dark:hover:text-purple-200"
                         onClick={() => handleDownloadAttachment(attachment)}
                       >
                         Download
@@ -312,14 +314,14 @@ function TicketDetailModalContent({
                   )}
                 </div>
                 {hasSatisfaction && (
-                  <div className="rounded-lg bg-white px-3 py-2 text-sm font-black text-blue-700 shadow-sm dark:bg-slate-800 dark:text-blue-200">
+                  <div className="rounded-lg border border-purple-100 bg-white/90 px-3 py-2 text-sm font-black text-purple-700 dark:border-purple-400/20 dark:bg-white/5 dark:text-purple-200">
                     {ticket.satisfactionScore}/5
                   </div>
                 )}
               </div>
 
               {hasSatisfaction && ticket.satisfactionComment && (
-                <p className="mt-3 rounded-xl bg-white p-3 text-sm text-slate-700 shadow-sm dark:bg-slate-800 dark:text-slate-200">
+                <p className="mt-3 rounded-lg border border-purple-100/80 bg-white/90 p-3 text-sm text-slate-700 shadow-sm backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5 dark:text-slate-200">
                   {ticket.satisfactionComment}
                 </p>
               )}
@@ -334,8 +336,8 @@ function TicketDetailModalContent({
                         onClick={() => setSatisfactionScore(String(score))}
                         className={`grid h-10 w-10 place-items-center rounded-full border text-sm font-black transition ${
                           Number(satisfactionScore) === score
-                            ? "border-blue-600 bg-blue-600 text-white"
-                            : "border-slate-200 bg-white text-slate-700 hover:border-blue-400 hover:text-blue-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                            ? "border-purple-600 bg-purple-600 text-white dark:border-purple-400 dark:bg-purple-500"
+                            : "border-purple-100 bg-white/90 text-slate-700 hover:border-purple-300 hover:text-purple-700 dark:border-purple-400/15 dark:bg-white/5 dark:text-slate-200"
                         }`}
                         aria-pressed={Number(satisfactionScore) === score}
                       >
@@ -349,15 +351,16 @@ function TicketDetailModalContent({
                     maxLength={1000}
                     onChange={(e) => setSatisfactionComment(e.target.value)}
                     placeholder={t("detail.confirmResolutionPlaceholder")}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    className="ops-input px-3 py-2"
                   />
-                  <button
+                  <Button
                     type="submit"
                     disabled={!satisfactionScore || savingSatisfaction}
-                    className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+                    size="sm"
+                    variant="primary"
                   >
                     {savingSatisfaction ? t("common.saving") : t("detail.confirmResolutionSubmit")}
-                  </button>
+                  </Button>
                 </form>
               )}
             </CompactPanel>
@@ -372,7 +375,7 @@ function TicketDetailModalContent({
                 ticket.comments.map((item) => (
                   <div
                     key={item._id}
-                    className="rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800"
+                    className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5"
                   >
                     <p className="text-sm text-slate-700 dark:text-slate-200">
                       {item.text}
@@ -396,15 +399,16 @@ function TicketDetailModalContent({
                 disabled={!onComment || submittingComment}
                 onChange={(e) => setComment(e.target.value)}
                 placeholder={t("detail.commentPlaceholder")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                className="ops-input px-3 py-2"
               />
-              <button
+              <Button
                 type="submit"
                 disabled={!comment.trim() || submittingComment}
-                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                size="sm"
+                variant="primary"
               >
                 {submittingComment ? t("detail.sendingComment") : t("detail.submitComment")}
-              </button>
+              </Button>
             </form>
           </CompactPanel>
 
@@ -416,7 +420,7 @@ function TicketDetailModalContent({
                   type="file"
                   accept="image/jpeg,image/png,image/gif,image/webp"
                   onChange={handleFileChange}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:border-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  className="ops-input px-3 py-2"
                 />
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   JPG, PNG, GIF, or WEBP only. Max 5 MB.
@@ -426,19 +430,20 @@ function TicketDetailModalContent({
                     {fileError}
                   </p>
                 )}
-                <button
+                <Button
                   type="submit"
                   disabled={!file || !!fileError}
-                  className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+                  size="sm"
+                  variant="primary"
                 >
                   Upload File
-                </button>
+                </Button>
               </form>
             </CompactPanel>
           )}
         </div>
 
-        <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-950">
+        <Card className="mt-3 text-sm">
           <h3 className="mb-2 font-semibold text-slate-700 dark:text-slate-200">
             {t("detail.activityLog")}
           </h3>
@@ -447,7 +452,7 @@ function TicketDetailModalContent({
               ticket.activityLog.map((entry) => (
                 <div
                   key={entry._id}
-                  className="rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800"
+                  className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5"
                 >
                   <p className="text-sm text-slate-700 dark:text-slate-200">
                     {entry.details}
@@ -461,7 +466,7 @@ function TicketDetailModalContent({
               <p className="text-slate-500 dark:text-slate-400">{t("detail.noActivity")}</p>
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </div>,
     document.body,
@@ -470,7 +475,7 @@ function TicketDetailModalContent({
 
 function CompactPanel({ children }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-950">
+    <section className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-[0_10px_26px_rgba(76,29,149,0.06)] backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5">
       {children}
     </section>
   );
@@ -478,7 +483,7 @@ function CompactPanel({ children }) {
 
 function SectionLabel({ children }) {
   return (
-    <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+    <h3 className="ops-section-label">
       {children}
     </h3>
   );
@@ -486,8 +491,8 @@ function SectionLabel({ children }) {
 
 function InfoItem({ label, value }) {
   return (
-    <div className="rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800">
-      <p className="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">
+    <div className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5">
+      <p className="ops-section-label">
         {label}
       </p>
       <div className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">

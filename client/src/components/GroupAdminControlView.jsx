@@ -115,7 +115,7 @@ export function GroupAdminControlView({
 
 export function GroupAdminQueueKpis({ kpis, text }) {
   const items = [
-    { label: text.kpiNow, value: kpis.now, tone: kpis.now ? "text-blue-700 dark:text-blue-200" : "" },
+    { label: text.kpiNow, value: kpis.now, tone: kpis.now ? "text-purple-700 dark:text-purple-200" : "" },
     { label: text.kpiOverdue, value: kpis.overdue, tone: kpis.overdue ? "text-rose-700 dark:text-rose-200" : "" },
     { label: text.kpiUnassignedUrgent, value: kpis.unassignedUrgent, tone: kpis.unassignedUrgent ? "text-amber-700 dark:text-amber-200" : "" },
     { label: text.kpiDueSoon, value: kpis.dueSoon, tone: kpis.dueSoon ? "text-amber-700 dark:text-amber-200" : "" },
@@ -126,7 +126,7 @@ export function GroupAdminQueueKpis({ kpis, text }) {
       {items.map((item) => (
         <div
           key={item.label}
-          className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900"
+          className="ops-soft-kpi ops-realtime-pulse p-3"
         >
           <p className={`text-2xl font-black text-slate-950 dark:text-white ${item.tone}`}>
             {item.value.toLocaleString()}
@@ -161,11 +161,11 @@ function GroupAdminControlRow({
 
   return (
     <tr
-      className="cursor-pointer border-b border-slate-200 last:border-0 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-900/70"
+      className="ops-table-row"
       onClick={() => onOpenDrawer(ticket)}
     >
       <td className="max-w-xs px-3 py-4">
-        <p className="text-xs font-black text-blue-700 dark:text-blue-300">{ticket.ticketNumber}</p>
+        <p className="text-xs font-black text-purple-700 dark:text-purple-200">{ticket.ticketNumber}</p>
         <p className="mt-1 line-clamp-2 font-black text-slate-900 dark:text-white">{ticket.title}</p>
         <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
           {ticket.category || "-"}
@@ -235,12 +235,12 @@ function GroupAdminMobileControlCard({
 
   return (
     <article
-      className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900"
+      className="ops-card cursor-pointer"
       onClick={() => onOpenDrawer(ticket)}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-black text-blue-700 dark:text-blue-300">{ticket.ticketNumber}</p>
+          <p className="text-xs font-black text-purple-700 dark:text-purple-200">{ticket.ticketNumber}</p>
           <h4 className="mt-1 line-clamp-2 break-words text-base font-black text-slate-950 dark:text-white">
             {ticket.title}
           </h4>
@@ -290,8 +290,8 @@ function GroupAdminEmptyState({ activeQueue, text }) {
   const message = getGroupAdminEmptyQueueMessage(activeQueue, text);
 
   return (
-    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center dark:border-slate-700 dark:bg-slate-900">
-      <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-black text-blue-600 shadow-sm dark:bg-slate-950 dark:text-blue-300">
+    <div className="ops-empty-state p-6">
+      <div className="ops-icon-primary mx-auto grid h-10 w-10 place-items-center text-sm font-black">
         0
       </div>
       <p className="mt-3 font-bold text-slate-800 dark:text-slate-100">{message.title}</p>
@@ -304,7 +304,7 @@ function GroupAdminEmptyState({ activeQueue, text }) {
 
 function MobileMeta({ label, value }) {
   return (
-    <div className="rounded-lg bg-white p-3 dark:bg-slate-950">
+    <div className="rounded-lg border border-purple-100/70 bg-white/80 p-3 dark:border-purple-400/10 dark:bg-white/5">
       <dt className="text-[11px] font-bold text-slate-400">
         {label}
       </dt>
@@ -324,7 +324,7 @@ function PaginationControls({ currentPage, setCurrentPage, totalPages, t }) {
         type="button"
         disabled={currentPage === 1}
         onClick={() => setCurrentPage(currentPage - 1)}
-        className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold disabled:opacity-40 dark:border-slate-700"
+        className="ops-button-secondary px-4 py-2 text-sm font-semibold disabled:opacity-40"
       >
         {t("queue.previous")}
       </button>
@@ -337,7 +337,7 @@ function PaginationControls({ currentPage, setCurrentPage, totalPages, t }) {
         type="button"
         disabled={currentPage === totalPages}
         onClick={() => setCurrentPage(currentPage + 1)}
-        className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold disabled:opacity-40 dark:border-slate-700"
+        className="ops-button-secondary px-4 py-2 text-sm font-semibold disabled:opacity-40"
       >
         {t("queue.next")}
       </button>

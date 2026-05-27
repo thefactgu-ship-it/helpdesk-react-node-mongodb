@@ -289,13 +289,13 @@ function NotificationBell({ token, onOpenTicket, onRealtimeNotification, onRealt
           }
           setOpen((current) => !current);
         }}
-        className="relative grid h-11 w-11 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-blue-300 hover:bg-blue-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:border-blue-400 dark:hover:bg-slate-800"
+        className="relative grid h-11 w-11 place-items-center rounded-lg border border-purple-100 bg-white/90 text-slate-700 shadow-[0_8px_24px_rgba(76,29,149,0.08)] backdrop-blur-sm transition hover:border-purple-200 hover:bg-white hover:text-purple-700 dark:border-purple-400/15 dark:bg-white/5 dark:text-slate-200 dark:hover:border-purple-400/30 dark:hover:bg-purple-500/10"
         aria-label={t("notifications.open")}
         aria-expanded={open}
       >
         <Bell className="h-5 w-5" aria-hidden="true" />
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-rose-600 px-1.5 text-[10px] font-black text-white">
+          <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-rose-600 px-1.5 text-[10px] font-black text-white shadow-[0_0_0_3px_rgba(255,255,255,0.85)] dark:shadow-[0_0_0_3px_rgba(20,13,36,0.95)]">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -303,10 +303,10 @@ function NotificationBell({ token, onOpenTicket, onRealtimeNotification, onRealt
 
       {open && (
         <div
-          className="fixed left-4 right-4 z-50 flex w-auto flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl shadow-slate-200/60 dark:border-slate-700 dark:bg-slate-950 dark:shadow-slate-950/60 sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:z-30 sm:w-[min(22rem,calc(100vw-2rem))] sm:max-h-none"
+          className="fixed left-4 right-4 z-50 flex w-auto flex-col overflow-hidden rounded-xl border border-purple-100/90 bg-white/95 shadow-[0_24px_60px_rgba(29,10,52,0.24)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95 dark:shadow-slate-950/70 sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:z-30 sm:w-[min(22rem,calc(100vw-2rem))] sm:max-h-none"
           style={mobilePanelStyle}
         >
-          <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+          <div className="flex items-center justify-between gap-3 border-b border-purple-100/80 bg-white/70 px-4 py-3 dark:border-purple-400/10 dark:bg-white/5">
             <div>
               <p className="text-sm font-black text-slate-900 dark:text-white">
                 {t("notifications.title")}
@@ -319,7 +319,7 @@ function NotificationBell({ token, onOpenTicket, onRealtimeNotification, onRealt
               type="button"
               onClick={handleMarkAllRead}
               disabled={!unreadCount}
-              className="grid h-9 w-9 place-items-center rounded-full text-slate-500 transition hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-blue-200"
+              className="grid h-9 w-9 place-items-center rounded-lg text-slate-500 transition hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-400 dark:hover:bg-purple-500/10 dark:hover:text-purple-200"
               aria-label={t("notifications.markAll")}
               title={t("notifications.markAll")}
             >
@@ -345,10 +345,10 @@ function NotificationBell({ token, onOpenTicket, onRealtimeNotification, onRealt
                 key={notification._id}
                 type="button"
                 onClick={() => handleOpenNotification(notification)}
-                className={`flex w-full gap-3 rounded-md px-3 py-3 text-left transition ${
+                className={`flex w-full gap-3 rounded-md border px-3 py-3 text-left transition ${
                   String(notification._id) === recentNotificationId
-                    ? "bg-blue-50 ring-1 ring-blue-200 dark:bg-blue-500/10 dark:ring-blue-400/20"
-                    : "hover:bg-blue-50 dark:hover:bg-slate-900"
+                    ? "border-purple-200 bg-white/95 ring-1 ring-purple-200 dark:border-purple-400/20 dark:bg-purple-500/10 dark:ring-purple-400/20"
+                    : "border-transparent bg-white/70 hover:border-purple-100 hover:bg-white/95 dark:bg-white/0 dark:hover:bg-white/5"
                 }`}
               >
                 <span
