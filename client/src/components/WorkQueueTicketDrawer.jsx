@@ -400,7 +400,7 @@ function getAgentQuickActions(ticket, drawerText) {
   if (ticket.status === "open") {
     return [
       {
-        className: "bg-purple-700 text-white hover:bg-purple-800 dark:bg-purple-500 dark:hover:bg-purple-400",
+        className: "bg-[#0a1f23] text-white hover:bg-[#123237] dark:bg-teal-100 dark:text-[#06181c] dark:hover:bg-white",
         label: drawerText.startWork,
         status: "in_progress",
       },
@@ -424,7 +424,7 @@ function getAgentQuickActions(ticket, drawerText) {
 
   return [
     {
-      className: "border border-purple-200 bg-white text-purple-700 hover:bg-purple-50 dark:border-purple-500/30 dark:bg-white/5 dark:text-purple-200 dark:hover:bg-purple-500/10",
+      className: "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-teal-50 dark:hover:bg-white/[0.08]",
       label: drawerText.reopenWork,
       status: "in_progress",
     },

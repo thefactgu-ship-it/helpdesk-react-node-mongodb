@@ -13,22 +13,23 @@
 
 ## Global Direction
 
-- Use a deep violet operations shell with near-white glass content surfaces.
+- Use a charcoal teal operations shell with near-white glass content surfaces.
 - Keep dashboards dense enough for scanning, but leave consistent breathing room between panels.
 - Prefer calm realtime cues: status color, count updates, and subtle transitions. Do not use animated glow, pulsing borders, or flashing KPI cards.
 - Use Lucide icons for actions and status markers. Icons must sit centered inside fixed-size icon containers.
 - Keep cards at `0.5rem` to `0.75rem` radius. Avoid oversized rounded blobs.
+- Keep teal as a restrained accent. If a page feels too teal-heavy, shift borders, hover states, selected states, and neutral icons toward slate/charcoal.
 
 ### Color Palette
 
 | Role | Hex | CSS Variable |
 |------|-----|--------------|
-| Primary / Brand | `#6D28D9` | `--ops-primary` |
-| Primary Dark | `#4C1D95` | `--ops-primary-strong` |
-| Accent | `#7C3AED` | `--ops-accent` |
-| Sidebar Background | `#1D0A34` | `--ops-sidebar-bg` |
-| Sidebar Border | `#2D1C45` | `--ops-sidebar-border` |
-| Light Background | `#F6F3FB` | `--ops-bg` |
+| Primary / Brand | `#0F766E` | `--ops-primary` |
+| Primary Dark | `#0A1F23` | `--ops-primary-strong` |
+| Accent | `#334155` | `--ops-accent` |
+| Sidebar Background | `rgba(10,31,35,0.94)` | `--ops-sidebar-bg` |
+| Sidebar Border | `rgba(153,246,228,0.12)` | `--ops-sidebar-border` |
+| Light Background | `#F4F7F6` | `--ops-bg` |
 | Glass Surface | `rgba(255,255,255,0.92)` | `--ops-glass` |
 | Strong Glass Surface | `rgba(255,255,255,0.96)` | `--ops-glass-strong` |
 | Border | `#E7DFF2` | `--ops-border` |
@@ -60,10 +61,10 @@
 - Use `.ops-chip-primary` for primary context chips and `.ops-chip` for neutral chips.
 
 ### Status Color
-- Purple: primary workflow, active navigation, selected filters.
+- Slate / charcoal: primary workflow, active navigation, selected filters.
 - Amber: warning, due soon, medium risk.
 - Rose: destructive, critical, overdue, delete.
-- Emerald: healthy, active, resolved, success.
+- Emerald / teal: healthy, active, resolved, success accent only.
 
 ### Motion
 - Allowed: color/background/shadow transitions around 150-200ms.
@@ -84,4 +85,4 @@
 - [ ] Transitions are smooth (150-200ms)
 - [ ] Contrast ratios respect a11y guidelines (minimum 4.5:1 for light/dark text)
 - [ ] KPI cards do not use animated glow or border pulse
-- [ ] No blue/indigo legacy visual tokens remain in JSX/CSS unless they are data labels, not styling
+- [ ] No violet/purple/indigo legacy visual tokens remain in JSX/CSS unless they are data labels, not styling

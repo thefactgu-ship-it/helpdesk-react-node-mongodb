@@ -3,7 +3,7 @@ import { cx } from "./classNames";
 const tones = {
   amber: "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200",
   emerald: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200",
-  purple: "bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200",
+  purple: "bg-slate-100 text-slate-700 dark:bg-white/[0.06] dark:text-teal-50",
   rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
 };
 

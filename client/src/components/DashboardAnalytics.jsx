@@ -24,13 +24,13 @@ import {
 import StatCard from "./StatCard";
 import { getCompletionStats, getSuccessDetail, isCompletedTicket } from "../utils/ticketMetrics";
 
-const softBlue = "#6d28d9";
-const softBlueDark = "#c4b5fd";
+const softBlue = "#334155";
+const softBlueDark = "#ccfbf1";
 const softRose = "#fb7185";
-const gridLight = "#eadcff";
-const gridDark = "#3b2b63";
-const textLight = "#6b6484";
-const textDark = "#ddd6fe";
+const gridLight = "#dbe5e2";
+const gridDark = "#1f3a3f";
+const textLight = "#64748b";
+const textDark = "#cbd5e1";
 
 function formatStatus(status) {
   return status.replace("_", " ").replace(/\b\w/g, (char) => char.toUpperCase());
@@ -621,7 +621,7 @@ function EmptyState({ message }) {
 function AnalyticsFocusChip({ icon: Icon, label, tone = "purple", value }) {
   const toneClasses = {
     amber: "bg-amber-50 text-amber-700 ring-amber-100 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/20",
-    purple: "bg-teal-50 text-teal-700 ring-teal-100 dark:bg-teal-500/15 dark:text-teal-200 dark:ring-teal-300/20",
+    purple: "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-white/[0.06] dark:text-teal-50 dark:ring-teal-100/15",
     emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20",
   };
 

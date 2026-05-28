@@ -87,7 +87,7 @@ function RequesterQueueCard({ canViewTicket, onViewTicket, requesterText, t, tic
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-black text-purple-700 dark:text-purple-200">
+          <p className="text-xs font-black text-slate-700 dark:text-teal-50">
             {ticket.ticketNumber}
           </p>
           <h4 className="mt-1 line-clamp-2 break-words text-base font-black text-slate-950 dark:text-white">
@@ -97,7 +97,7 @@ function RequesterQueueCard({ canViewTicket, onViewTicket, requesterText, t, tic
         <span
           className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${
             isActive
-              ? "bg-purple-50 text-purple-700 ring-1 ring-purple-200 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20"
+              ? "bg-slate-100 text-slate-700 ring-1 ring-slate-200 dark:bg-white/[0.06] dark:text-teal-50 dark:ring-teal-100/15"
               : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20"
           }`}
         >
@@ -150,7 +150,7 @@ function RequesterQueueCard({ canViewTicket, onViewTicket, requesterText, t, tic
 
 function RequesterMeta({ label, value }) {
   return (
-    <div className="rounded-lg border border-purple-100/70 bg-white/80 p-3 dark:border-purple-400/10 dark:bg-white/5">
+    <div className="rounded-lg border border-slate-200/70 bg-white/80 p-3 dark:border-white/10 dark:bg-white/5">
       <dt className="text-[11px] font-bold text-slate-400">{label}</dt>
       <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
         {value}

@@ -105,8 +105,8 @@ function AddTicketForm({
                         onClick={() => setForm({ ...form, category: type.name })}
                         className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-colors duration-200 ${
                           selected
-                            ? "border-purple-600 bg-purple-700 text-white dark:border-purple-400 dark:bg-purple-500"
-                            : "border-slate-200 bg-white/85 text-slate-600 hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
+                            ? "border-slate-800 bg-slate-800 text-white dark:border-teal-100/30 dark:bg-[#0a1f23]"
+                            : "border-slate-200 bg-white/85 text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
                         }`}
                       >
                         {type.name}
@@ -240,7 +240,7 @@ function AddTicketForm({
                 <SummaryItem label={t("addTicket.priority")} value={submissionSummary?.priority} />
               </dl>
               {submitting && (
-                  <p className="mt-3 rounded-md bg-purple-50 px-3 py-2 text-xs font-semibold text-purple-700 dark:bg-purple-500/10 dark:text-purple-200">
+                  <p className="mt-3 rounded-md bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 dark:bg-white/[0.06] dark:text-teal-50">
                   {t("addTicket.creating")}
                 </p>
               )}
@@ -294,7 +294,7 @@ function buildPriorityGuidance(t) {
     },
     medium: {
       icon: Clock3,
-      iconClass: "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-200",
+      iconClass: "bg-slate-100 text-slate-700 dark:bg-white/[0.06] dark:text-teal-50",
       description: t("addTicket.guidance.medium"),
     },
     high: {

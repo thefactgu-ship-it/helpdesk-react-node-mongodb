@@ -1016,7 +1016,7 @@ function GroupAdminKpi({ detail, icon: Icon, label, tone = "purple", value }) {
 
   const toneClasses = {
     neutral: "bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300",
-    purple: "bg-teal-50 text-teal-700 dark:bg-teal-500/15 dark:text-teal-200",
+    purple: "bg-slate-100 text-slate-700 dark:bg-white/[0.06] dark:text-teal-50",
     orange: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-200",
     amber: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-200",
     red: "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-200",

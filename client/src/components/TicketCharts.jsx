@@ -14,12 +14,12 @@ import {
 
 const chartColors = {
   amber: "#f59e0b",
-  axis: "#6b6484",
+  axis: "#64748b",
   emerald: "#10b981",
-  grid: "#eadcff",
-  indigo: "#4f46e5",
+  grid: "#dbe5e2",
+  slate: "#334155",
+  charcoal: "#0a1f23",
   rose: "#e11d48",
-  violet: "#6d28d9",
 };
 
 function TicketCharts({ tickets, averageResolutionHours, overdueCount }) {
@@ -68,8 +68,8 @@ function TicketCharts({ tickets, averageResolutionHours, overdueCount }) {
   });
 
   const pieData = [
-    { name: "Open", value: open, color: chartColors.violet },
-    { name: "In Progress", value: progress, color: chartColors.indigo },
+    { name: "Open", value: open, color: chartColors.charcoal },
+    { name: "In Progress", value: progress, color: chartColors.slate },
     { name: "Resolved", value: resolved, color: chartColors.amber },
     { name: "Closed", value: closed, color: chartColors.emerald },
   ];
@@ -85,7 +85,7 @@ function TicketCharts({ tickets, averageResolutionHours, overdueCount }) {
               <XAxis dataKey="name" tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
               <YAxis allowDecimals={false} tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
               <Tooltip />
-              <Bar dataKey="value" radius={[8, 8, 0, 0]} fill={chartColors.violet} />
+              <Bar dataKey="value" radius={[8, 8, 0, 0]} fill={chartColors.charcoal} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -164,7 +164,7 @@ function TicketCharts({ tickets, averageResolutionHours, overdueCount }) {
               <XAxis dataKey="month" tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
               <YAxis allowDecimals={false} tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
               <Tooltip />
-              <Line type="monotone" dataKey="count" stroke={chartColors.violet} strokeWidth={3} />
+              <Line type="monotone" dataKey="count" stroke={chartColors.charcoal} strokeWidth={3} />
             </LineChart>
           </ResponsiveContainer>
         </div>

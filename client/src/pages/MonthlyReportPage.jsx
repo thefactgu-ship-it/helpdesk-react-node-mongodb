@@ -29,12 +29,12 @@ import {
 
 const chartColors = {
   amber: "#f59e0b",
-  axis: "#6b6484",
+  axis: "#64748b",
   emerald: "#10b981",
-  grid: "#eadcff",
-  indigo: "#4f46e5",
+  grid: "#dbe5e2",
+  slate: "#334155",
   rose: "#e11d48",
-  violet: "#6d28d9",
+  trend: "#0a1f23",
 };
 
 function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] }) {
@@ -112,9 +112,9 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
                 <Line
                   type="monotone"
                   dataKey="total"
-                  stroke={chartColors.violet}
+                  stroke={chartColors.trend}
                   strokeWidth={3}
-                  dot={{ fill: chartColors.violet, r: 3 }}
+                  dot={{ fill: chartColors.trend, r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -312,15 +312,14 @@ function ReportPanel({ children, className = "", title }) {
   );
 }
 
-function ProgressRow({ name, tone = "purple", total, value }) {
+function ProgressRow({ name, tone = "slate", total, value }) {
   const percent = total ? Math.round((value / total) * 100) : 0;
   const toneClass = {
     amber: "bg-gradient-to-r from-amber-500 to-amber-300",
     emerald: "bg-gradient-to-r from-emerald-600 to-emerald-400",
     rose: "bg-gradient-to-r from-rose-600 to-rose-400",
-    slate: "bg-gradient-to-r from-slate-600 to-slate-400",
-    purple: "bg-gradient-to-r from-purple-700 to-purple-400",
-  }[tone] || "bg-gradient-to-r from-purple-700 to-purple-400";
+    slate: "bg-gradient-to-r from-slate-700 to-slate-400",
+  }[tone] || "bg-gradient-to-r from-slate-700 to-slate-400";
 
   return (
     <div>
@@ -332,7 +331,7 @@ function ProgressRow({ name, tone = "purple", total, value }) {
           {value.toLocaleString()} / {percent}%
         </span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-purple-100/70 dark:bg-purple-400/10">
+      <div className="h-3 overflow-hidden rounded-full bg-slate-200/80 dark:bg-white/10">
         <div
           className={`h-full rounded-full ${toneClass}`}
           style={{ width: `${percent}%` }}
@@ -345,26 +344,26 @@ function ProgressRow({ name, tone = "purple", total, value }) {
 function getStatusTone(status) {
   if (status === "closed") return "emerald";
   if (status === "resolved") return "amber";
-  if (status === "open") return "purple";
-  return "purple";
+  if (status === "open") return "slate";
+  return "slate";
 }
 
 function getCategoryTone(index) {
-  return ["purple", "emerald", "amber", "rose", "purple"][index] || "purple";
+  return ["slate", "emerald", "amber", "rose", "slate"][index] || "slate";
 }
 
 function getPriorityColor(priority) {
   return {
     critical: chartColors.rose,
     high: chartColors.amber,
-    medium: chartColors.violet,
+    medium: chartColors.slate,
     low: chartColors.emerald,
-  }[priority] || chartColors.indigo;
+  }[priority] || chartColors.slate;
 }
 
 function SnapshotRow({ label, value }) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-purple-100/80 bg-white/90 p-4 dark:border-purple-400/10 dark:bg-white/5">
+    <div className="flex items-center justify-between rounded-lg border border-slate-200/80 bg-white/90 p-4 dark:border-white/10 dark:bg-white/5">
       <span className="text-slate-500 dark:text-slate-400">{label}</span>
       <strong className="text-slate-900 dark:text-white">{value}</strong>
     </div>
@@ -375,7 +374,7 @@ function ChartTooltip({ active, label, labelSuffix, payload }) {
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="rounded-xl border border-purple-100 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(29,10,52,0.16)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95 dark:text-slate-200">
+    <div className="rounded-xl border border-slate-200 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(6,24,28,0.14)] backdrop-blur-md dark:border-white/10 dark:bg-[#07181c]/95 dark:text-slate-200">
       <p className="font-semibold">{label}</p>
       <p>
         {payload[0].value.toLocaleString()} {labelSuffix}
@@ -386,7 +385,7 @@ function ChartTooltip({ active, label, labelSuffix, payload }) {
 
 function EmptyState({ message }) {
   return (
-    <div className="rounded-xl border border-dashed border-purple-200/80 bg-white/70 p-5 text-center text-sm text-slate-500 dark:border-purple-400/20 dark:bg-white/5 dark:text-slate-400">
+    <div className="rounded-xl border border-dashed border-slate-300/80 bg-white/70 p-5 text-center text-sm text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
       {message}
     </div>
   );

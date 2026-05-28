@@ -59,7 +59,7 @@ function ExecutivePanel({ children, className = "", icon: Icon, title }) {
       className={`ops-panel ${className}`}
     >
       <h3 className="mb-5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
-        <span className="grid h-7 w-7 place-items-center rounded-lg bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200">
+        <span className="grid h-7 w-7 place-items-center rounded-lg bg-slate-100 text-slate-700 dark:bg-white/[0.06] dark:text-teal-50">
           <Icon size={15} />
         </span>
         <span>{title}</span>
@@ -101,9 +101,9 @@ function ProgressRow({ name, total, value }) {
           {value.toLocaleString()} / {percent}%
         </span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-purple-100/70 dark:bg-purple-400/10">
+      <div className="h-3 overflow-hidden rounded-full bg-slate-200/80 dark:bg-white/10">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-purple-700 to-purple-400"
+          className="h-full rounded-full bg-gradient-to-r from-slate-700 to-slate-400"
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -127,7 +127,7 @@ function FocusList({ emptyText, items = [] }) {
             <p className="min-w-0 text-sm font-black text-slate-900 dark:text-white">
               {item.name}
             </p>
-            <span className="shrink-0 rounded-full bg-purple-50 px-2.5 py-1 text-xs font-black text-purple-700 ring-1 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20">
+            <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-black text-slate-700 ring-1 ring-slate-200 dark:bg-white/[0.06] dark:text-teal-50 dark:ring-teal-100/15">
               {item.value}
             </span>
           </div>
@@ -146,7 +146,7 @@ function InsightList({ insights = [] }) {
       {insights.map((insight) => (
         <div
           key={insight}
-          className="rounded-lg border-l-4 border-purple-500 bg-purple-50/80 px-3 py-2 text-sm font-semibold leading-6 text-slate-700 dark:border-purple-300 dark:bg-purple-500/10 dark:text-slate-200"
+          className="rounded-lg border-l-4 border-slate-700 bg-slate-100/80 px-3 py-2 text-sm font-semibold leading-6 text-slate-700 dark:border-teal-100/50 dark:bg-white/[0.06] dark:text-slate-200"
         >
           {insight}
         </div>
@@ -181,7 +181,7 @@ function RecurringIssueList({ emptyText, items = [] }) {
 
 function EmptyReportText({ children }) {
   return (
-    <div className="rounded-xl border border-dashed border-purple-200/80 bg-white/70 px-4 py-6 text-center text-sm font-semibold text-slate-500 dark:border-purple-400/20 dark:bg-white/5 dark:text-slate-400">
+    <div className="rounded-xl border border-dashed border-slate-300/80 bg-white/70 px-4 py-6 text-center text-sm font-semibold text-slate-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-400">
       {children}
     </div>
   );

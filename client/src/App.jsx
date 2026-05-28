@@ -1198,7 +1198,7 @@ function App() {
                       </span>
                     </span>
                     {activeHotelContext.detail && (
-                      <span className="hidden max-w-[12rem] truncate rounded-full bg-purple-50 px-2.5 py-1 text-xs font-bold text-purple-700 dark:bg-slate-950 dark:text-purple-200 sm:block">
+                      <span className="hidden max-w-[12rem] truncate rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-700 dark:bg-slate-950 dark:text-teal-50 sm:block">
                         {activeHotelContext.detail}
                       </span>
                     )}
@@ -1416,7 +1416,7 @@ function App() {
 function PageLoading() {
   return (
     <div className="flex min-h-[24rem] items-center justify-center">
-      <div className="ops-surface px-6 py-4 text-sm font-semibold text-purple-700 dark:text-purple-200">
+      <div className="ops-surface px-6 py-4 text-sm font-semibold text-slate-700 dark:text-teal-50">
         {createTranslator(getInitialLanguage())("common.loadingPage")}
       </div>
     </div>

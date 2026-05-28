@@ -289,13 +289,13 @@ function NotificationBell({ token, onOpenTicket, onRealtimeNotification, onRealt
           }
           setOpen((current) => !current);
         }}
-        className="relative grid h-11 w-11 place-items-center rounded-lg border border-purple-100 bg-white/90 text-slate-700 shadow-[0_8px_24px_rgba(76,29,149,0.08)] backdrop-blur-sm transition hover:border-purple-200 hover:bg-white hover:text-purple-700 dark:border-purple-400/15 dark:bg-white/5 dark:text-slate-200 dark:hover:border-purple-400/30 dark:hover:bg-purple-500/10"
+        className="relative grid h-11 w-11 place-items-center rounded-lg border border-slate-200 bg-white/90 text-slate-700 shadow-[0_8px_24px_rgba(6,24,28,0.07)] backdrop-blur-sm transition hover:border-slate-300 hover:bg-white hover:text-slate-950 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:border-white/20 dark:hover:bg-white/[0.08]"
         aria-label={t("notifications.open")}
         aria-expanded={open}
       >
         <Bell className="h-5 w-5" aria-hidden="true" />
         {unreadCount > 0 && (
-          <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-rose-600 px-1.5 text-[10px] font-black text-white shadow-[0_0_0_3px_rgba(255,255,255,0.85)] dark:shadow-[0_0_0_3px_rgba(20,13,36,0.95)]">
+          <span className="absolute -right-1 -top-1 grid min-h-5 min-w-5 place-items-center rounded-full bg-rose-600 px-1.5 text-[10px] font-black text-white shadow-[0_0_0_3px_rgba(255,255,255,0.85)] dark:shadow-[0_0_0_3px_rgba(7,24,28,0.95)]">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -303,10 +303,10 @@ function NotificationBell({ token, onOpenTicket, onRealtimeNotification, onRealt
 
       {open && (
         <div
-          className="fixed left-4 right-4 z-50 flex w-auto flex-col overflow-hidden rounded-xl border border-purple-100/90 bg-white/95 shadow-[0_24px_60px_rgba(29,10,52,0.24)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95 dark:shadow-slate-950/70 sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:z-30 sm:w-[min(22rem,calc(100vw-2rem))] sm:max-h-none"
+          className="fixed left-4 right-4 z-50 flex w-auto flex-col overflow-hidden rounded-xl border border-slate-200/90 bg-white/95 shadow-[0_24px_60px_rgba(6,24,28,0.2)] backdrop-blur-md dark:border-white/10 dark:bg-[#07181c]/95 dark:shadow-slate-950/70 sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:z-30 sm:w-[min(22rem,calc(100vw-2rem))] sm:max-h-none"
           style={mobilePanelStyle}
         >
-          <div className="flex items-center justify-between gap-3 border-b border-purple-100/80 bg-white/70 px-4 py-3 dark:border-purple-400/10 dark:bg-white/5">
+          <div className="flex items-center justify-between gap-3 border-b border-slate-200/80 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/5">
             <div>
               <p className="text-sm font-black text-slate-900 dark:text-white">
                 {t("notifications.title")}
@@ -319,7 +319,7 @@ function NotificationBell({ token, onOpenTicket, onRealtimeNotification, onRealt
               type="button"
               onClick={handleMarkAllRead}
               disabled={!unreadCount}
-              className="grid h-9 w-9 place-items-center rounded-lg text-slate-500 transition hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-400 dark:hover:bg-purple-500/10 dark:hover:text-purple-200"
+              className="grid h-9 w-9 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-40 dark:text-slate-400 dark:hover:bg-white/[0.07] dark:hover:text-teal-50"
               aria-label={t("notifications.markAll")}
               title={t("notifications.markAll")}
             >
@@ -347,8 +347,8 @@ function NotificationBell({ token, onOpenTicket, onRealtimeNotification, onRealt
                 onClick={() => handleOpenNotification(notification)}
                 className={`flex w-full gap-3 rounded-md border px-3 py-3 text-left transition ${
                   String(notification._id) === recentNotificationId
-                    ? "border-purple-200 bg-white/95 ring-1 ring-purple-200 dark:border-purple-400/20 dark:bg-purple-500/10 dark:ring-purple-400/20"
-                    : "border-transparent bg-white/70 hover:border-purple-100 hover:bg-white/95 dark:bg-white/0 dark:hover:bg-white/5"
+                    ? "border-slate-300 bg-white/95 ring-1 ring-slate-200 dark:border-teal-100/15 dark:bg-white/[0.07] dark:ring-teal-100/15"
+                    : "border-transparent bg-white/70 hover:border-slate-200 hover:bg-white/95 dark:bg-white/0 dark:hover:bg-white/5"
                 }`}
               >
                 <span

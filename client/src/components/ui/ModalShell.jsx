@@ -16,7 +16,7 @@ function ModalShell({
       aria-labelledby={labelledBy}
       aria-modal="true"
       className={cx(
-        "relative w-full max-w-lg rounded-t-xl border border-purple-100/90 bg-white/95 p-6 shadow-2xl backdrop-blur-xl dark:border-purple-400/15 dark:bg-[#140d24]/95 sm:rounded-xl",
+        "relative w-full max-w-lg rounded-t-xl border border-slate-200/90 bg-white/95 p-6 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-[#07181c]/95 sm:rounded-xl",
         className,
       )}
       role="dialog"

@@ -363,7 +363,7 @@ function UserManagement({
               <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
                 Hotel Access
               </span>
-              <div className="grid max-h-48 gap-2 overflow-y-auto rounded-lg border border-purple-100/80 bg-white/70 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06] sm:grid-cols-2">
+              <div className="grid max-h-48 gap-2 overflow-y-auto rounded-lg border border-slate-200/80 bg-white/70 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06] sm:grid-cols-2">
                 {hotels.map((hotel) => {
                   const hotelId = getEntityId(hotel);
                   const selected = normalizeHotelAccess(
@@ -379,7 +379,7 @@ function UserManagement({
                       className={`flex min-w-0 items-center gap-3 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
                         selected
                           ? "border-emerald-200 bg-emerald-50/80 text-emerald-700 shadow-sm dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-200"
-                          : "border-transparent bg-transparent text-slate-600 hover:bg-white/80 hover:text-purple-800 dark:text-slate-300 dark:hover:bg-white/8 dark:hover:text-purple-100"
+                          : "border-transparent bg-transparent text-slate-600 hover:bg-white/80 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/8 dark:hover:text-teal-50"
                       }`}
                     >
                       <input
@@ -409,7 +409,7 @@ function UserManagement({
                   );
                 })}
                 {!hotels.length && (
-                  <div className="rounded-xl border border-dashed border-purple-100/90 bg-white/50 p-4 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400">
+                  <div className="rounded-xl border border-dashed border-slate-200/90 bg-white/50 p-4 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400">
                     No hotels available
                   </div>
                 )}
@@ -604,7 +604,7 @@ function UserManagement({
                 return (
                   <tr
                     key={userId}
-                    className={`border-b border-purple-100/70 bg-white/35 transition-colors duration-150 last:border-0 hover:bg-purple-50/60 dark:border-white/10 dark:bg-white/[0.02] dark:hover:bg-white/[0.06] ${getUserRowAccentClass(setupIssues)}`}
+                    className={`border-b border-slate-200/70 bg-white/35 transition-colors duration-150 last:border-0 hover:bg-slate-50/80 dark:border-white/10 dark:bg-white/[0.02] dark:hover:bg-white/[0.06] ${getUserRowAccentClass(setupIssues)}`}
                   >
                     <td className="px-3 py-4">
                       <div className="truncate font-bold text-slate-900 dark:text-white">
@@ -835,7 +835,7 @@ function PaginationControls({
           <select
             value={pageSize}
             onChange={(event) => onPageSizeChange(Number(event.target.value))}
-            className="rounded-lg border border-purple-100/90 bg-white/80 px-3 py-2 font-bold text-slate-700 outline-none transition-colors focus:border-purple-500 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100"
+            className="rounded-lg border border-slate-200/90 bg-white/80 px-3 py-2 font-bold text-slate-700 outline-none transition-colors focus:border-slate-500 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100"
           >
             {pageSizeOptions.map((option) => (
               <option key={option} value={option}>
@@ -943,7 +943,7 @@ function UserDetailDrawer({
                 </div>
               ))}
               {!accessHotels.length && (
-                <div className="rounded-xl border border-dashed border-purple-100/90 bg-white/50 px-3 py-3 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400">
+                <div className="rounded-xl border border-dashed border-slate-200/90 bg-white/50 px-3 py-3 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400">
                   No hotel access configured
                 </div>
               )}

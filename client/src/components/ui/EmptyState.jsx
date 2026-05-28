@@ -11,7 +11,7 @@ function EmptyState({
   return (
     <div
       className={cx(
-        "ops-empty-state p-5 dark:border-purple-400/20 dark:bg-white/5",
+        "ops-empty-state p-5 dark:border-white/10 dark:bg-white/5",
         className,
       )}
     >

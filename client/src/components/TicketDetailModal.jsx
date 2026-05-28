@@ -180,7 +180,7 @@ function TicketDetailModalContent({
         aria-label={t("detail.closeBackdrop")}
       />
       <div
-        className="relative max-h-[calc(100dvh-1rem)] w-full overflow-y-auto rounded-t-xl border border-slate-200/90 bg-white/95 p-4 shadow-2xl shadow-purple-950/15 backdrop-blur-xl dark:border-white/10 dark:bg-[#140d24]/95 dark:shadow-slate-950/70 sm:max-h-[92dvh] sm:max-w-[52rem] sm:rounded-xl md:p-5"
+        className="relative max-h-[calc(100dvh-1rem)] w-full overflow-y-auto rounded-t-xl border border-slate-200/90 bg-white/95 p-4 shadow-2xl shadow-slate-950/10 backdrop-blur-xl dark:border-white/10 dark:bg-[#07181c]/95 dark:shadow-slate-950/70 sm:max-h-[92dvh] sm:max-w-[52rem] sm:rounded-xl md:p-5"
         role="dialog"
         aria-modal="true"
         aria-labelledby="ticket-detail-title"
@@ -270,7 +270,7 @@ function TicketDetailModalContent({
                     >
                       <button
                         type="button"
-                        className="text-left text-sm font-semibold text-purple-700 hover:text-purple-900 dark:text-purple-200 dark:hover:text-purple-100"
+                        className="text-left text-sm font-semibold text-slate-700 hover:text-slate-950 dark:text-teal-50 dark:hover:text-white"
                         onClick={() => handleViewAttachment(attachment)}
                       >
                         {attachment.originalName}
@@ -280,7 +280,7 @@ function TicketDetailModalContent({
                       </p>
                       <button
                         type="button"
-                        className="mt-2 text-xs font-semibold text-slate-500 hover:text-purple-700 dark:text-slate-400 dark:hover:text-purple-200"
+                        className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-950 dark:text-slate-400 dark:hover:text-teal-50"
                         onClick={() => handleDownloadAttachment(attachment)}
                       >
                         Download
@@ -336,8 +336,8 @@ function TicketDetailModalContent({
                         onClick={() => setSatisfactionScore(String(score))}
                         className={`grid h-10 w-10 place-items-center rounded-full border text-sm font-black transition ${
                           Number(satisfactionScore) === score
-                            ? "border-purple-600 bg-purple-600 text-white dark:border-purple-400 dark:bg-purple-500"
-                            : "border-purple-100 bg-white/90 text-slate-700 hover:border-purple-300 hover:text-purple-700 dark:border-purple-400/15 dark:bg-white/5 dark:text-slate-200"
+                            ? "border-slate-800 bg-slate-800 text-white dark:border-teal-100/30 dark:bg-[#0a1f23]"
+                            : "border-slate-200 bg-white/90 text-slate-700 hover:border-slate-300 hover:text-slate-950 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
                         }`}
                         aria-pressed={Number(satisfactionScore) === score}
                       >

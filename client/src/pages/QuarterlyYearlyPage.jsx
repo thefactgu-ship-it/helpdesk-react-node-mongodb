@@ -30,13 +30,13 @@ import {
 } from "../utils/reportExport";
 
 const chartColors = {
-  active: "#6d28d9",
+  active: "#334155",
   amber: "#f59e0b",
-  axis: "#6b6484",
+  axis: "#64748b",
   closed: "#10b981",
-  grid: "#eadcff",
+  grid: "#dbe5e2",
   overdue: "#e11d48",
-  trend: "#6d28d9",
+  trend: "#0a1f23",
 };
 
 function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [] }) {
@@ -313,7 +313,7 @@ function ReportPanel({ children, className = "", title }) {
 
 function SnapshotRow({ label, value }) {
   return (
-    <div className="flex items-center justify-between rounded-lg border border-purple-100/80 bg-white/90 p-4 dark:border-purple-400/10 dark:bg-white/5">
+    <div className="flex items-center justify-between rounded-lg border border-slate-200/80 bg-white/90 p-4 dark:border-white/10 dark:bg-white/5">
       <span className="text-slate-500 dark:text-slate-400">{label}</span>
       <strong className="text-slate-900 dark:text-white">{value}</strong>
     </div>
@@ -333,7 +333,7 @@ function ChartTooltip({ active, label, payload }) {
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="rounded-xl border border-purple-100 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(29,10,52,0.16)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95 dark:text-slate-200">
+    <div className="rounded-xl border border-slate-200 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(6,24,28,0.14)] backdrop-blur-md dark:border-white/10 dark:bg-[#07181c]/95 dark:text-slate-200">
       <p className="font-semibold">{label}</p>
       {payload.map((item) => (
         <p key={item.dataKey}>

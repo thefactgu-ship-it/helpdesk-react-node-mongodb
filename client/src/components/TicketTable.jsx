@@ -265,7 +265,7 @@ function TicketTable({
               className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold transition-colors duration-200 ${
                 active
                   ? `${queue.activeClass} shadow-sm`
-                  : "border-purple-100 bg-white/85 text-slate-600 hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 dark:border-purple-400/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-purple-400/25 dark:hover:bg-purple-500/10"
+                  : "border-slate-200 bg-white/85 text-slate-600 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-white/20 dark:hover:bg-white/[0.07]"
               }`}
             >
               <span>{queue.label}</span>
@@ -401,7 +401,7 @@ function TicketTable({
                     className={`ops-table-row ${getTicketRowAccentClass(ticket)}`}
                     onClick={() => openQueueDrawer(ticket)}
                   >
-                    <td className="max-w-36 break-words px-3 py-4 font-semibold text-purple-700 dark:text-purple-200">
+                    <td className="max-w-36 break-words px-3 py-4 font-semibold text-slate-700 dark:text-teal-50">
                       {ticket.ticketNumber}
                     </td>
                     <td className="min-w-0 px-3 py-4">
@@ -540,7 +540,7 @@ function TicketMobileCard({
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold text-purple-700 dark:text-purple-200">
+          <p className="text-xs font-bold text-slate-700 dark:text-teal-50">
             {ticket.ticketNumber}
           </p>
           <h4 className="mt-1 line-clamp-2 break-words text-base font-black text-slate-950 dark:text-white">
@@ -602,7 +602,7 @@ function TicketMobileCard({
 
 function MobileMeta({ label, value }) {
   return (
-    <div className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-[0_10px_26px_rgba(76,29,149,0.06)] backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5">
+    <div className="rounded-lg border border-slate-200/80 bg-white/90 p-3 shadow-[0_10px_26px_rgba(6,24,28,0.05)] backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
       <dt className="text-[11px] font-bold text-slate-400">
         {label}
       </dt>
@@ -629,7 +629,7 @@ function QueueEmptyState({ activeQueue, groupAdminText, requesterText, staffQueu
 
 function StaffQueueKpis({ kpis, text }) {
   const items = [
-    { label: text.kpis.primary, value: kpis.primary, tone: kpis.primary ? "text-purple-700 dark:text-purple-200" : "" },
+    { label: text.kpis.primary, value: kpis.primary, tone: kpis.primary ? "text-slate-700 dark:text-teal-50" : "" },
     { label: text.kpis.overdue, value: kpis.overdue, tone: kpis.overdue ? "text-rose-700 dark:text-rose-200" : "" },
     { label: text.kpis.dueSoon, value: kpis.dueSoon, tone: kpis.dueSoon ? "text-amber-700 dark:text-amber-200" : "" },
     { label: text.kpis.waitingRequester, value: kpis.waitingRequester, tone: kpis.waitingRequester ? "text-slate-700 dark:text-slate-200" : "" },
@@ -719,7 +719,7 @@ function DueLabel({ ticket }) {
 function buildQueueOptions(tickets, currentUserId, t, workQueueProfile) {
   const count = (queueId) =>
     tickets.filter((ticket) => matchesQueue(ticket, queueId, currentUserId, workQueueProfile)).length;
-  const primaryActive = "border-purple-700 bg-purple-700 text-white dark:border-purple-500 dark:bg-purple-500";
+  const primaryActive = "border-slate-800 bg-slate-800 text-white dark:border-teal-100/30 dark:bg-[#0a1f23]";
 
   if (workQueueProfile === "requester") {
     const requesterText = getRequesterQueueText(t);

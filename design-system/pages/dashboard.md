@@ -4,9 +4,9 @@
 
 ## Dashboard Layout Specs
 
-### 1. Purple Hero Banner
-- **Background:** Deep violet shell gradient from `#1D0A34` through `#34135F` to `#581C87`.
-- **Text:** White (`text-white`) with high contrast. Secondary text/subtitle in soft lavender (`text-purple-200`).
+### 1. Charcoal Teal Hero Banner
+- **Background:** Charcoal teal shell gradient from `#06181C` through `#0A1F23` to `#0F766E`.
+- **Text:** White (`text-white`) with high contrast. Secondary text/subtitle in soft teal-white (`text-teal-50/90`).
 - **Action Buttons:**
   - Primary button: use `.ops-hero-primary`.
   - Secondary buttons: use `.ops-hero-secondary`.
@@ -14,7 +14,7 @@
 ### 2. KPI Cards
 - **Structure:** 5 columns on desktop.
 - **Visuals:** Top-border colored border accent, 4px thick.
-  - Card 1: Purple (`#7C3AED`)
+  - Card 1: Charcoal/slate (`#334155`)
   - Card 2: Orange/Yellow (`#F59E0B`)
   - Card 3: Red (`#EF4444`)
   - Card 4: Pink (`#EC4899`)
@@ -27,4 +27,4 @@
 - **Metric styling:** Custom colors for metrics to represent operational urgencies.
   - Urgent: Red text
   - Unassigned: Orange/Yellow text
-  - Overdue: Purple text
+  - Overdue: Slate/charcoal text, rose when urgent

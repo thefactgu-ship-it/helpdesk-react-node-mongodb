@@ -6,7 +6,7 @@ const tones = {
   emerald:
     "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/15 dark:text-emerald-200",
   purple:
-    "border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-400/20 dark:bg-purple-500/15 dark:text-purple-100",
+    "border-slate-200 bg-slate-100 text-slate-700 dark:border-teal-100/15 dark:bg-white/[0.06] dark:text-teal-50",
   neutral:
     "border-slate-200 bg-white text-slate-700 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200",
   rose:

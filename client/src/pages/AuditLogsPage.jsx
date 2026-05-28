@@ -192,7 +192,7 @@ function AuditLogsPage({ hotels = [], selectedHotelId = "all", token }) {
                           title={log.action}
                           className={`inline-flex max-w-[14rem] items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-black ring-1 ${getActionBadgeClass(actionTone)}`}
                         >
-                          <span className="rounded-full bg-white/90 px-1.5 py-0.5 text-[10px] leading-none text-current shadow-sm dark:bg-[#140d24]">
+                          <span className="rounded-full bg-white/90 px-1.5 py-0.5 text-[10px] leading-none text-current shadow-sm dark:bg-[#07181c]">
                             {actionMeta.prefix}
                           </span>
                           <span className="truncate">{actionMeta.label}</span>
