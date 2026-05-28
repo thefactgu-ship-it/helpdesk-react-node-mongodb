@@ -363,7 +363,7 @@ function UserManagement({
               <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
                 Hotel Access
               </span>
-              <div className="grid max-h-48 gap-2 overflow-y-auto rounded-lg border border-purple-100/80 bg-white/70 p-3 dark:border-purple-400/10 dark:bg-white/5 sm:grid-cols-2">
+              <div className="grid max-h-48 gap-2 overflow-y-auto rounded-lg border border-slate-200/80 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5 sm:grid-cols-2">
                 {hotels.map((hotel) => {
                   const hotelId = getEntityId(hotel);
                   const selected = normalizeHotelAccess(
@@ -378,7 +378,7 @@ function UserManagement({
                       key={hotelId}
                       className={`flex min-w-0 items-center gap-3 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
                         selected
-                          ? "border-purple-200 bg-white text-purple-700 shadow-sm dark:border-purple-400/30 dark:bg-[#140d24] dark:text-purple-200"
+                          ? "border-emerald-200 bg-white text-emerald-700 shadow-sm dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-200"
                           : "border-transparent bg-transparent text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-white/5"
                       }`}
                     >
@@ -395,13 +395,13 @@ function UserManagement({
                             hotelAccess: normalizeHotelAccess(form.hotelId, nextAccess, form.role),
                           });
                         }}
-                        className="h-4 w-4 rounded border-slate-300 text-purple-700 focus:ring-purple-500 disabled:opacity-60"
+                        className="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 disabled:opacity-60"
                       />
                       <span className="min-w-0 flex-1 truncate">
                         {getHotelLabel(hotel)}
                       </span>
                       {isPrimary && (
-                        <span className="shrink-0 rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-purple-700 ring-1 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20">
+                        <span className="shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-700 ring-1 ring-amber-100 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/20">
                           Primary
                         </span>
                       )}
@@ -444,14 +444,14 @@ function UserManagement({
                 {filteredUsers.length} visible accounts in this view
               </p>
             </div>
-            <div className="grid grid-cols-2 rounded-lg border border-purple-100/80 bg-white/70 p-1 text-sm font-bold dark:border-purple-400/10 dark:bg-white/5">
+            <div className="grid grid-cols-2 rounded-lg border border-slate-200/80 bg-white/70 p-1 text-sm font-bold dark:border-white/10 dark:bg-white/5">
               <button
                 type="button"
                 onClick={() => handleAccountViewChange("staff")}
                 className={`rounded-xl px-4 py-2 transition ${
                   accountView === "staff"
-                    ? "bg-purple-700 text-white shadow-sm"
-                    : "text-slate-600 hover:text-purple-700 dark:text-slate-300"
+                    ? "bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950"
+                    : "text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
                 }`}
               >
                 Staff
@@ -461,8 +461,8 @@ function UserManagement({
                 onClick={() => handleAccountViewChange("requester")}
                 className={`rounded-xl px-4 py-2 transition ${
                   accountView === "requester"
-                    ? "bg-purple-700 text-white shadow-sm"
-                    : "text-slate-600 hover:text-purple-700 dark:text-slate-300"
+                    ? "bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950"
+                    : "text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
                 }`}
               >
                 Requesters
@@ -524,7 +524,7 @@ function UserManagement({
             return (
               <article
                 key={userId}
-                className="ops-card"
+                className={`ops-card ${getUserRowAccentClass(setupIssues)}`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -604,7 +604,7 @@ function UserManagement({
                 return (
                   <tr
                     key={userId}
-                    className="border-b border-slate-100 last:border-0 dark:border-slate-800"
+                    className={`border-b border-slate-100 last:border-0 dark:border-slate-800 ${getUserRowAccentClass(setupIssues)}`}
                   >
                     <td className="px-3 py-4">
                       <div className="truncate font-bold text-slate-900 dark:text-white">
@@ -614,7 +614,7 @@ function UserManagement({
                         {user.email}
                       </div>
                       {isSelf && (
-                        <div className="mt-1 text-[11px] font-bold text-purple-700 dark:text-purple-200">
+                        <div className="mt-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-200">
                           Current account
                         </div>
                       )}
@@ -835,7 +835,7 @@ function PaginationControls({
           <select
             value={pageSize}
             onChange={(event) => onPageSizeChange(Number(event.target.value))}
-            className="rounded-lg border border-purple-100 bg-white/90 px-3 py-2 font-bold text-slate-700 outline-none focus:border-purple-500 dark:border-purple-400/15 dark:bg-white/5 dark:text-slate-100"
+            className="rounded-lg border border-slate-200 bg-white/90 px-3 py-2 font-bold text-slate-700 outline-none focus:border-purple-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
           >
             {pageSizeOptions.map((option) => (
               <option key={option} value={option}>
@@ -937,7 +937,7 @@ function UserDetailDrawer({
               {accessHotels.map((label) => (
                 <div
                   key={label}
-                  className="rounded-lg border border-purple-100/70 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-700 dark:border-purple-400/10 dark:bg-white/5 dark:text-slate-200"
+                  className="rounded-lg border border-slate-200/80 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
                 >
                   {label}
                 </div>
@@ -992,7 +992,7 @@ function RoleBadge({ role }) {
         isLegacy
           ? "bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-100"
           : isAdmin
-          ? "bg-purple-50 text-purple-700 ring-1 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20"
+          ? "bg-amber-50 text-amber-700 ring-1 ring-amber-100 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/20"
           : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
       }`}
     >
@@ -1003,7 +1003,7 @@ function RoleBadge({ role }) {
 
 function MobileMeta({ label, value }) {
   return (
-    <div className="rounded-lg border border-purple-100/70 bg-white/90 p-3 dark:border-purple-400/10 dark:bg-white/5">
+    <div className="rounded-lg border border-slate-200/80 bg-white/90 p-3 dark:border-white/10 dark:bg-white/5">
       <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
         {label}
       </dt>
@@ -1012,6 +1012,13 @@ function MobileMeta({ label, value }) {
       </dd>
     </div>
   );
+}
+
+function getUserRowAccentClass(issues) {
+  if (!issues?.length) return "ops-row-accent-emerald";
+  if (issues.some((issue) => issue.tone === "danger")) return "ops-row-accent-rose";
+  if (issues.some((issue) => issue.tone === "warning")) return "ops-row-accent-amber";
+  return "ops-row-accent-purple";
 }
 
 function UserEmptyState() {

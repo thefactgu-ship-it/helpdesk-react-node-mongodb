@@ -187,13 +187,13 @@ function ProblemTypesPage({ currentUser, token }) {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="break-words text-sm font-black text-purple-700 dark:text-purple-200">
+                  <div className="break-words text-sm font-black text-slate-900 dark:text-white">
                     {type.name}
                   </div>
                   <p className="mt-1 break-words text-xs text-slate-500 dark:text-slate-400">
                     {type.description || "No description"}
                   </p>
-                  <p className="mt-2 text-xs font-bold uppercase tracking-wide text-purple-500 dark:text-purple-200">
+                  <p className="mt-2 inline-flex rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-black uppercase tracking-wide text-amber-700 ring-1 ring-amber-100 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/20">
                     Master Problem Type
                   </p>
                 </div>

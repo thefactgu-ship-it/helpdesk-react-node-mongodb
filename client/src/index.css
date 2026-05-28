@@ -171,19 +171,19 @@
   }
 
   .ops-surface {
-    @apply rounded-xl border border-purple-100/80 bg-white/90 shadow-[var(--ops-shadow-card)] backdrop-blur-sm dark:border-purple-400/15 dark:bg-[#140d24]/90;
+    @apply rounded-xl border border-purple-100/80 bg-white/90 shadow-[var(--ops-shadow-card)] backdrop-blur-sm dark:border-white/10 dark:bg-[#140d24]/90;
   }
 
   .ops-panel {
-    @apply rounded-xl border border-purple-100/80 bg-white/90 p-5 shadow-[var(--ops-shadow-card)] backdrop-blur-sm dark:border-purple-400/15 dark:bg-[#140d24]/90;
+    @apply rounded-xl border border-purple-100/80 bg-white/90 p-5 shadow-[var(--ops-shadow-card)] backdrop-blur-sm dark:border-white/10 dark:bg-[#140d24]/90;
   }
 
   .ops-card {
-    @apply rounded-lg border border-purple-100/70 bg-white/90 p-4 shadow-[0_8px_22px_rgba(76,29,149,0.05)] backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5;
+    @apply rounded-lg border border-slate-200/80 bg-white/90 p-4 shadow-[0_8px_22px_rgba(76,29,149,0.05)] backdrop-blur-sm dark:border-white/10 dark:bg-white/5;
   }
 
   .ops-dashboard-hero {
-    @apply relative overflow-hidden rounded-xl border border-purple-100/80 bg-white/90 p-5 shadow-[var(--ops-shadow-soft)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/90;
+    @apply relative overflow-hidden rounded-xl border border-purple-100/80 bg-white/90 p-5 shadow-[var(--ops-shadow-soft)] backdrop-blur-md dark:border-white/10 dark:bg-[#140d24]/90;
   }
 
   .ops-dashboard-hero::before {
@@ -234,11 +234,11 @@
   }
 
   .ops-empty-state {
-    @apply flex flex-col items-center justify-center rounded-xl border border-dashed border-purple-200/80 bg-white/90 py-14 text-center shadow-[var(--ops-shadow-card)] backdrop-blur-sm dark:border-purple-400/20 dark:bg-white/5;
+    @apply flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300/80 bg-white/90 py-14 text-center shadow-[var(--ops-shadow-card)] backdrop-blur-sm dark:border-white/15 dark:bg-white/5;
   }
 
   .ops-empty-state-icon {
-    @apply grid h-14 w-14 place-items-center rounded-xl border border-purple-100 bg-white/95 text-purple-500 shadow-[0_10px_28px_rgba(109,40,217,0.1)] dark:border-purple-400/20 dark:bg-purple-500/10 dark:text-purple-200;
+    @apply grid h-14 w-14 place-items-center rounded-xl border border-purple-100 bg-white/95 text-purple-500 shadow-[0_10px_28px_rgba(109,40,217,0.1)] dark:border-white/10 dark:bg-white/5 dark:text-purple-200;
   }
 
   .ops-kpi-accent-purple {
@@ -262,15 +262,39 @@
   }
 
   .ops-soft-panel {
-    @apply rounded-xl border border-purple-100/85 bg-white/90 p-5 shadow-[var(--ops-shadow-soft)] backdrop-blur-sm dark:border-purple-400/15 dark:bg-[#140d24]/90;
+    @apply rounded-xl border border-purple-100/85 bg-white/90 p-5 shadow-[var(--ops-shadow-soft)] backdrop-blur-sm dark:border-white/10 dark:bg-[#140d24]/90;
   }
 
   .ops-soft-card {
-    @apply cursor-default rounded-lg border border-purple-100/70 bg-white/90 p-4 shadow-[0_8px_24px_rgba(76,29,149,0.05)] backdrop-blur-sm transition-[box-shadow,border-color,background-color] duration-200 hover:border-purple-200 hover:bg-white/95 hover:shadow-[0_12px_32px_rgba(109,40,217,0.1)] dark:border-purple-400/10 dark:bg-white/5 dark:hover:border-purple-400/20 dark:hover:bg-white/10;
+    @apply cursor-default rounded-lg border border-slate-200/80 bg-white/90 p-4 shadow-[0_8px_24px_rgba(76,29,149,0.05)] backdrop-blur-sm transition-[box-shadow,border-color,background-color] duration-200 hover:border-purple-200 hover:bg-white/95 hover:shadow-[0_12px_32px_rgba(109,40,217,0.1)] dark:border-white/10 dark:bg-white/5 dark:hover:border-white/15 dark:hover:bg-white/10;
   }
 
   .ops-soft-kpi {
-    @apply relative rounded-xl border border-purple-100/85 bg-white/90 p-4 shadow-[var(--ops-shadow-card)] backdrop-blur-sm transition-[box-shadow,border-color,background-color] duration-200 hover:border-purple-200 hover:bg-white/95 hover:shadow-[0_16px_40px_rgba(109,40,217,0.11)] dark:border-purple-400/15 dark:bg-[#140d24]/90 dark:hover:border-purple-400/25 dark:hover:bg-[#1b132e]/90;
+    @apply relative rounded-xl border border-purple-100/85 bg-white/90 p-4 shadow-[var(--ops-shadow-card)] backdrop-blur-sm transition-[box-shadow,border-color,background-color] duration-200 hover:border-purple-200 hover:bg-white/95 hover:shadow-[0_16px_40px_rgba(109,40,217,0.11)] dark:border-white/10 dark:bg-[#140d24]/90 dark:hover:border-white/15 dark:hover:bg-[#1b132e]/90;
+  }
+
+  .ops-soft-kpi-signal {
+    @apply border-purple-200/90 bg-white/95 shadow-[0_18px_42px_rgba(76,29,149,0.12)] dark:border-purple-300/20 dark:bg-[#1b132e]/95;
+  }
+
+  .ops-soft-kpi-muted {
+    @apply border-slate-200/80 bg-white/80 shadow-[0_8px_22px_rgba(15,23,42,0.04)] hover:border-slate-300 dark:border-slate-800 dark:bg-white/[0.04] dark:hover:border-slate-700;
+  }
+
+  .ops-row-accent-purple {
+    @apply border-l-4 border-l-purple-500;
+  }
+
+  .ops-row-accent-amber {
+    @apply border-l-4 border-l-amber-500;
+  }
+
+  .ops-row-accent-rose {
+    @apply border-l-4 border-l-rose-500;
+  }
+
+  .ops-row-accent-emerald {
+    @apply border-l-4 border-l-emerald-500;
   }
 
   .ops-soft-icon {
@@ -302,7 +326,7 @@
   }
 
   .ops-icon-button {
-    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-purple-100 bg-white/90 text-slate-600 shadow-sm backdrop-blur-sm transition-[border-color,background-color,color,box-shadow] duration-200 hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 dark:border-purple-400/15 dark:bg-white/5 dark:text-slate-300 dark:hover:border-purple-400/25 dark:hover:bg-purple-500/10 dark:hover:text-purple-200;
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-purple-100 bg-white/90 text-slate-600 shadow-sm backdrop-blur-sm transition-[border-color,background-color,color,box-shadow] duration-200 hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-purple-400/25 dark:hover:bg-purple-500/10 dark:hover:text-purple-200;
   }
 
   .ops-input {
@@ -314,7 +338,7 @@
   }
 
   .ops-menu-panel {
-    @apply overflow-hidden rounded-xl border border-purple-100/90 bg-white/95 p-1.5 shadow-[0_18px_44px_rgba(29,10,52,0.18)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95;
+    @apply overflow-hidden rounded-xl border border-purple-100/90 bg-white/95 p-1.5 shadow-[0_18px_44px_rgba(29,10,52,0.18)] backdrop-blur-md dark:border-white/10 dark:bg-[#140d24]/95;
   }
 
   .ops-menu-item {
@@ -326,11 +350,11 @@
   }
 
   .ops-skeleton-card {
-    @apply animate-pulse rounded-lg border border-purple-100/70 bg-white/80 p-4 shadow-[0_8px_22px_rgba(76,29,149,0.04)] dark:border-purple-400/10 dark:bg-white/5;
+    @apply animate-pulse rounded-lg border border-slate-200/80 bg-white/80 p-4 shadow-[0_8px_22px_rgba(76,29,149,0.04)] dark:border-white/10 dark:bg-white/5;
   }
 
   .ops-skeleton-line {
-    @apply rounded bg-purple-100/80 dark:bg-purple-400/15;
+    @apply rounded bg-slate-200/80 dark:bg-white/10;
   }
 
   .ops-muted {

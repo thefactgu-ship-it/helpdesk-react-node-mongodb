@@ -128,9 +128,9 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
                 <Line
                   type="monotone"
                   dataKey="total"
-                  stroke="#7c3aed"
+                  stroke="#10b981"
                   strokeWidth={3}
-                  dot={{ fill: "#7c3aed", r: 3 }}
+                  dot={{ fill: "#10b981", r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -156,7 +156,7 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
                 <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
                 <YAxis allowDecimals={false} tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
                 <Tooltip content={<ChartTooltip />} />
-                <Bar dataKey="active" fill="#7c3aed" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="active" fill="#64748b" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="resolved" fill="#f59e0b" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="closed" fill="#22c55e" radius={[8, 8, 0, 0]} />
                 <Bar dataKey="overdue" fill="#e11d48" radius={[8, 8, 0, 0]} />
@@ -164,7 +164,7 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
             </ResponsiveContainer>
           </div>
           <div className="mt-4 flex flex-wrap gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            <LegendDot color="#7c3aed" label="Active" />
+            <LegendDot color="#64748b" label="Active" />
             <LegendDot color="#f59e0b" label="Waiting confirm" />
             <LegendDot color="#22c55e" label="Closed" />
             <LegendDot color="#e11d48" label="Overdue" />

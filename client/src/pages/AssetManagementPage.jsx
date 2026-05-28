@@ -473,7 +473,7 @@ function AssetManagementPage({ currentUser, hotelId = "all", t = (key) => key, t
                           {asset.assetType} / {asset.department}
                         </div>
                       </td>
-                      <td className="max-w-44 break-words px-3 font-semibold text-purple-700 dark:text-purple-200">
+                      <td className="max-w-44 break-words px-3 font-mono text-xs font-bold text-slate-600 dark:text-slate-300">
                         {asset.serialNumber}
                       </td>
                       <td className="max-w-44 break-words px-3 text-slate-600 dark:text-slate-300">
@@ -570,7 +570,7 @@ function AssetDetailModal({
               />
             </div>
             {asset.lifeCycle?.notes && (
-              <div className="mt-3 rounded-lg border border-purple-100/70 bg-white/90 p-3 text-sm text-slate-600 shadow-sm dark:border-purple-400/10 dark:bg-white/5 dark:text-slate-300">
+              <div className="mt-3 rounded-lg border border-slate-200/80 bg-white/90 p-3 text-sm text-slate-600 shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
                 <p className="mb-1 text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   {t("settings.asset.notes")}
                 </p>

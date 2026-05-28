@@ -54,7 +54,7 @@ function DashboardPage({
           {Array.from({ length: 5 }).map((_, index) => (
             <div
               key={index}
-              className="h-28 animate-pulse rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950/80"
+              className="ops-skeleton-card h-28"
             />
           ))}
         </section>
@@ -64,7 +64,7 @@ function DashboardPage({
             (className, index) => (
               <div
                 key={index}
-                className={`${className} h-72 animate-pulse rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-950/80`}
+                className={`${className} ops-skeleton-card h-72`}
               />
             ),
           )}
@@ -1002,6 +1002,7 @@ function OpsDashboardHero({
 }
 
 function GroupAdminKpi({ detail, icon: Icon, label, tone = "purple", value }) {
+  const numericValue = Number(value || 0);
   const accentClasses = {
     purple: "ops-kpi-accent-purple",
     orange: "ops-kpi-accent-amber",
@@ -1014,6 +1015,7 @@ function GroupAdminKpi({ detail, icon: Icon, label, tone = "purple", value }) {
   };
 
   const toneClasses = {
+    neutral: "bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300",
     purple: "bg-purple-50 text-purple-600 dark:bg-purple-500/15 dark:text-purple-200",
     orange: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-200",
     amber: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-200",
@@ -1023,13 +1025,14 @@ function GroupAdminKpi({ detail, icon: Icon, label, tone = "purple", value }) {
     teal: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-200",
     emerald: "bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-200",
   };
+  const resolvedTone = numericValue > 0 ? tone : "neutral";
 
   return (
-    <article className={`ops-soft-kpi ${accentClasses[tone] || ""}`}>
+    <article className={`ops-soft-kpi ${numericValue > 0 ? "ops-soft-kpi-signal" : "ops-soft-kpi-muted"} ${numericValue > 0 ? accentClasses[tone] || "" : ""}`}>
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-3xl font-black text-slate-950 dark:text-white">
-            {Number(value || 0).toLocaleString()}
+          <p className={`font-black text-slate-950 dark:text-white ${numericValue > 0 ? "text-4xl" : "text-3xl"}`}>
+            {numericValue.toLocaleString()}
           </p>
           <p className="mt-1 text-sm font-black text-slate-700 dark:text-slate-200">
             {label}
@@ -1038,7 +1041,7 @@ function GroupAdminKpi({ detail, icon: Icon, label, tone = "purple", value }) {
             {detail}
           </p>
         </div>
-        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg ${toneClasses[tone] || ""}`}>
+        <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-lg ${toneClasses[resolvedTone] || toneClasses.neutral}`}>
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
       </div>
@@ -1075,7 +1078,7 @@ function GroupAdminPanel({ actionLabel, children, className = "", icon: Icon, on
 
 function GroupAdminRiskItem({ text, ticket }) {
   return (
-    <article className="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-900">
+    <article className={`rounded-xl border border-slate-200 bg-white/80 p-4 shadow-[0_8px_22px_rgba(15,23,42,0.04)] dark:border-slate-800 dark:bg-white/[0.04] ${getDashboardTicketAccentClass(ticket)}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -1102,6 +1105,14 @@ function GroupAdminRiskItem({ text, ticket }) {
       </div>
     </article>
   );
+}
+
+function getDashboardTicketAccentClass(ticket) {
+  if (isTicketOverdue(ticket)) return "ops-row-accent-rose";
+  if (!isCompleted(ticket) && ["critical", "high"].includes(ticket.priority)) return "ops-row-accent-amber";
+  if (!isCompleted(ticket) && !ticket.assignedTo) return "ops-row-accent-emerald";
+  if (isWaitingFeedback(ticket)) return "ops-row-accent-purple";
+  return "";
 }
 
 function GroupAdminHotelCard({ hotel, text }) {

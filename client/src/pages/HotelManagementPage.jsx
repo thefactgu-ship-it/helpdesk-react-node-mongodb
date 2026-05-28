@@ -212,13 +212,13 @@ function HotelManagementPage({ hotels = [], onHotelsChange, t = (key) => key, to
               />
             </Field>
 
-            <label className="flex items-center gap-3 rounded-lg border border-purple-100/80 bg-white/90 px-4 py-3 text-sm font-semibold text-slate-700 backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5 dark:text-slate-300">
+            <label className="flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white/90 px-4 py-3 text-sm font-semibold text-slate-700 backdrop-blur-sm dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
               <input
                 type="checkbox"
                 checked={form.active}
                 disabled={saving}
                 onChange={(event) => setForm({ ...form, active: event.target.checked })}
-                className="h-4 w-4 accent-purple-700"
+                className="h-4 w-4 accent-emerald-600"
               />
               {t("settings.hotel.activeToggle")}
             </label>
@@ -259,7 +259,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, t = (key) => key, to
                       <h4 className="break-words text-base font-black text-slate-950 dark:text-white">
                         {hotel.name}
                       </h4>
-                      <p className="mt-1 text-sm font-bold text-purple-700 dark:text-purple-200">
+                      <p className="mt-1 font-mono text-xs font-bold uppercase tracking-wide text-amber-700 dark:text-amber-200">
                         {hotel.code}
                       </p>
                     </div>
@@ -323,7 +323,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, t = (key) => key, to
                         <div className="line-clamp-2 break-words font-bold text-slate-900 dark:text-white">
                           {hotel.name}
                         </div>
-                        <div className="break-words text-xs font-semibold text-purple-700 dark:text-purple-200">
+                        <div className="break-words font-mono text-xs font-bold uppercase tracking-wide text-amber-700 dark:text-amber-200">
                           {hotel.code}
                         </div>
                       </td>
@@ -402,7 +402,7 @@ function StatusBadge({ active, t = (key) => key }) {
 
 function MobileMeta({ label, value }) {
   return (
-    <div className="rounded-lg border border-purple-100/70 bg-white/90 p-3 dark:border-purple-400/10 dark:bg-white/5">
+    <div className="rounded-lg border border-slate-200/80 bg-white/90 p-3 dark:border-white/10 dark:bg-white/5">
       <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
         {label}
       </dt>

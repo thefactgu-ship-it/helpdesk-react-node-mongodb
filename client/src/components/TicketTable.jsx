@@ -398,7 +398,7 @@ function TicketTable({
                 return (
                   <tr
                     key={ticketId}
-                    className="ops-table-row"
+                    className={`ops-table-row ${getTicketRowAccentClass(ticket)}`}
                     onClick={() => openQueueDrawer(ticket)}
                   >
                     <td className="max-w-36 break-words px-3 py-4 font-semibold text-purple-700 dark:text-purple-200">
@@ -534,7 +534,7 @@ function TicketMobileCard({
 
   return (
     <Card
-      className="transition-colors duration-200"
+      className={`transition-colors duration-200 ${getTicketRowAccentClass(ticket)}`}
       variant="interactive"
       onClick={() => onOpenDrawer(ticket)}
     >
@@ -637,19 +637,22 @@ function StaffQueueKpis({ kpis, text }) {
 
   return (
     <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {items.map((item) => (
+      {items.map((item) => {
+        const hasSignal = Number(item.value || 0) > 0;
+        return (
         <Card
           key={item.label}
-          className="p-3"
+          className={`p-3 ${hasSignal ? "ops-soft-kpi-signal" : "ops-soft-kpi-muted"}`}
         >
-          <p className={`text-2xl font-black text-slate-950 dark:text-white ${item.tone}`}>
+          <p className={`${hasSignal ? "text-3xl" : "text-2xl"} font-black text-slate-950 dark:text-white ${item.tone}`}>
             {item.value.toLocaleString()}
           </p>
           <p className="mt-1 break-words text-xs font-bold text-slate-500 dark:text-slate-400">
             {item.label}
           </p>
         </Card>
-      ))}
+      );
+      })}
     </div>
   );
 }
@@ -755,7 +758,7 @@ function buildQueueOptions(tickets, currentUserId, t, workQueueProfile) {
     const text = getStaffQueueText(t, workQueueProfile);
     return [
       { id: "now", label: text.tabs.now, count: count("now"), activeClass: primaryActive },
-      { id: "unassigned", label: text.tabs.unassigned, count: count("unassigned"), activeClass: "border-purple-600 bg-purple-600 text-white" },
+      { id: "unassigned", label: text.tabs.unassigned, count: count("unassigned"), activeClass: "border-emerald-600 bg-emerald-600 text-white" },
       { id: "assignedToTeam", label: text.tabs.assignedToTeam, count: count("assignedToTeam"), activeClass: "border-emerald-600 bg-emerald-600 text-white" },
       { id: "dueSoon", label: text.tabs.dueSoon, count: count("dueSoon"), activeClass: "border-amber-500 bg-amber-500 text-white" },
       { id: "all", label: text.tabs.all, count: count("all"), activeClass: primaryActive },
@@ -766,11 +769,19 @@ function buildQueueOptions(tickets, currentUserId, t, workQueueProfile) {
     { id: "now", label: t("queue.tabs.now"), count: count("now"), activeClass: primaryActive },
     { id: "overdue", label: t("queue.tabs.overdue"), count: count("overdue"), activeClass: "border-rose-600 bg-rose-600 text-white" },
     { id: "dueSoon", label: t("queue.tabs.dueSoon"), count: count("dueSoon"), activeClass: "border-amber-500 bg-amber-500 text-white" },
-    { id: "unassigned", label: t("queue.tabs.unassigned"), count: count("unassigned"), activeClass: "border-purple-600 bg-purple-600 text-white" },
+    { id: "unassigned", label: t("queue.tabs.unassigned"), count: count("unassigned"), activeClass: "border-emerald-600 bg-emerald-600 text-white" },
     { id: "assignedToMe", label: t("queue.tabs.assignedToMe"), count: count("assignedToMe"), activeClass: primaryActive },
     { id: "waitingRequester", label: t("queue.tabs.waitingRequester"), count: count("waitingRequester"), activeClass: "border-slate-700 bg-slate-700 text-white" },
     { id: "all", label: t("queue.tabs.all"), count: count("all"), activeClass: primaryActive },
   ];
+}
+
+function getTicketRowAccentClass(ticket) {
+  if (isOverdue(ticket)) return "ops-row-accent-rose";
+  if (!isCompleted(ticket) && ["critical", "high"].includes(ticket.priority)) return "ops-row-accent-amber";
+  if (!isCompleted(ticket) && !ticket.assignedTo) return "ops-row-accent-emerald";
+  if (isWaitingRequester(ticket)) return "ops-row-accent-purple";
+  return "";
 }
 
 function matchesQueue(ticket, queueId, currentUserId, workQueueProfile = "staff") {

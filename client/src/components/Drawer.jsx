@@ -32,7 +32,7 @@ function Drawer({
   if (!open) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-40 flex justify-end bg-slate-950/30 backdrop-blur-sm">
+    <div className="fixed inset-0 z-40 flex items-stretch justify-end bg-slate-950/30 backdrop-blur-sm">
       <button
         type="button"
         aria-label="Close drawer"

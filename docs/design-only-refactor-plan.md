@@ -12,7 +12,7 @@ Refresh the full Helpdesk UI into a soft operations console while preserving the
 
 ## Target Visual Direction
 - Soft Operations Console: demo-like softness with hotel operations clarity.
-- Palette: off-white/slate background, white soft surfaces, indigo/trust-blue primary, rose/amber/emerald status accents.
+- Palette: deep violet ops shell, off-white/slate background, white soft glass surfaces, purple primary actions, rose/amber/emerald status accents.
 - Typography: Inter, Noto Sans Thai, system fallback.
 - Shapes: 8-12px radius for work surfaces, tighter density for operational pages.
 - Effects: subtle borders and light shadows, no heavy card nesting.
@@ -25,6 +25,23 @@ Refresh the full Helpdesk UI into a soft operations console while preserving the
 5. Add ticket form and ticket detail modal.
 6. Admin, reporting, asset, audit, hotel, department, and user pages.
 7. Remove stale presentation code and verify bundle, lint, build, dark mode, and mobile.
+
+## Polish Roadmap
+1. Dashboard + Work Queue:
+   - Reduce repeated purple surfaces by using neutral glass for inactive/zero states.
+   - Add KPI hierarchy so non-zero operational signals stand out without animation.
+   - Use status accents intentionally: emerald for healthy/assigned, amber for due soon, rose for overdue/critical, purple for primary workflow only.
+   - Add quiet row/card contrast for ticket lists through thin accents, hover states, and clearer selected/active states.
+2. Reports:
+   - Balance purple charts with emerald/amber/rose data series where the metric meaning supports it.
+   - Keep cards neutral and reserve purple for selected controls and primary chart lines.
+   - Prefer meaningful series color: emerald for closed/healthy, amber for assigned/due-soon, rose for risk/destructive, slate for neutral active volume.
+3. Management pages:
+   - Keep CRUD surfaces mostly neutral and use color for state, risk, and destructive actions.
+   - Vary empty states by page context while preserving shared structure.
+   - Keep identifiers and metadata neutral or amber/emerald by domain, instead of repeating purple on every code, email, and badge.
+4. Drawer/modal polish:
+   - Group detail fields tighter, keep action footer sticky, and use status color for key decision points.
 
 ## Dependency Policy
 - Keep Tailwind, lucide-react, and Recharts as the primary UI stack.

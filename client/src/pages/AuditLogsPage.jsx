@@ -157,7 +157,7 @@ function AuditLogsPage({ hotels = [], selectedHotelId = "all", token }) {
       <section className="ops-surface overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-[56rem] w-full text-left text-sm">
-            <thead className="bg-purple-50/60 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-white/5 dark:text-slate-400">
+            <thead className="bg-slate-50/80 text-xs font-black uppercase tracking-wide text-slate-500 dark:bg-white/5 dark:text-slate-400">
               <tr>
                 <th className="px-4 py-3">Time</th>
                 <th className="px-4 py-3">Action</th>
@@ -177,18 +177,22 @@ function AuditLogsPage({ hotels = [], selectedHotelId = "all", token }) {
               ) : logs.length ? (
                 logs.map((log) => {
                   const actionMeta = getActionMeta(log.action);
+                  const actionTone = getActionTone(log.action);
 
                   return (
-                    <tr key={log._id || `${log.action}-${log.createdAt}`} className="align-top">
+                    <tr
+                      key={log._id || `${log.action}-${log.createdAt}`}
+                      className={`align-top ${getAuditRowAccentClass(log.action)}`}
+                    >
                       <td className="whitespace-nowrap px-4 py-3 text-slate-500 dark:text-slate-400">
                         {formatDateTime(log.createdAt)}
                       </td>
                       <td className="px-4 py-3">
                         <span
                           title={log.action}
-                          className="inline-flex max-w-[14rem] items-center gap-1.5 rounded-full bg-purple-50 px-2.5 py-1 text-xs font-black text-purple-700 ring-1 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20"
+                          className={`inline-flex max-w-[14rem] items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-black ring-1 ${getActionBadgeClass(actionTone)}`}
                         >
-                          <span className="rounded-full bg-white px-1.5 py-0.5 text-[10px] leading-none text-purple-600 shadow-sm dark:bg-[#140d24] dark:text-purple-200">
+                          <span className="rounded-full bg-white/90 px-1.5 py-0.5 text-[10px] leading-none text-current shadow-sm dark:bg-[#140d24]">
                             {actionMeta.prefix}
                           </span>
                           <span className="truncate">{actionMeta.label}</span>
@@ -271,6 +275,30 @@ function formatHotel(hotel) {
 function getActionMeta(action) {
   const match = actionOptions.find((option) => option.value === action);
   return match || { label: action || "-", prefix: "?" };
+}
+
+function getActionTone(action = "") {
+  if (action.includes("deleted") || action.includes("deactivated")) return "rose";
+  if (action.includes("resolved") || action.includes("closed")) return "emerald";
+  if (action.includes("assigned") || action.includes("claimed")) return "amber";
+  return "slate";
+}
+
+function getActionBadgeClass(tone) {
+  return {
+    amber: "bg-amber-50 text-amber-700 ring-amber-100 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/20",
+    emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20",
+    rose: "bg-rose-50 text-rose-700 ring-rose-100 dark:bg-rose-500/15 dark:text-rose-200 dark:ring-rose-400/20",
+    slate: "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:ring-slate-700",
+  }[tone];
+}
+
+function getAuditRowAccentClass(action = "") {
+  const tone = getActionTone(action);
+  if (tone === "rose") return "ops-row-accent-rose";
+  if (tone === "emerald") return "ops-row-accent-emerald";
+  if (tone === "amber") return "ops-row-accent-amber";
+  return "";
 }
 
 export default AuditLogsPage;

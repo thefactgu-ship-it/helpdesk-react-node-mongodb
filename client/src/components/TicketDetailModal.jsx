@@ -180,12 +180,12 @@ function TicketDetailModalContent({
         aria-label={t("detail.closeBackdrop")}
       />
       <div
-        className="relative max-h-[90dvh] w-full overflow-y-auto rounded-t-xl border border-purple-100/90 bg-white/95 p-4 shadow-2xl shadow-purple-950/15 backdrop-blur-xl dark:border-purple-400/15 dark:bg-[#140d24]/95 dark:shadow-slate-950/70 sm:max-w-[52rem] sm:rounded-xl md:p-5"
+        className="relative max-h-[calc(100dvh-1rem)] w-full overflow-y-auto rounded-t-xl border border-slate-200/90 bg-white/95 p-4 shadow-2xl shadow-purple-950/15 backdrop-blur-xl dark:border-white/10 dark:bg-[#140d24]/95 dark:shadow-slate-950/70 sm:max-h-[92dvh] sm:max-w-[52rem] sm:rounded-xl md:p-5"
         role="dialog"
         aria-modal="true"
         aria-labelledby="ticket-detail-title"
       >
-        <div className="mb-4 flex items-start justify-between gap-4 border-b border-purple-100/80 pb-4 dark:border-purple-400/10">
+        <div className="mb-4 flex items-start justify-between gap-4 border-b border-slate-200/80 pb-4 dark:border-white/10">
           <div className="min-w-0">
             <h2 id="ticket-detail-title" className="text-xl font-black tracking-tight text-slate-950 dark:text-white">
               {t("detail.title")}
@@ -266,7 +266,7 @@ function TicketDetailModalContent({
                   {ticket.attachments.map((attachment) => (
                     <li
                       key={attachment._id}
-                      className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5"
+                      className="rounded-lg border border-slate-200/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-white/5"
                     >
                       <button
                         type="button"
@@ -314,14 +314,14 @@ function TicketDetailModalContent({
                   )}
                 </div>
                 {hasSatisfaction && (
-                  <div className="rounded-lg border border-purple-100 bg-white/90 px-3 py-2 text-sm font-black text-purple-700 dark:border-purple-400/20 dark:bg-white/5 dark:text-purple-200">
+                  <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-sm font-black text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-500/10 dark:text-emerald-200">
                     {ticket.satisfactionScore}/5
                   </div>
                 )}
               </div>
 
               {hasSatisfaction && ticket.satisfactionComment && (
-                <p className="mt-3 rounded-lg border border-purple-100/80 bg-white/90 p-3 text-sm text-slate-700 shadow-sm backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5 dark:text-slate-200">
+                <p className="mt-3 rounded-lg border border-slate-200/80 bg-white/90 p-3 text-sm text-slate-700 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
                   {ticket.satisfactionComment}
                 </p>
               )}
@@ -375,7 +375,7 @@ function TicketDetailModalContent({
                 ticket.comments.map((item) => (
                   <div
                     key={item._id}
-                    className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5"
+                    className="rounded-lg border border-slate-200/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-white/5"
                   >
                     <p className="text-sm text-slate-700 dark:text-slate-200">
                       {item.text}
@@ -452,7 +452,7 @@ function TicketDetailModalContent({
               ticket.activityLog.map((entry) => (
                 <div
                   key={entry._id}
-                  className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5"
+                  className="rounded-lg border border-slate-200/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-white/5"
                 >
                   <p className="text-sm text-slate-700 dark:text-slate-200">
                     {entry.details}
@@ -475,7 +475,7 @@ function TicketDetailModalContent({
 
 function CompactPanel({ children }) {
   return (
-    <section className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-[0_10px_26px_rgba(76,29,149,0.06)] backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5">
+    <section className="rounded-lg border border-slate-200/80 bg-white/90 p-3 shadow-[0_10px_26px_rgba(15,23,42,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
       {children}
     </section>
   );
@@ -491,7 +491,7 @@ function SectionLabel({ children }) {
 
 function InfoItem({ label, value }) {
   return (
-    <div className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5">
+    <div className="rounded-lg border border-slate-200/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
       <p className="ops-section-label">
         {label}
       </p>

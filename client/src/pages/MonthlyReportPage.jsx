@@ -1,6 +1,7 @@
 import {
   Bar,
   BarChart,
+  Cell,
   CartesianGrid,
   Line,
   LineChart,
@@ -113,15 +114,15 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
         <ReportPanel className="xl:col-span-4" title="Status Summary">
           <div className="space-y-4">
             {report.statusSummary.map((item) => (
-              <ProgressRow key={item.name} {...item} total={report.total} />
+              <ProgressRow key={item.name} {...item} total={report.total} tone={getStatusTone(item.key)} />
             ))}
           </div>
         </ReportPanel>
 
         <ReportPanel className="xl:col-span-4" title="Top Categories">
           <div className="space-y-4">
-            {report.topCategories.map((item) => (
-              <ProgressRow key={item.name} {...item} total={report.total} />
+            {report.topCategories.map((item, index) => (
+              <ProgressRow key={item.name} {...item} total={report.total} tone={getCategoryTone(index)} />
             ))}
             {!report.topCategories.length && <EmptyState message="No category data" />}
           </div>
@@ -134,7 +135,11 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
                 <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
                 <YAxis hide allowDecimals={false} />
                 <Tooltip content={<ChartTooltip labelSuffix="tickets" />} />
-                <Bar dataKey="value" radius={[12, 12, 0, 0]} fill="#7c3aed" />
+                <Bar dataKey="value" radius={[12, 12, 0, 0]}>
+                  {report.prioritySummary.map((entry) => (
+                    <Cell key={entry.name} fill={entry.color} />
+                  ))}
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -204,6 +209,7 @@ function buildMonthlyReport(tickets, selectedMonth) {
     }),
     overdue,
     prioritySummary: ["critical", "high", "medium", "low"].map((priority) => ({
+      color: getPriorityColor(priority),
       name: capitalize(priority),
       value: monthTickets.filter((ticket) => ticket.priority === priority).length,
     })),
@@ -216,6 +222,7 @@ function buildMonthlyReport(tickets, selectedMonth) {
     successDetail: getSuccessDetail(completionStats),
     successRate: completionStats.successRate,
     statusSummary: ["open", "in_progress", "resolved", "closed"].map((status) => ({
+      key: status,
       name: formatStatus(status),
       value: monthTickets.filter((ticket) => ticket.status === status).length,
     })),
@@ -295,8 +302,15 @@ function ReportPanel({ children, className = "", title }) {
   );
 }
 
-function ProgressRow({ name, total, value }) {
+function ProgressRow({ name, tone = "purple", total, value }) {
   const percent = total ? Math.round((value / total) * 100) : 0;
+  const toneClass = {
+    amber: "bg-gradient-to-r from-amber-500 to-amber-300",
+    emerald: "bg-gradient-to-r from-emerald-600 to-emerald-400",
+    rose: "bg-gradient-to-r from-rose-600 to-rose-400",
+    slate: "bg-gradient-to-r from-slate-600 to-slate-400",
+    purple: "bg-gradient-to-r from-purple-700 to-purple-400",
+  }[tone] || "bg-gradient-to-r from-purple-700 to-purple-400";
 
   return (
     <div>
@@ -310,12 +324,32 @@ function ProgressRow({ name, total, value }) {
       </div>
       <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-purple-700 to-purple-400"
+          className={`h-full rounded-full ${toneClass}`}
           style={{ width: `${percent}%` }}
         />
       </div>
     </div>
   );
+}
+
+function getStatusTone(status) {
+  if (status === "closed") return "emerald";
+  if (status === "resolved") return "amber";
+  if (status === "open") return "slate";
+  return "purple";
+}
+
+function getCategoryTone(index) {
+  return ["purple", "emerald", "amber", "rose", "slate"][index] || "purple";
+}
+
+function getPriorityColor(priority) {
+  return {
+    critical: "#e11d48",
+    high: "#f59e0b",
+    medium: "#7c3aed",
+    low: "#10b981",
+  }[priority] || "#64748b";
 }
 
 function SnapshotRow({ label, value }) {

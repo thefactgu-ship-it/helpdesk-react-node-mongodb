@@ -123,19 +123,22 @@ export function GroupAdminQueueKpis({ kpis, text }) {
 
   return (
     <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
-      {items.map((item) => (
+      {items.map((item) => {
+        const hasSignal = Number(item.value || 0) > 0;
+        return (
         <div
           key={item.label}
-          className="ops-soft-kpi p-3"
+          className={`ops-soft-kpi p-3 ${hasSignal ? "ops-soft-kpi-signal" : "ops-soft-kpi-muted"}`}
         >
-          <p className={`text-2xl font-black text-slate-950 dark:text-white ${item.tone}`}>
+          <p className={`${hasSignal ? "text-3xl" : "text-2xl"} font-black text-slate-950 dark:text-white ${item.tone}`}>
             {item.value.toLocaleString()}
           </p>
           <p className="mt-1 break-words text-xs font-bold text-slate-500 dark:text-slate-400">
             {item.label}
           </p>
         </div>
-      ))}
+      );
+      })}
     </div>
   );
 }
@@ -161,7 +164,7 @@ function GroupAdminControlRow({
 
   return (
     <tr
-      className="ops-table-row"
+      className={`ops-table-row ${getControlRowAccentClass(ticket)}`}
       onClick={() => onOpenDrawer(ticket)}
     >
       <td className="max-w-xs px-3 py-4">
@@ -214,6 +217,13 @@ function GroupAdminControlRow({
   );
 }
 
+function getControlRowAccentClass(ticket) {
+  if (isOverdue(ticket)) return "ops-row-accent-rose";
+  if (["critical", "high"].includes(ticket.priority)) return "ops-row-accent-amber";
+  if (!ticket.assignedTo) return "ops-row-accent-emerald";
+  return "";
+}
+
 function GroupAdminMobileControlCard({
   assigningTicketId,
   deleteTicket,
@@ -235,7 +245,7 @@ function GroupAdminMobileControlCard({
 
   return (
     <article
-      className="ops-card cursor-pointer"
+      className={`ops-card cursor-pointer ${getControlRowAccentClass(ticket)}`}
       onClick={() => onOpenDrawer(ticket)}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">

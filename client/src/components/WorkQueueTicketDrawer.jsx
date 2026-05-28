@@ -89,7 +89,7 @@ function WorkQueueTicketDrawer({
       title={ticket.title}
     >
       <div className="space-y-5">
-        <Card className="border-purple-100/80 bg-purple-50/70 text-sm leading-6 text-purple-950 dark:border-purple-400/10 dark:bg-purple-500/10 dark:text-purple-100">
+        <Card className="border-slate-200/80 bg-white/90 text-sm leading-6 text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200">
           <p className="font-black">{drawerText.roleTitle}</p>
           <p className="mt-1">{drawerText.roleDescription}</p>
         </Card>
@@ -323,7 +323,7 @@ function AgentQuickUpdatePanel({
 
 function DrawerField({ children, label }) {
   return (
-    <div className="min-w-0 rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-[0_10px_26px_rgba(76,29,149,0.06)] backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5">
+    <div className="min-w-0 rounded-lg border border-slate-200/80 bg-white/90 p-3 shadow-[0_10px_26px_rgba(15,23,42,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
       <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-400">
         {label}
       </p>
@@ -334,7 +334,7 @@ function DrawerField({ children, label }) {
 
 function DrawerMeta({ label, value }) {
   return (
-    <div className="rounded-lg border border-purple-100/80 bg-white/90 p-3 shadow-[0_10px_26px_rgba(76,29,149,0.06)] backdrop-blur-sm dark:border-purple-400/10 dark:bg-white/5">
+    <div className="rounded-lg border border-slate-200/80 bg-white/90 p-3 shadow-[0_10px_26px_rgba(15,23,42,0.04)] backdrop-blur-sm dark:border-white/10 dark:bg-white/5">
       <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">
         {label}
       </p>

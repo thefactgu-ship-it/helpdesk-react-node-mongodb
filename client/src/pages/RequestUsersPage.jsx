@@ -42,9 +42,9 @@ function RequestUsersPage({ users }) {
       </section>
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <SummaryCard label="Requesters" value={requesters.length} />
-        <SummaryCard label="Departments" value={Math.max(teams.length - 1, 0)} />
-        <SummaryCard label="Visible" value={filteredRequesters.length} />
+        <SummaryCard label="Requesters" tone="emerald" value={requesters.length} />
+        <SummaryCard label="Departments" tone="amber" value={Math.max(teams.length - 1, 0)} />
+        <SummaryCard label="Visible" tone="slate" value={filteredRequesters.length} />
       </section>
 
       <section className="ops-panel md:p-6">
@@ -79,11 +79,11 @@ function RequestUsersPage({ users }) {
                   <h4 className="break-words text-base font-black text-slate-950 dark:text-white">
                     {user.name}
                   </h4>
-                  <p className="mt-1 break-words text-sm font-semibold text-purple-700 dark:text-purple-200">
+                  <p className="mt-1 break-words text-sm font-semibold text-slate-600 dark:text-slate-300">
                     {user.email}
                   </p>
                 </div>
-                <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-bold text-purple-700 ring-1 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20">
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20">
                   {user.role}
                 </span>
               </div>
@@ -133,14 +133,14 @@ function RequestUsersPage({ users }) {
                       ID: {user._id || user.id}
                     </div>
                   </td>
-                  <td className="max-w-64 break-words px-3 font-semibold text-purple-700 dark:text-purple-200">
+                  <td className="max-w-64 break-words px-3 font-semibold text-slate-600 dark:text-slate-300">
                     {user.email}
                   </td>
                   <td className="max-w-56 break-words px-3 text-slate-600 dark:text-slate-300">
                     {user.departmentId?.name || user.departmentName || user.team || "Support"}
                   </td>
                   <td className="px-3">
-                    <span className="rounded-full bg-purple-50 px-3 py-1 text-xs font-bold text-purple-700 ring-1 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20">
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20">
                       {user.role}
                     </span>
                   </td>
@@ -165,13 +165,19 @@ function RequestUsersPage({ users }) {
   );
 }
 
-function SummaryCard({ label, value }) {
+function SummaryCard({ label, tone = "slate", value }) {
+  const valueClass = {
+    amber: "text-amber-700 dark:text-amber-200",
+    emerald: "text-emerald-700 dark:text-emerald-200",
+    slate: "text-slate-900 dark:text-white",
+  }[tone];
+
   return (
     <div className="ops-soft-kpi p-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
         {label}
       </p>
-      <h3 className="mt-4 text-2xl font-black text-slate-900 dark:text-white">
+      <h3 className={`mt-4 text-2xl font-black ${valueClass}`}>
         {value}
       </h3>
     </div>
@@ -180,7 +186,7 @@ function SummaryCard({ label, value }) {
 
 function MobileMeta({ label, value }) {
   return (
-    <div className="rounded-lg border border-purple-100/70 bg-white/90 p-3 dark:border-purple-400/10 dark:bg-white/5">
+    <div className="rounded-lg border border-slate-200/80 bg-white/90 p-3 dark:border-white/10 dark:bg-white/5">
       <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
         {label}
       </dt>
