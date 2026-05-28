@@ -407,8 +407,8 @@ function AssetManagementPage({ currentUser, hotelId = "all", t = (key) => key, t
                     <MobileMeta label={t("settings.asset.serial")} value={asset.serialNumber} />
                     <MobileMeta label={t("settings.asset.owner")} value={asset.owner || "-"} />
                     <MobileMeta label={t("settings.asset.age")} value={formatAge(asset.lifeCycle?.ageMonths, t)} />
-                    <div className="rounded-lg bg-white p-3 dark:bg-slate-950">
-                      <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+                    <div className="ops-meta-card">
+                      <dt className="ops-meta-label">
                         {t("settings.asset.lifecycle")}
                       </dt>
                       <dd className="mt-1">
@@ -570,8 +570,8 @@ function AssetDetailModal({
               />
             </div>
             {asset.lifeCycle?.notes && (
-              <div className="mt-3 rounded-lg border border-slate-200/80 bg-white/90 p-3 text-sm text-slate-600 shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
-                <p className="mb-1 text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <div className="ops-meta-card mt-3 text-sm text-slate-600 dark:text-slate-300">
+                <p className="ops-meta-label mb-1">
                   {t("settings.asset.notes")}
                 </p>
                 {asset.lifeCycle.notes}
@@ -780,11 +780,11 @@ function Field({ children, className = "", label }) {
 
 function InfoItem({ label, value }) {
   return (
-    <div className="rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800">
-      <p className="text-[11px] uppercase tracking-wide text-slate-500 dark:text-slate-400">
+    <div className="ops-meta-card">
+      <p className="ops-meta-label">
         {label}
       </p>
-      <p className="mt-1 text-sm font-semibold text-slate-900 dark:text-white">
+      <p className="ops-meta-value text-sm">
         {value}
       </p>
     </div>
@@ -793,11 +793,11 @@ function InfoItem({ label, value }) {
 
 function MobileMeta({ label, value }) {
   return (
-    <div className="rounded-lg bg-white p-3 dark:bg-slate-950">
-      <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+    <div className="ops-meta-card">
+      <dt className="ops-meta-label">
         {label}
       </dt>
-      <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
+      <dd className="ops-meta-value">
         {value}
       </dd>
     </div>

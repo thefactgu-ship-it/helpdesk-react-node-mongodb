@@ -212,7 +212,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, t = (key) => key, to
               />
             </Field>
 
-            <label className="flex items-center gap-3 rounded-lg border border-slate-200/80 bg-white/90 px-4 py-3 text-sm font-semibold text-slate-700 backdrop-blur-sm dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+            <label className="ops-form-toggle">
               <input
                 type="checkbox"
                 checked={form.active}
@@ -402,11 +402,11 @@ function StatusBadge({ active, t = (key) => key }) {
 
 function MobileMeta({ label, value }) {
   return (
-    <div className="rounded-lg border border-slate-200/80 bg-white/90 p-3 dark:border-white/10 dark:bg-white/5">
-      <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+    <div className="ops-meta-card">
+      <dt className="ops-meta-label">
         {label}
       </dt>
-      <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
+      <dd className="ops-meta-value">
         {value}
       </dd>
     </div>
