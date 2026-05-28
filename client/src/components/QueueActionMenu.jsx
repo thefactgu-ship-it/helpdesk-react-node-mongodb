@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { MoreVertical } from "lucide-react";
 
 function QueueActionMenu({
@@ -14,7 +15,7 @@ function QueueActionMenu({
   t,
 }) {
   const buttonRef = useRef(null);
-  const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 });
+  const [menuPosition, setMenuPosition] = useState(null);
   const fullDetailLabel = pickText(t, "queue.actions.fullDetail", "Full detail");
   const actionCount = canDelete ? 3 : 2;
 
@@ -24,6 +25,10 @@ function QueueActionMenu({
     const updatePosition = () => {
       const rect = buttonRef.current?.getBoundingClientRect();
       if (!rect) return;
+      if (!rect.width && !rect.height) {
+        setMenuPosition(null);
+        return;
+      }
 
       const menuWidth = 176;
       const menuHeight = Math.max(48, actionCount * 40 + 8);
@@ -50,30 +55,17 @@ function QueueActionMenu({
     };
   }, [actionCount, open]);
 
-  return (
-    <div className="flex justify-end">
-      <button
-        ref={buttonRef}
-        type="button"
-        aria-label={t("queue.action")}
-        aria-expanded={open}
-        disabled={disabled && !canOpenDetails && !canDelete}
-        onClick={onToggle}
-        className="ops-icon-button"
-      >
-        <MoreVertical size={17} strokeWidth={2.4} />
-      </button>
-
-      {open && (
+  const menu = open && menuPosition
+    ? createPortal(
         <>
           <button
             type="button"
             aria-label={t("common.close")}
-            className="fixed inset-0 z-10 cursor-default bg-transparent"
+            className="fixed inset-0 z-[9998] cursor-default bg-transparent"
             onClick={onToggle}
           />
           <div
-            className="ops-menu-panel fixed z-50 w-44"
+            className="ops-menu-panel fixed z-[9999] w-44"
             style={menuPosition}
             role="menu"
           >
@@ -115,8 +107,25 @@ function QueueActionMenu({
               </button>
             )}
           </div>
-        </>
-      )}
+        </>,
+        document.body,
+      )
+    : null;
+
+  return (
+    <div className="flex justify-end">
+      <button
+        ref={buttonRef}
+        type="button"
+        aria-label={t("queue.action")}
+        aria-expanded={open}
+        disabled={disabled && !canOpenDetails && !canDelete}
+        onClick={onToggle}
+        className="ops-icon-button"
+      >
+        <MoreVertical size={17} strokeWidth={2.4} />
+      </button>
+      {menu}
     </div>
   );
 }
