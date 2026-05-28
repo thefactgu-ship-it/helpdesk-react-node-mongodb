@@ -662,6 +662,7 @@ test("requester visibility includes same-department ticket history", () => {
 
   assert.ok(departmentCondition);
   assert.equal(departmentCondition.status, undefined);
+  assert.deepEqual(departmentCondition.visibility, { $ne: "private" });
 });
 
 test("agent same-department visibility remains active-only", () => {
@@ -680,6 +681,29 @@ test("agent same-department visibility remains active-only", () => {
 
   assert.ok(departmentCondition);
   assert.deepEqual(departmentCondition.status, { $nin: ["resolved", "closed"] });
+  assert.deepEqual(departmentCondition.visibility, { $ne: "private" });
+});
+
+test("ticket visibility auto-private protects sensitive categories", () => {
+  assert.equal(
+    ticketController._private.resolveTicketVisibility({
+      title: "Reset password",
+      description: "User cannot login",
+      category: "Account",
+      canSetVisibility: false,
+    }),
+    "private"
+  );
+
+  assert.equal(
+    ticketController._private.resolveTicketVisibility({
+      requestedVisibility: "normal",
+      title: "Reset password",
+      category: "Account",
+      canSetVisibility: true,
+    }),
+    "normal"
+  );
 });
 
 test("ticket status audit actions are specific for resolved and closed states", () => {

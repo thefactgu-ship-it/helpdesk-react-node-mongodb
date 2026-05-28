@@ -66,6 +66,13 @@ const ticketSchema = new mongoose.Schema(
       default: "medium",
     },
 
+    visibility: {
+      type: String,
+      enum: ["normal", "private"],
+      default: "normal",
+      index: true,
+    },
+
     criticalRequested: {
       type: Boolean,
       default: false,
@@ -220,6 +227,7 @@ ticketSchema.index({ hotelId: 1, assignedTo: 1, createdAt: -1 });
 ticketSchema.index({ hotelId: 1, createdBy: 1, createdAt: -1 });
 ticketSchema.index({ hotelId: 1, requesterUserId: 1, createdAt: -1 });
 ticketSchema.index({ hotelId: 1, departmentId: 1, createdAt: -1 });
+ticketSchema.index({ hotelId: 1, visibility: 1, departmentId: 1, createdAt: -1 });
 ticketSchema.index({ hotelId: 1, category: 1, createdAt: -1 });
 
 ticketSchema.virtual("isOverdue").get(function () {

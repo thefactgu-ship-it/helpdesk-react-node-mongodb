@@ -44,6 +44,10 @@ const createTicketValidationRules = () => [
     .optional()
     .isIn(["low", "medium", "high", "critical"])
     .withMessage("Invalid priority level"),
+  body("visibility")
+    .optional()
+    .isIn(["normal", "private"])
+    .withMessage("Invalid ticket visibility"),
   body("criticalRequested")
     .optional()
     .isBoolean()
@@ -108,6 +112,10 @@ const updateTicketValidationRules = () => [
     .optional()
     .isIn(["low", "medium", "high", "critical"])
     .withMessage("Invalid priority level"),
+  body("visibility")
+    .optional()
+    .isIn(["normal", "private"])
+    .withMessage("Invalid ticket visibility"),
   body("criticalRequested")
     .optional()
     .isBoolean()

@@ -41,6 +41,33 @@ const IMAGE_CONTENT_TYPES = {
   ".webp": "image/webp",
 };
 
+const TICKET_VISIBILITY = Object.freeze({
+  NORMAL: "normal",
+  PRIVATE: "private",
+});
+
+const SENSITIVE_TICKET_KEYWORDS = [
+  "password",
+  "reset",
+  "credential",
+  "account",
+  "access",
+  "permission",
+  "mfa",
+  "2fa",
+  "security",
+  "cctv",
+  "hr",
+  "payroll",
+  "salary",
+  "รหัสผ่าน",
+  "รีเซ็ต",
+  "สิทธิ์",
+  "บัญชี",
+  "ความปลอดภัย",
+  "เงินเดือน",
+];
+
 function getUserId(user) {
   return String(user?._id || user?.id || "");
 }
@@ -81,6 +108,29 @@ function getUserDepartmentId(user) {
 
 function normalizeName(value) {
   return String(value || "").trim();
+}
+
+function normalizeTicketVisibility(value) {
+  return value === TICKET_VISIBILITY.PRIVATE
+    ? TICKET_VISIBILITY.PRIVATE
+    : TICKET_VISIBILITY.NORMAL;
+}
+
+function shouldAutoPrivateTicket({ title = "", description = "", category = "" } = {}) {
+  const content = `${title} ${description} ${category}`.toLowerCase();
+  return SENSITIVE_TICKET_KEYWORDS.some((keyword) => content.includes(keyword.toLowerCase()));
+}
+
+function resolveTicketVisibility({ requestedVisibility, canSetVisibility, title, description, category }) {
+  if (canSetVisibility && requestedVisibility !== undefined) {
+    return normalizeTicketVisibility(requestedVisibility);
+  }
+
+  if (shouldAutoPrivateTicket({ title, description, category })) {
+    return TICKET_VISIBILITY.PRIVATE;
+  }
+
+  return TICKET_VISIBILITY.NORMAL;
 }
 
 function isOwnTicket(user, ticket) {
@@ -150,7 +200,10 @@ function buildTicketVisibilityQuery(user) {
   }
 
   if (departmentQuery.length) {
-    const departmentVisibility = { $or: departmentQuery };
+    const departmentVisibility = {
+      visibility: { $ne: TICKET_VISIBILITY.PRIVATE },
+      $or: departmentQuery,
+    };
 
     if (user?.role !== "User") {
       departmentVisibility.status = { $nin: ["resolved", "closed"] };
@@ -534,6 +587,7 @@ async function createTicket(req, res) {
       department = "IT",
       departmentId,
       priority = "medium",
+      visibility,
       criticalRequested = false,
       dueDate,
       assignedTo,
@@ -598,6 +652,13 @@ async function createTicket(req, res) {
       ? new Date(dueDate)
       : new Date(Date.now() + slaHours * 3600000);
     const status = assignedUser ? "in_progress" : "open";
+    const ticketVisibility = resolveTicketVisibility({
+      requestedVisibility: visibility,
+      canSetVisibility: managerCanTriage,
+      title,
+      description,
+      category: problemType.name,
+    });
 
     // Create ticket
     const ticket = await Ticket.create({
@@ -612,6 +673,7 @@ async function createTicket(req, res) {
       departmentId: selectedDepartment?._id || null,
       departmentName: selectedDepartment?.name || department,
       priority: effectivePriority,
+      visibility: ticketVisibility,
       criticalRequested: criticalReviewRequested,
       status,
       assignedTo: assignedUser,
@@ -624,6 +686,8 @@ async function createTicket(req, res) {
           "created",
           criticalReviewRequested
             ? "Ticket created; critical review requested"
+            : ticketVisibility === TICKET_VISIBILITY.PRIVATE
+              ? "Ticket created as private"
             : "Ticket created",
           req.user.id,
         ),
@@ -675,6 +739,7 @@ async function updateTicket(req, res) {
       department,
       departmentId,
       priority,
+      visibility,
       criticalRequested,
       status,
       assignedTo,
@@ -750,6 +815,26 @@ async function updateTicket(req, res) {
       updateFields.criticalRequested = false;
       logDetails.push("Priority updated");
       generalAuditDetails.push("priority");
+    }
+    if (visibility !== undefined) {
+      if (!managerCanTriage) {
+        return res.status(403).json({ message: "Only Admin or Manager can update ticket visibility" });
+      }
+
+      updateFields.visibility = normalizeTicketVisibility(visibility);
+      logDetails.push(`Visibility changed to ${updateFields.visibility}`);
+      generalAuditDetails.push("visibility");
+    } else if (
+      existingTicket.visibility !== TICKET_VISIBILITY.PRIVATE &&
+      shouldAutoPrivateTicket({
+        title: updateFields.title || existingTicket.title,
+        description: updateFields.description || existingTicket.description,
+        category: updateFields.category || existingTicket.category,
+      })
+    ) {
+      updateFields.visibility = TICKET_VISIBILITY.PRIVATE;
+      logDetails.push("Visibility changed to private");
+      generalAuditDetails.push("visibility");
     }
     if (dueDate) {
       if (!managerCanTriage) {
@@ -1378,6 +1463,8 @@ module.exports = {
     canReopenTicket,
     canAccessTicket,
     getTicketStatusAuditAction,
+    resolveTicketVisibility,
     sanitizeRequesterListTicket,
+    shouldAutoPrivateTicket,
   },
 };
