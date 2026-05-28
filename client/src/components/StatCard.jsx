@@ -34,8 +34,8 @@ function StatCard({ bars = [30, 52, 70, 44], className = "", detail, icon, title
               key={`${height}-${index}`}
               className={`w-1.5 shrink-0 rounded-full ${
                 index === 2
-                  ? "bg-purple-600 dark:bg-purple-400"
-                  : "bg-purple-100 dark:bg-slate-700"
+                  ? "bg-teal-600 dark:bg-teal-300"
+                  : "bg-teal-100 dark:bg-slate-700"
               }`}
               style={{ height: `${height}%` }}
             />

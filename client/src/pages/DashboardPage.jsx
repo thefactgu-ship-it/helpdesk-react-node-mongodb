@@ -909,7 +909,7 @@ function RequesterPanel({ actionLabel, children, icon: Icon, onAction, title }) 
 function TicketList({ empty, emptyAction, onEmptyAction, summaryOnly = false, summaryOnlyLabel = "", tickets = [] }) {
   if (!tickets.length) {
     return (
-      <div className="rounded-xl border border-dashed border-purple-200/80 bg-white/70 p-5 text-center dark:border-purple-400/20 dark:bg-white/5">
+      <div className="rounded-xl border border-dashed border-teal-200/80 bg-white/70 p-5 text-center dark:border-teal-300/20 dark:bg-white/5">
         <p className="text-sm text-slate-500 dark:text-slate-400">{empty}</p>
         {emptyAction && onEmptyAction && (
           <button
@@ -933,7 +933,7 @@ function TicketList({ empty, emptyAction, onEmptyAction, summaryOnly = false, su
         >
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="text-xs font-bold text-purple-700 dark:text-purple-200">
+              <p className="text-xs font-bold text-teal-700 dark:text-teal-200">
                 {ticket.ticketNumber}
               </p>
               <h4 className="mt-1 line-clamp-2 text-sm font-black text-slate-950 dark:text-white">
@@ -1016,7 +1016,7 @@ function GroupAdminKpi({ detail, icon: Icon, label, tone = "purple", value }) {
 
   const toneClasses = {
     neutral: "bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300",
-    purple: "bg-purple-50 text-purple-600 dark:bg-purple-500/15 dark:text-purple-200",
+    purple: "bg-teal-50 text-teal-700 dark:bg-teal-500/15 dark:text-teal-200",
     orange: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-200",
     amber: "bg-amber-50 text-amber-600 dark:bg-amber-500/15 dark:text-amber-200",
     red: "bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-200",
@@ -1065,7 +1065,7 @@ function GroupAdminPanel({ actionLabel, children, className = "", icon: Icon, on
           <button
             type="button"
             onClick={onAction}
-            className="flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-xs font-bold text-purple-600 transition hover:text-purple-700 hover:underline dark:text-purple-200 dark:hover:text-purple-100"
+            className="flex cursor-pointer items-center gap-1 border-0 bg-transparent p-0 text-xs font-bold text-teal-700 transition hover:text-teal-800 hover:underline dark:text-teal-200 dark:hover:text-teal-100"
           >
             {actionLabel} &rarr;
           </button>
@@ -1082,7 +1082,7 @@ function GroupAdminRiskItem({ text, ticket }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-purple-700 ring-1 ring-purple-100 dark:bg-slate-950 dark:text-purple-200 dark:ring-purple-400/20">
+            <span className="rounded-full bg-white px-2.5 py-1 text-[11px] font-black text-teal-700 ring-1 ring-teal-100 dark:bg-slate-950 dark:text-teal-200 dark:ring-teal-300/20">
               {ticket.ticketNumber || "-"}
             </span>
             <span className="rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-black text-rose-700 ring-1 ring-rose-100 dark:bg-rose-500/15 dark:text-rose-200 dark:ring-rose-400/20">
@@ -1144,10 +1144,10 @@ function GroupAdminHotelCard({ hotel, text }) {
       <div className="grid grid-cols-3 divide-x divide-slate-100 dark:divide-slate-800">
         <GroupAdminMiniMetric label={text.urgentShort} value={hotel.urgent} colorClass="text-rose-500" />
         <GroupAdminMiniMetric label={text.unassignedOwner} value={hotel.unassigned} colorClass="text-amber-500" />
-        <GroupAdminMiniMetric label={text.overdueTickets} value={hotel.overdue} colorClass="text-purple-600 dark:text-purple-400" />
+        <GroupAdminMiniMetric label={text.overdueTickets} value={hotel.overdue} colorClass="text-teal-700 dark:text-teal-300" />
       </div>
 
-      <div className={`h-[3px] w-full absolute bottom-0 left-0 ${hotel.level === "attention" ? "bg-purple-600" : "bg-slate-200/50 dark:bg-slate-800"}`} />
+      <div className={`h-[3px] w-full absolute bottom-0 left-0 ${hotel.level === "attention" ? "bg-teal-600" : "bg-slate-200/50 dark:bg-slate-800"}`} />
     </article>
   );
 }
@@ -1173,7 +1173,7 @@ function GroupAdminRankList({ empty, items, total }) {
             </div>
             <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
               <div
-                className="h-full rounded-full bg-purple-600 dark:bg-purple-500"
+                className="h-full rounded-full bg-teal-600 dark:bg-teal-300"
                 style={{ width: `${Math.max(percentValue, 4)}%` }}
               />
             </div>

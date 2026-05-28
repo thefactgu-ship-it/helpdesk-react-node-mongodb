@@ -94,7 +94,7 @@
   input,
   select,
   textarea {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-purple-300 dark:focus-visible:ring-offset-slate-950;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-teal-300 dark:focus-visible:ring-offset-slate-950;
   }
 
   button,
@@ -127,11 +127,11 @@
   }
 
   .ops-topbar {
-    @apply sticky top-0 z-40 mb-5 flex min-w-0 flex-col gap-4 rounded-xl border border-purple-100/80 bg-white/90 p-4 shadow-[var(--ops-shadow-card)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/90 lg:flex-row lg:items-center lg:justify-between;
+    @apply sticky top-0 z-40 mb-5 flex min-w-0 flex-col gap-4 rounded-xl border border-teal-100/80 bg-white/90 p-4 shadow-[var(--ops-shadow-card)] backdrop-blur-md dark:border-teal-300/15 dark:bg-[#07181c]/90 lg:flex-row lg:items-center lg:justify-between;
   }
 
   .ops-context-chip {
-    @apply mt-3 inline-flex max-w-full items-center gap-3 rounded-lg border border-purple-100/90 bg-white/90 px-3 py-2 text-left shadow-[0_10px_26px_rgba(76,29,149,0.08)] backdrop-blur-sm dark:border-purple-400/15 dark:bg-purple-950/35;
+    @apply mt-3 inline-flex max-w-full items-center gap-3 rounded-lg border border-teal-100/90 bg-white/90 px-3 py-2 text-left shadow-[0_10px_26px_rgba(15,118,110,0.07)] backdrop-blur-sm dark:border-teal-300/15 dark:bg-teal-950/30;
   }
 
   .ops-sidebar {
@@ -179,19 +179,19 @@
   }
 
   .ops-surface {
-    @apply rounded-xl border border-purple-100/80 bg-white/90 shadow-[var(--ops-shadow-card)] backdrop-blur-sm dark:border-white/10 dark:bg-[#140d24]/90;
+    @apply rounded-xl border border-teal-100/80 bg-white/90 shadow-[var(--ops-shadow-card)] backdrop-blur-sm dark:border-teal-300/15 dark:bg-[#07181c]/90;
   }
 
   .ops-panel {
-    @apply rounded-xl border border-purple-100/80 bg-white/90 p-5 shadow-[var(--ops-shadow-card)] backdrop-blur-sm dark:border-white/10 dark:bg-[#140d24]/90;
+    @apply rounded-xl border border-teal-100/80 bg-white/90 p-5 shadow-[var(--ops-shadow-card)] backdrop-blur-sm dark:border-teal-300/15 dark:bg-[#07181c]/90;
   }
 
   .ops-card {
-    @apply rounded-lg border border-slate-200/80 bg-white/90 p-4 shadow-[0_8px_22px_rgba(76,29,149,0.05)] backdrop-blur-sm dark:border-white/10 dark:bg-white/5;
+    @apply rounded-lg border border-slate-200/80 bg-white/90 p-4 shadow-[0_8px_22px_rgba(15,118,110,0.05)] backdrop-blur-sm dark:border-white/10 dark:bg-white/5;
   }
 
   .ops-meta-card {
-    @apply rounded-lg border border-purple-100/80 bg-white/75 p-3 shadow-[0_8px_22px_rgba(76,29,149,0.05)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06];
+    @apply rounded-lg border border-teal-100/80 bg-white/75 p-3 shadow-[0_8px_22px_rgba(15,118,110,0.05)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06];
   }
 
   .ops-meta-label {
@@ -203,19 +203,19 @@
   }
 
   .ops-form-toggle {
-    @apply flex items-center gap-3 rounded-lg border border-purple-100/80 bg-white/75 px-4 py-3 text-sm font-semibold text-slate-700 shadow-[0_8px_22px_rgba(76,29,149,0.05)] backdrop-blur-sm transition-colors hover:border-purple-200 hover:bg-white/90 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-300 dark:hover:border-purple-400/20 dark:hover:bg-white/[0.09];
+    @apply flex items-center gap-3 rounded-lg border border-teal-100/80 bg-white/75 px-4 py-3 text-sm font-semibold text-slate-700 shadow-[0_8px_22px_rgba(15,118,110,0.05)] backdrop-blur-sm transition-colors hover:border-teal-200 hover:bg-white/90 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-300 dark:hover:border-teal-300/20 dark:hover:bg-white/[0.09];
   }
 
   .ops-segmented {
-    @apply grid rounded-lg border border-purple-100/80 bg-white/70 p-1 text-sm font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06];
+    @apply grid rounded-lg border border-teal-100/80 bg-white/70 p-1 text-sm font-bold shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06];
   }
 
   .ops-segmented-item {
-    @apply rounded-md px-4 py-2 text-slate-600 transition-colors duration-200 hover:bg-purple-50 hover:text-purple-800 dark:text-slate-300 dark:hover:bg-purple-500/10 dark:hover:text-purple-100;
+    @apply rounded-md px-4 py-2 text-slate-600 transition-colors duration-200 hover:bg-teal-50 hover:text-teal-800 dark:text-slate-300 dark:hover:bg-teal-500/10 dark:hover:text-teal-100;
   }
 
   .ops-segmented-item-active {
-    @apply bg-purple-700 text-white shadow-[0_8px_22px_rgba(109,40,217,0.16)] hover:bg-purple-700 hover:text-white dark:bg-purple-500 dark:text-white dark:hover:bg-purple-500;
+    @apply bg-teal-700 text-white shadow-[0_8px_22px_rgba(15,118,110,0.16)] hover:bg-teal-700 hover:text-white dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-500;
   }
 
   .ops-danger-button {
@@ -223,24 +223,24 @@
   }
 
   .ops-table-header-row {
-    @apply border-b border-purple-100/80 text-xs uppercase tracking-wide text-slate-500 dark:border-white/10 dark:text-slate-400;
+    @apply border-b border-teal-100/80 text-xs uppercase tracking-wide text-slate-500 dark:border-white/10 dark:text-slate-400;
   }
 
   .ops-dashboard-hero {
-    @apply relative overflow-hidden rounded-xl border border-purple-100/80 bg-white/90 p-5 shadow-[var(--ops-shadow-soft)] backdrop-blur-md dark:border-white/10 dark:bg-[#140d24]/90;
+    @apply relative overflow-hidden rounded-xl border border-teal-100/80 bg-white/90 p-5 shadow-[0_14px_38px_rgba(15,118,110,0.08)] backdrop-blur-md dark:border-teal-300/15 dark:bg-[#07181c]/90;
   }
 
   .ops-dashboard-hero::before {
     content: "";
-    @apply pointer-events-none absolute inset-x-0 top-0 h-px bg-purple-300/50 dark:bg-purple-300/20;
+    @apply pointer-events-none absolute inset-x-0 top-0 h-px bg-teal-300/55 dark:bg-teal-200/20;
   }
 
   .ops-hero-banner {
     @apply relative overflow-hidden rounded-xl border border-white/15 p-5 text-white shadow-[var(--ops-shadow-hero)] md:p-6;
     background:
-      radial-gradient(ellipse 72% 58% at 100% 0%, rgba(192, 132, 252, 0.34), transparent 56%),
-      radial-gradient(ellipse 48% 38% at 0% 100%, rgba(124, 58, 237, 0.34), transparent 52%),
-      linear-gradient(135deg, #1d0a34 0%, #34135f 42%, #581c87 100%);
+      radial-gradient(ellipse 72% 58% at 100% 0%, rgba(45, 212, 191, 0.3), transparent 56%),
+      radial-gradient(ellipse 48% 38% at 0% 100%, rgba(16, 185, 129, 0.26), transparent 52%),
+      linear-gradient(135deg, #06181c 0%, #0a1f23 48%, #0f766e 100%);
   }
 
   .ops-hero-banner::before {
@@ -250,7 +250,7 @@
   }
 
   .ops-hero-eyebrow {
-    @apply relative inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-purple-100 backdrop-blur-md;
+    @apply relative inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-bold text-teal-50 backdrop-blur-md;
   }
 
   .ops-hero-title {
@@ -258,7 +258,7 @@
   }
 
   .ops-hero-description {
-    @apply relative mt-2 max-w-2xl text-sm leading-6 text-purple-100/90;
+    @apply relative mt-2 max-w-2xl text-sm leading-6 text-teal-50/90;
   }
 
   .ops-hero-actions {
@@ -266,7 +266,7 @@
   }
 
   .ops-hero-primary {
-    @apply inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-lg bg-white/95 px-4 py-3 text-sm font-black text-purple-950 shadow-[0_6px_18px_rgba(0,0,0,0.08)] backdrop-blur-sm transition-colors duration-200 hover:bg-white sm:col-span-3;
+    @apply inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-lg bg-white/95 px-4 py-3 text-sm font-black text-teal-950 shadow-[0_6px_18px_rgba(0,0,0,0.08)] backdrop-blur-sm transition-colors duration-200 hover:bg-white sm:col-span-3;
   }
 
   .ops-hero-secondary {
@@ -274,7 +274,7 @@
   }
 
   .ops-hero-link {
-    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold text-purple-100 transition-colors duration-200 hover:bg-white/10 hover:text-white;
+    @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs font-bold text-teal-50 transition-colors duration-200 hover:bg-white/10 hover:text-white;
   }
 
   .ops-empty-state {
@@ -282,11 +282,11 @@
   }
 
   .ops-empty-state-icon {
-    @apply grid h-14 w-14 place-items-center rounded-xl border border-purple-100 bg-white/95 text-purple-500 shadow-[0_10px_28px_rgba(109,40,217,0.1)] dark:border-white/10 dark:bg-white/5 dark:text-purple-200;
+    @apply grid h-14 w-14 place-items-center rounded-xl border border-teal-100 bg-white/95 text-teal-600 shadow-[0_10px_28px_rgba(15,118,110,0.09)] dark:border-teal-300/15 dark:bg-white/5 dark:text-teal-200;
   }
 
   .ops-kpi-accent-purple {
-    @apply border-t-4 border-t-violet-600;
+    @apply border-t-4 border-t-teal-500;
   }
 
   .ops-kpi-accent-amber {
@@ -306,19 +306,19 @@
   }
 
   .ops-soft-panel {
-    @apply rounded-xl border border-purple-100/85 bg-white/90 p-5 shadow-[var(--ops-shadow-soft)] backdrop-blur-sm dark:border-white/10 dark:bg-[#140d24]/90;
+    @apply rounded-xl border border-teal-100/80 bg-white/90 p-5 shadow-[0_12px_34px_rgba(15,118,110,0.07)] backdrop-blur-sm dark:border-teal-300/15 dark:bg-[#07181c]/90;
   }
 
   .ops-soft-card {
-    @apply cursor-default rounded-lg border border-slate-200/80 bg-white/90 p-4 shadow-[0_8px_24px_rgba(76,29,149,0.05)] backdrop-blur-sm transition-[box-shadow,border-color,background-color] duration-200 hover:border-purple-200 hover:bg-white/95 hover:shadow-[0_12px_32px_rgba(109,40,217,0.1)] dark:border-white/10 dark:bg-white/5 dark:hover:border-white/15 dark:hover:bg-white/10;
+    @apply cursor-default rounded-lg border border-slate-200/80 bg-white/90 p-4 shadow-[0_8px_24px_rgba(15,118,110,0.05)] backdrop-blur-sm transition-[box-shadow,border-color,background-color] duration-200 hover:border-teal-200 hover:bg-white/95 hover:shadow-[0_12px_32px_rgba(15,118,110,0.1)] dark:border-white/10 dark:bg-white/5 dark:hover:border-teal-300/20 dark:hover:bg-white/10;
   }
 
   .ops-soft-kpi {
-    @apply relative rounded-xl border border-purple-100/85 bg-white/90 p-4 shadow-[var(--ops-shadow-card)] backdrop-blur-sm transition-[box-shadow,border-color,background-color] duration-200 hover:border-purple-200 hover:bg-white/95 hover:shadow-[0_16px_40px_rgba(109,40,217,0.11)] dark:border-white/10 dark:bg-[#140d24]/90 dark:hover:border-white/15 dark:hover:bg-[#1b132e]/90;
+    @apply relative rounded-xl border border-teal-100/80 bg-white/90 p-4 shadow-[0_10px_28px_rgba(15,118,110,0.07)] backdrop-blur-sm transition-[box-shadow,border-color,background-color] duration-200 hover:border-teal-200 hover:bg-white/95 hover:shadow-[0_16px_40px_rgba(15,118,110,0.11)] dark:border-teal-300/15 dark:bg-[#07181c]/90 dark:hover:border-teal-300/25 dark:hover:bg-[#0a1f23]/90;
   }
 
   .ops-soft-kpi-signal {
-    @apply border-purple-200/90 bg-white/95 shadow-[0_18px_42px_rgba(76,29,149,0.12)] dark:border-purple-300/20 dark:bg-[#1b132e]/95;
+    @apply border-teal-200/90 bg-white/95 shadow-[0_18px_42px_rgba(15,118,110,0.11)] dark:border-teal-300/25 dark:bg-[#0a1f23]/95;
   }
 
   .ops-soft-kpi-muted {
@@ -326,7 +326,7 @@
   }
 
   .ops-row-accent-purple {
-    @apply border-l-4 border-l-purple-500;
+    @apply border-l-4 border-l-teal-500;
   }
 
   .ops-row-accent-amber {
@@ -342,7 +342,7 @@
   }
 
   .ops-soft-icon {
-    @apply grid shrink-0 place-items-center rounded-lg border border-purple-100 bg-purple-50 text-purple-600 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] dark:border-purple-400/20 dark:bg-purple-500/15 dark:text-purple-200;
+    @apply grid shrink-0 place-items-center rounded-lg border border-teal-100 bg-teal-50 text-teal-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] dark:border-teal-300/20 dark:bg-teal-500/15 dark:text-teal-200;
   }
 
   .ops-chip {
@@ -350,7 +350,7 @@
   }
 
   .ops-chip-primary {
-    @apply inline-flex items-center gap-2 rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-xs font-black text-purple-800 dark:border-purple-400/20 dark:bg-purple-500/15 dark:text-purple-100;
+    @apply inline-flex items-center gap-2 rounded-full border border-teal-200 bg-teal-50 px-3 py-1 text-xs font-black text-teal-800 dark:border-teal-300/20 dark:bg-teal-500/15 dark:text-teal-100;
   }
 
   .ops-icon {
@@ -358,35 +358,35 @@
   }
 
   .ops-icon-primary {
-    @apply grid shrink-0 place-items-center rounded-lg bg-purple-50 text-purple-700 ring-1 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20;
+    @apply grid shrink-0 place-items-center rounded-lg bg-teal-50 text-teal-700 ring-1 ring-teal-100 dark:bg-teal-500/15 dark:text-teal-200 dark:ring-teal-300/20;
   }
 
   .ops-button-primary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-purple-700 px-4 py-2 text-sm font-black text-white shadow-sm transition-colors duration-200 hover:bg-purple-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-purple-500 dark:hover:bg-purple-400;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-teal-700 px-4 py-2 text-sm font-black text-white shadow-sm transition-colors duration-200 hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400;
   }
 
   .ops-button-secondary {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition-colors duration-200 hover:border-purple-300 hover:bg-purple-50 hover:text-purple-800 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-purple-400 dark:hover:bg-slate-800 dark:hover:text-purple-100;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition-colors duration-200 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-800 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-teal-400 dark:hover:bg-slate-800 dark:hover:text-teal-100;
   }
 
   .ops-icon-button {
-    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-purple-100 bg-white/90 text-slate-600 shadow-sm backdrop-blur-sm transition-[border-color,background-color,color,box-shadow] duration-200 hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-purple-400/25 dark:hover:bg-purple-500/10 dark:hover:text-purple-200;
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-teal-100 bg-white/90 text-slate-600 shadow-sm backdrop-blur-sm transition-[border-color,background-color,color,box-shadow] duration-200 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:border-teal-300/25 dark:hover:bg-teal-500/10 dark:hover:text-teal-200;
   }
 
   .ops-input {
-    @apply w-full min-w-0 rounded-lg border border-purple-100/90 bg-white/90 px-4 py-3 text-sm text-slate-900 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-colors duration-200 placeholder:text-slate-400 focus:border-purple-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-purple-400/15 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-purple-400;
+    @apply w-full min-w-0 rounded-lg border border-teal-100/90 bg-white/90 px-4 py-3 text-sm text-slate-900 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-colors duration-200 placeholder:text-slate-400 focus:border-teal-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-teal-300/15 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-teal-400;
   }
 
   .ops-table-row {
-    @apply cursor-pointer border-b border-slate-200 transition-colors duration-150 last:border-0 hover:bg-purple-50/45 dark:border-slate-800 dark:hover:bg-slate-800/80;
+    @apply cursor-pointer border-b border-slate-200 transition-colors duration-150 last:border-0 hover:bg-teal-50/45 dark:border-slate-800 dark:hover:bg-teal-500/10;
   }
 
   .ops-menu-panel {
-    @apply overflow-hidden rounded-xl border border-purple-100/90 bg-white/95 p-1.5 shadow-[0_18px_44px_rgba(29,10,52,0.18)] backdrop-blur-md dark:border-white/10 dark:bg-[#140d24]/95;
+    @apply overflow-hidden rounded-xl border border-teal-100/90 bg-white/95 p-1.5 shadow-[0_18px_44px_rgba(6,78,59,0.16)] backdrop-blur-md dark:border-teal-300/15 dark:bg-[#07181c]/95;
   }
 
   .ops-menu-item {
-    @apply w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 transition-colors duration-150 hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-purple-500/10 dark:hover:text-purple-200 dark:disabled:text-slate-600;
+    @apply w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 transition-colors duration-150 hover:bg-teal-50 hover:text-teal-700 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-teal-500/10 dark:hover:text-teal-200 dark:disabled:text-slate-600;
   }
 
   .ops-menu-item-danger {

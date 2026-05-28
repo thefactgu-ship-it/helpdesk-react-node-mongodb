@@ -220,7 +220,7 @@ function buildAgentDashboardData(tickets, currentUserId) {
 function AgentKpi({ detail, icon: Icon, label, tone = "purple", value }) {
   const toneClasses = {
     amber: "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200",
-    purple: "bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200",
+    purple: "bg-teal-50 text-teal-700 dark:bg-teal-500/15 dark:text-teal-200",
     emerald: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200",
     rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
   };
@@ -280,7 +280,7 @@ function AgentTicketItem({ actionDisabled = false, actionLabel, compact = false,
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-black text-purple-700 ring-1 ring-purple-100 dark:bg-white/5 dark:text-purple-200 dark:ring-purple-400/20">
+            <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-black text-teal-700 ring-1 ring-teal-100 dark:bg-white/5 dark:text-teal-200 dark:ring-teal-300/20">
               {ticket.ticketNumber || "-"}
             </span>
             <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ring-1 ${getAgentRiskClass(ticket)}`}>
@@ -358,7 +358,7 @@ function getAgentRiskClass(ticket) {
   if (isDueSoon(ticket) || ["critical", "high"].includes(ticket.priority)) {
     return "bg-amber-50 text-amber-700 ring-amber-100 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/20";
   }
-  return "bg-purple-50 text-purple-700 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20";
+  return "bg-teal-50 text-teal-700 ring-teal-100 dark:bg-teal-500/15 dark:text-teal-200 dark:ring-teal-300/20";
 }
 
 function formatDate(value) {

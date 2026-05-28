@@ -176,7 +176,7 @@ function ManagerOperationsDashboard({
         <section className="space-y-4">
           <div>
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-purple-700 dark:text-purple-200">
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-teal-700 dark:text-teal-200">
                 {text.analyticsEyebrow}
               </p>
               <h3 className="mt-1 text-lg font-black text-slate-950 dark:text-white">
@@ -236,7 +236,7 @@ function buildManagerDashboardData(tickets, text) {
 function ManagerKpi({ detail, icon: Icon, label, tone = "purple", value }) {
   const toneClasses = {
     amber: "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200",
-    purple: "bg-purple-50 text-purple-700 dark:bg-purple-500/15 dark:text-purple-200",
+    purple: "bg-teal-50 text-teal-700 dark:bg-teal-500/15 dark:text-teal-200",
     rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
   };
 
@@ -295,7 +295,7 @@ function ManagerTicketItem({ text, ticket }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-black text-purple-700 ring-1 ring-purple-100 dark:bg-white/5 dark:text-purple-200 dark:ring-purple-400/20">
+            <span className="rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-black text-teal-700 ring-1 ring-teal-100 dark:bg-white/5 dark:text-teal-200 dark:ring-teal-300/20">
               {ticket.ticketNumber || "-"}
             </span>
             <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-black text-amber-700 ring-1 ring-amber-100 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/20">
@@ -341,7 +341,7 @@ function ManagerRankList({ empty, items, total }) {
             </div>
             <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
               <div
-                className="h-full rounded-full bg-purple-600 dark:bg-purple-300"
+                className="h-full rounded-full bg-teal-600 dark:bg-teal-300"
                 style={{ width: `${Math.max(percentValue, 4)}%` }}
               />
             </div>

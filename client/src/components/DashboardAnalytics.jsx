@@ -248,7 +248,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
     gridColor,
     accent,
     tooltipClass:
-      "rounded-xl border border-purple-100/90 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(29,10,52,0.16)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95 dark:text-slate-200",
+      "rounded-xl border border-teal-100/90 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(6,78,59,0.14)] backdrop-blur-md dark:border-teal-300/15 dark:bg-[#07181c]/95 dark:text-slate-200",
   };
 
   return (
@@ -467,13 +467,13 @@ function DashboardAnalytics({ darkMode, tickets }) {
               <span>50%</span>
               <span>100%</span>
             </div>
-            <div className="relative h-5 rounded-full bg-purple-100/70 dark:bg-purple-400/10">
+            <div className="relative h-5 rounded-full bg-teal-100/70 dark:bg-teal-400/10">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-purple-600 via-fuchsia-400 to-emerald-300"
+                className="h-full rounded-full bg-gradient-to-r from-teal-700 via-teal-400 to-emerald-300"
                 style={{ width: `${data.completionStats.successRate}%` }}
               />
               <div
-                className="absolute top-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-4 border-white bg-purple-600 text-sm font-bold text-white shadow-lg dark:border-slate-950"
+                className="absolute top-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-4 border-white bg-teal-700 text-sm font-bold text-white shadow-lg dark:border-slate-950 dark:bg-teal-400 dark:text-slate-950"
                 style={{ left: `${Math.max(8, data.completionStats.successRate)}%` }}
               >
                 {data.completionStats.successRate}
@@ -580,9 +580,9 @@ function ProgressRow({ label, percent, value }) {
           {value.toLocaleString()} / {percent}%
         </span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-purple-100/70 dark:bg-purple-400/10">
+      <div className="h-3 overflow-hidden rounded-full bg-teal-100/70 dark:bg-teal-400/10">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-purple-600 to-purple-300"
+          className="h-full rounded-full bg-gradient-to-r from-teal-700 to-teal-300"
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -593,7 +593,7 @@ function ProgressRow({ label, percent, value }) {
 function LegendDot({ label }) {
   return (
     <span className="inline-flex items-center gap-2">
-      <span className="h-2.5 w-2.5 rounded-full bg-purple-600" />
+      <span className="h-2.5 w-2.5 rounded-full bg-teal-600" />
       {label}
     </span>
   );
@@ -603,7 +603,7 @@ function ChartTooltip({ active, label, payload }) {
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="rounded-xl border border-purple-100/90 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(29,10,52,0.16)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95 dark:text-slate-200">
+    <div className="rounded-xl border border-teal-100/90 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(6,78,59,0.14)] backdrop-blur-md dark:border-teal-300/15 dark:bg-[#07181c]/95 dark:text-slate-200">
       <p className="font-semibold">{label}</p>
       <p>{payload[0].value.toLocaleString()} tickets</p>
     </div>
@@ -621,7 +621,7 @@ function EmptyState({ message }) {
 function AnalyticsFocusChip({ icon: Icon, label, tone = "purple", value }) {
   const toneClasses = {
     amber: "bg-amber-50 text-amber-700 ring-amber-100 dark:bg-amber-500/15 dark:text-amber-200 dark:ring-amber-400/20",
-    purple: "bg-purple-50 text-purple-700 ring-purple-100 dark:bg-purple-500/15 dark:text-purple-200 dark:ring-purple-400/20",
+    purple: "bg-teal-50 text-teal-700 ring-teal-100 dark:bg-teal-500/15 dark:text-teal-200 dark:ring-teal-300/20",
     emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100 dark:bg-emerald-500/15 dark:text-emerald-200 dark:ring-emerald-400/20",
   };
 
