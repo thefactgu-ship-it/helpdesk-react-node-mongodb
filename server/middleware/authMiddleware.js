@@ -22,7 +22,7 @@ const authMiddleware = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id).select(
-      "email role team departmentId departmentName hotelId hotelAccess regions passwordChangedAt active"
+      "email role team departmentId departmentName hotelId hotelAccess regions passwordChangedAt mustChangePassword active"
     );
 
     if (!user) {
@@ -55,7 +55,20 @@ const authMiddleware = async (req, res, next) => {
       hotelId: user.hotelId ? String(user.hotelId) : null,
       hotelAccess: (user.hotelAccess || []).map((hotelId) => String(hotelId)),
       regions: user.regions || [],
+      mustChangePassword: Boolean(user.mustChangePassword),
     };
+
+    const passwordChangeAllowedPath = req.path === "/me" || req.path === "/me/password";
+    if (user.mustChangePassword && req.baseUrl === "/api/auth" && passwordChangeAllowedPath) {
+      return next();
+    }
+
+    if (user.mustChangePassword) {
+      return res.status(403).json({
+        code: "PASSWORD_CHANGE_REQUIRED",
+        message: "Password change required before continuing",
+      });
+    }
 
     next();
   } catch (error) {

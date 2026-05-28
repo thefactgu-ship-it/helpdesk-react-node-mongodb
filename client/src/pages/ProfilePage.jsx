@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 function ProfilePage({
   changingPassword,
   currentUser,
+  forcePasswordChange = false,
   initialSection = "profile",
   onChangePassword,
   onUpdateProfile,
@@ -51,7 +52,7 @@ function ProfilePage({
   const submitPassword = async (event) => {
     event.preventDefault();
 
-    if (!passwordForm.currentPassword) {
+    if (!forcePasswordChange && !passwordForm.currentPassword) {
       onChangePassword(null, "Current password is required");
       return;
     }
@@ -65,7 +66,7 @@ function ProfilePage({
     }
 
     const success = await onChangePassword({
-      currentPassword: passwordForm.currentPassword,
+      ...(forcePasswordChange ? {} : { currentPassword: passwordForm.currentPassword }),
       newPassword: passwordForm.newPassword,
     });
 
@@ -85,14 +86,17 @@ function ProfilePage({
           Account
         </p>
         <h3 className="text-2xl font-black text-slate-950 dark:text-white">
-          Update Profile
+          {forcePasswordChange ? "Set New Password" : "Update Profile"}
         </h3>
         <p className="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400">
-          Keep your account details current. Role and department are managed from User Management.
+          {forcePasswordChange
+            ? "Your administrator reset your password. Set a new password before continuing."
+            : "Keep your account details current. Role and department are managed from User Management."}
         </p>
       </section>
 
       <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        {!forcePasswordChange && (
         <div className="ops-panel p-6">
           <h4 className="text-lg font-black text-slate-950 dark:text-white">
             Profile Details
@@ -155,19 +159,23 @@ function ProfilePage({
             </button>
           </form>
         </div>
+        )}
 
         <div
           ref={passwordSectionRef}
           className="ops-panel p-6"
         >
           <h4 className="text-lg font-black text-slate-950 dark:text-white">
-            Change Password
+            {forcePasswordChange ? "Create Your New Password" : "Change Password"}
           </h4>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            You will be logged out after your password is updated.
+            {forcePasswordChange
+              ? "After this is saved, sign in again with your new password."
+              : "You will be logged out after your password is updated."}
           </p>
 
           <form onSubmit={submitPassword} className="mt-5 space-y-4">
+            {!forcePasswordChange && (
             <Field label="Current Password">
               <input
                 type="password"
@@ -183,6 +191,7 @@ function ProfilePage({
                 placeholder="Enter current password"
               />
             </Field>
+            )}
 
             <Field label="New Password">
               <input

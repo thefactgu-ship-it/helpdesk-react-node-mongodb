@@ -31,6 +31,7 @@ function sanitizeUser(user) {
     hotelId: user.hotelId,
     hotelAccess: user.hotelAccess || [],
     regions: user.regions || [],
+    mustChangePassword: Boolean(user.mustChangePassword),
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

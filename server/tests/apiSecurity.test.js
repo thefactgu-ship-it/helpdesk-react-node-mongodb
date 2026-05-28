@@ -337,9 +337,45 @@ test("admin password reset invalidates existing user tokens", async () => {
     assert.equal(res.statusCode, 200);
     assert.ok(capturedUpdate.password);
     assert.ok(capturedUpdate.passwordChangedAt instanceof Date);
+    assert.equal(capturedUpdate.mustChangePassword, true);
   } finally {
     User.findOne = originalFindOne;
     User.findOneAndUpdate = originalFindOneAndUpdate;
+  }
+});
+
+test("auth middleware blocks app access until forced password change is completed", async () => {
+  const originalFindById = User.findById;
+  const token = jwt.sign({ id: "507f1f77bcf86cd799439011" }, process.env.JWT_SECRET, {
+    expiresIn: "1h",
+  });
+  const req = {
+    baseUrl: "/api/tickets",
+    path: "/",
+    headers: { authorization: `Bearer ${token}` },
+  };
+  const res = mockResponse();
+  let nextCalled = false;
+
+  User.findById = () => ({
+    select: async () => ({
+      active: true,
+      role: "User",
+      hotelAccess: [],
+      mustChangePassword: true,
+    }),
+  });
+
+  try {
+    await authMiddleware(req, res, () => {
+      nextCalled = true;
+    });
+
+    assert.equal(nextCalled, false);
+    assert.equal(res.statusCode, 403);
+    assert.equal(res.body.code, "PASSWORD_CHANGE_REQUIRED");
+  } finally {
+    User.findById = originalFindById;
   }
 });
 

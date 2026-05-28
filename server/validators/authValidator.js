@@ -210,8 +210,9 @@ const updateCurrentUserValidationRules = () => [
  */
 const updateCurrentUserPasswordValidationRules = () => [
   body("currentPassword")
-    .notEmpty()
-    .withMessage("Current password is required"),
+    .optional({ checkFalsy: true })
+    .isString()
+    .withMessage("Current password must be a string"),
   body("newPassword")
     .notEmpty()
     .withMessage("New password is required")

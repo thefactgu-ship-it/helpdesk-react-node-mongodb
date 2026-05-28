@@ -319,11 +319,16 @@ function App() {
       localStorage.setItem("user", JSON.stringify(res.data.user));
       setToken(res.data.token);
       setCurrentUser(res.data.user);
+      setActivePage(res.data.user?.mustChangePassword ? "profile" : "dashboard");
       setTickets([]);
       setSummaryTickets([]);
       setHotels([]);
       setDepartments([]);
-      toast.success("Login successful");
+      toast.success(
+        res.data.user?.mustChangePassword
+          ? "Please set a new password before continuing."
+          : "Login successful",
+      );
       return true;
     } catch (error) {
       console.error("Login failed", error);
@@ -1021,6 +1026,10 @@ function App() {
 
   useEffect(() => {
     if (!token) return undefined;
+    if (currentUser?.mustChangePassword) {
+      setLoading(false);
+      return undefined;
+    }
 
     let ignore = false;
 
@@ -1117,6 +1126,37 @@ function App() {
         <Toaster position="top-right" />
         <LoginPage onLogin={handleLogin} />
       </>
+    );
+  }
+
+  if (currentUser?.mustChangePassword) {
+    return (
+      <div className={darkMode ? "dark" : ""}>
+        <Toaster position="top-right" />
+        <div className="min-h-dvh bg-slate-100 p-6 dark:bg-slate-950">
+          <div className="mx-auto max-w-3xl">
+            <Suspense fallback={<PageLoading />}>
+              <ProfilePage
+                changingPassword={changingPassword}
+                currentUser={currentUser}
+                forcePasswordChange
+                initialSection="password"
+                onChangePassword={changeMyPassword}
+                onUpdateProfile={updateMyProfile}
+                savingProfile={savingProfile}
+                departments={departments}
+              />
+            </Suspense>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="mx-auto mt-4 block text-sm font-bold text-slate-600 transition hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
     );
   }
 

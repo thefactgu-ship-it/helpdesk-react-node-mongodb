@@ -200,6 +200,7 @@ async function login(req, res) {
     res.json({
       token,
       user: sanitizeUser(user),
+      mustChangePassword: Boolean(user.mustChangePassword),
     });
   } catch (error) {
     res.status(500).json({ message: "Login failed" });
@@ -274,19 +275,26 @@ async function updateCurrentUser(req, res) {
 async function updateCurrentUserPassword(req, res) {
   try {
     const { currentPassword, newPassword } = req.body;
-    const user = await User.findById(req.user.id).select("password");
+    const user = await User.findById(req.user.id).select("password mustChangePassword");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const passwordMatches = await bcrypt.compare(currentPassword, user.password);
-    if (!passwordMatches) {
-      return res.status(400).json({ message: "Current password is incorrect" });
+    if (!user.mustChangePassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ message: "Current password is required" });
+      }
+
+      const passwordMatches = await bcrypt.compare(currentPassword, user.password);
+      if (!passwordMatches) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
     user.passwordChangedAt = new Date(Date.now() - 1000);
+    user.mustChangePassword = false;
     await user.save();
 
     res.json({ message: "Password updated" });
@@ -371,6 +379,7 @@ async function createUser(req, res) {
       hotelId: resolvedHotelId,
       hotelAccess: normalizedHotelAccess,
       regions: canManageHotels(req.user) ? regions : [],
+      mustChangePassword: true,
     });
 
     auditLog("user.created", req, { userId: user._id, hotelId: resolvedHotelId, role: user.role });
@@ -406,6 +415,7 @@ async function updateUser(req, res) {
     if (password) {
       updateFields.password = await bcrypt.hash(password, 10);
       updateFields.passwordChangedAt = new Date(Date.now() - 1000);
+      updateFields.mustChangePassword = true;
     }
     if (hotelId) updateFields.hotelId = await resolveHotelId(req, hotelId);
     if (regions && canManageHotels(req.user)) updateFields.regions = regions;
