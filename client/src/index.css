@@ -301,12 +301,36 @@
     @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 transition-colors duration-200 hover:border-purple-300 hover:bg-purple-50 hover:text-purple-800 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-purple-400 dark:hover:bg-slate-800 dark:hover:text-purple-100;
   }
 
+  .ops-icon-button {
+    @apply inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-purple-100 bg-white/90 text-slate-600 shadow-sm backdrop-blur-sm transition-[border-color,background-color,color,box-shadow] duration-200 hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 dark:border-purple-400/15 dark:bg-white/5 dark:text-slate-300 dark:hover:border-purple-400/25 dark:hover:bg-purple-500/10 dark:hover:text-purple-200;
+  }
+
   .ops-input {
     @apply w-full min-w-0 rounded-lg border border-purple-100/90 bg-white/90 px-4 py-3 text-sm text-slate-900 outline-none shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] transition-colors duration-200 placeholder:text-slate-400 focus:border-purple-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-purple-400/15 dark:bg-white/5 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-purple-400;
   }
 
   .ops-table-row {
     @apply cursor-pointer border-b border-slate-200 transition-colors duration-150 last:border-0 hover:bg-purple-50/45 dark:border-slate-800 dark:hover:bg-slate-800/80;
+  }
+
+  .ops-menu-panel {
+    @apply overflow-hidden rounded-xl border border-purple-100/90 bg-white/95 p-1.5 shadow-[0_18px_44px_rgba(29,10,52,0.18)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95;
+  }
+
+  .ops-menu-item {
+    @apply w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 transition-colors duration-150 hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-purple-500/10 dark:hover:text-purple-200 dark:disabled:text-slate-600;
+  }
+
+  .ops-menu-item-danger {
+    @apply w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-rose-600 transition-colors duration-150 hover:bg-rose-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:text-slate-600;
+  }
+
+  .ops-skeleton-card {
+    @apply animate-pulse rounded-lg border border-purple-100/70 bg-white/80 p-4 shadow-[0_8px_22px_rgba(76,29,149,0.04)] dark:border-purple-400/10 dark:bg-white/5;
+  }
+
+  .ops-skeleton-line {
+    @apply rounded bg-purple-100/80 dark:bg-purple-400/15;
   }
 
   .ops-muted {
@@ -317,23 +341,6 @@
     @apply text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400;
   }
 
-  .ops-realtime-pulse::after {
-    content: "";
-    @apply pointer-events-none absolute inset-0 rounded-[inherit] border border-purple-400/0;
-    animation: opsPulse 3.8s ease-in-out infinite;
-  }
-}
-
-@keyframes opsPulse {
-  0%,
-  100% {
-    border-color: rgba(124, 58, 237, 0);
-    box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
-  }
-  50% {
-    border-color: rgba(124, 58, 237, 0.2);
-    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.035);
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -352,8 +359,4 @@
   .ops-mobile-bottom-nav {
     display: none !important;
   }
-}
-
-.bg-conic-gradient {
-  background: conic-gradient(#2563eb 0 35%, #0ea5e9 35% 70%, #10b981 70% 100%);
 }

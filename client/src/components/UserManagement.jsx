@@ -756,7 +756,7 @@ function UserActionMenu({
         aria-label="Open user actions"
         aria-expanded={open}
         onClick={onToggle}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-purple-100 bg-white/90 text-slate-600 shadow-sm backdrop-blur-sm transition hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 dark:border-purple-400/15 dark:bg-white/5 dark:text-slate-300 dark:hover:border-purple-400/25 dark:hover:bg-purple-500/10 dark:hover:text-purple-200"
+        className="ops-icon-button"
       >
         <MoreVertical size={17} strokeWidth={2.4} />
       </button>
@@ -769,36 +769,39 @@ function UserActionMenu({
             className="fixed inset-0 z-10 cursor-default bg-transparent"
             onClick={onToggle}
           />
-          <div className="absolute right-3 top-10 z-20 w-40 overflow-hidden rounded-xl border border-purple-100/90 bg-white/95 p-1.5 shadow-[0_18px_44px_rgba(29,10,52,0.18)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95">
+          <div className="ops-menu-panel absolute right-3 top-10 z-20 w-40" role="menu">
             <button
               type="button"
+              role="menuitem"
               onClick={() => {
                 onToggle();
                 onDetails();
               }}
-              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-700 dark:text-slate-200 dark:hover:bg-purple-500/10 dark:hover:text-purple-200"
+              className="ops-menu-item"
             >
               View details
             </button>
             <button
               type="button"
               disabled={disabledEdit}
+              role="menuitem"
               onClick={() => {
                 onToggle();
                 onEdit();
               }}
-              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-purple-500/10 dark:hover:text-purple-200 dark:disabled:text-slate-600"
+              className="ops-menu-item"
             >
               Edit user
             </button>
             <button
               type="button"
               disabled={disabledDelete || deleting}
+              role="menuitem"
               onClick={() => {
                 onToggle();
                 onDelete();
               }}
-              className="w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-rose-600 hover:bg-rose-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:text-slate-600"
+              className="ops-menu-item-danger"
             >
               {deleting ? "Deleting..." : "Delete account"}
             </button>

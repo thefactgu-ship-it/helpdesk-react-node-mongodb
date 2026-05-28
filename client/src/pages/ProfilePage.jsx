@@ -219,7 +219,7 @@ function ProfilePage({
             <button
               type="submit"
               disabled={changingPassword}
-              className="w-full rounded-2xl bg-slate-900 px-5 py-3 text-sm font-black text-white shadow-lg shadow-slate-200 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-white dark:text-slate-950 dark:shadow-slate-950/40 dark:hover:bg-slate-200"
+              className="ops-button-primary w-full px-5 py-3 text-sm"
             >
               {changingPassword ? "Updating..." : "Update Password"}
             </button>

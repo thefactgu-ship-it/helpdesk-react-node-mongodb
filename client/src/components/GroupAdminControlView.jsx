@@ -126,7 +126,7 @@ export function GroupAdminQueueKpis({ kpis, text }) {
       {items.map((item) => (
         <div
           key={item.label}
-          className="ops-soft-kpi ops-realtime-pulse p-3"
+          className="ops-soft-kpi p-3"
         >
           <p className={`text-2xl font-black text-slate-950 dark:text-white ${item.tone}`}>
             {item.value.toLocaleString()}

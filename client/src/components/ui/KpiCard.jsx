@@ -16,7 +16,7 @@ function KpiCard({
   value,
 }) {
   return (
-    <article className={cx("ops-soft-kpi ops-realtime-pulse", className)}>
+    <article className={cx("ops-soft-kpi", className)}>
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-3xl font-black text-slate-950 dark:text-white">

@@ -47,7 +47,7 @@ function ActionMenu({ actions, ariaLabel = "Actions", disabled = false, onToggle
         aria-expanded={open}
         disabled={disabled}
         onClick={onToggle}
-        className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-purple-100 bg-white/90 text-slate-600 shadow-sm backdrop-blur-sm transition hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 disabled:cursor-not-allowed disabled:opacity-50 dark:border-purple-400/15 dark:bg-white/5 dark:text-slate-300 dark:hover:border-purple-400/25 dark:hover:bg-purple-500/10 dark:hover:text-purple-200"
+        className="ops-icon-button"
       >
         <MoreVertical size={17} strokeWidth={2.4} />
       </button>
@@ -61,23 +61,21 @@ function ActionMenu({ actions, ariaLabel = "Actions", disabled = false, onToggle
             onClick={onToggle}
           />
           <div
-            className="fixed z-50 w-44 overflow-hidden rounded-xl border border-purple-100/90 bg-white/95 p-1.5 shadow-[0_18px_44px_rgba(29,10,52,0.18)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95"
+            className="ops-menu-panel fixed z-50 w-44"
             style={menuPosition}
+            role="menu"
           >
             {enabledActions.map((action) => (
               <button
                 key={action.label}
                 type="button"
                 disabled={action.disabled}
+                role="menuitem"
                 onClick={() => {
                   onToggle();
                   action.onClick();
                 }}
-                className={`w-full rounded-lg px-3 py-2 text-left text-sm font-semibold transition disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:disabled:text-slate-600 ${
-                  action.danger
-                    ? "text-rose-600 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-500/10"
-                    : "text-slate-700 hover:bg-purple-50 hover:text-purple-700 dark:text-slate-200 dark:hover:bg-purple-500/10 dark:hover:text-purple-200"
-                }`}
+                className={action.danger ? "ops-menu-item-danger" : "ops-menu-item"}
               >
                 {action.label}
               </button>

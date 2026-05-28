@@ -226,7 +226,7 @@ function AgentKpi({ detail, icon: Icon, label, tone = "purple", value }) {
   };
 
   return (
-    <article className="ops-soft-kpi ops-realtime-pulse">
+    <article className="ops-soft-kpi">
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-3xl font-black text-slate-950 dark:text-white">

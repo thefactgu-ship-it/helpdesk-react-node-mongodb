@@ -177,13 +177,13 @@ function RequesterEmptyState({ activeQueue, requesterText }) {
 
 function MobileTicketSkeleton() {
   return (
-    <div className="ops-soft-card animate-pulse p-4">
-      <div className="h-3 w-24 rounded bg-slate-200 dark:bg-slate-700" />
-      <div className="mt-3 h-5 w-3/4 rounded bg-slate-200 dark:bg-slate-700" />
-      <div className="mt-2 h-4 w-full rounded bg-slate-200 dark:bg-slate-700" />
+    <div className="ops-skeleton-card">
+      <div className="ops-skeleton-line h-3 w-24" />
+      <div className="ops-skeleton-line mt-3 h-5 w-3/4" />
+      <div className="ops-skeleton-line mt-2 h-4 w-full" />
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className="h-16 rounded bg-slate-200 dark:bg-slate-700" />
-        <div className="h-16 rounded bg-slate-200 dark:bg-slate-700" />
+        <div className="ops-skeleton-line h-16" />
+        <div className="ops-skeleton-line h-16" />
       </div>
     </div>
   );

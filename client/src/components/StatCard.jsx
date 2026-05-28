@@ -2,7 +2,7 @@ function StatCard({ bars = [30, 52, 70, 44], className = "", detail, icon, title
   const Icon = icon && typeof icon !== "string" ? icon : null;
 
   return (
-    <div className={`ops-soft-kpi ops-realtime-pulse min-h-28 overflow-hidden ${className}`}>
+    <div className={`ops-soft-kpi min-h-28 overflow-hidden ${className}`}>
       <div className="relative flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 items-start gap-2">

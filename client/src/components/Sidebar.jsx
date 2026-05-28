@@ -185,7 +185,7 @@ function Sidebar({
         visibleGroups={visibleGroups}
       />
 
-      <aside className="hidden w-72 flex-col border-r border-[var(--ops-sidebar-border)] bg-[var(--ops-sidebar-bg)] text-slate-200 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300 md:flex md:min-h-dvh">
+      <aside className="ops-sidebar text-slate-200">
         <BrandHeader compact={false} />
 
         <nav className="flex-1 space-y-6 px-4 py-5 text-sm" aria-label="Primary navigation">
@@ -471,13 +471,7 @@ function MenuItem({ text, icon: Icon, active, enabled, onClick }) {
       {active && (
         <span className="absolute -left-4 top-2 h-[calc(100%-1rem)] w-1 rounded-r bg-purple-500 dark:bg-purple-300" />
       )}
-      <span
-        className={`grid h-8 w-8 shrink-0 place-items-center rounded-md ${
-          active
-            ? "bg-purple-600 text-white"
-            : "bg-purple-950/25 text-purple-200"
-        }`}
-      >
+      <span className={active ? "ops-nav-icon bg-purple-600 text-white" : "ops-nav-icon"}>
         <Icon className="h-4 w-4" aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1 truncate">{text}</span>
