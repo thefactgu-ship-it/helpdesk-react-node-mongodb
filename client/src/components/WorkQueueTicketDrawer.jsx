@@ -180,7 +180,7 @@ function WorkQueueTicketDrawer({
                 className="ops-input max-w-full appearance-none px-3 py-2 font-semibold"
               />
             ) : (
-              <DueLabel ticket={ticket} />
+              <DueLabel ticket={ticket} t={t} />
             )}
           </DrawerField>
         </section>
@@ -198,18 +198,18 @@ function WorkQueueTicketDrawer({
           <DrawerMeta label={t("detail.requester")} value={ticket.requester || t("common.unknown")} />
           <DrawerMeta label={t("detail.createdBy")} value={ticket.createdBy?.name || t("common.unknown")} />
           <DrawerMeta label={t("detail.assignedTo")} value={ticket.assignedTo?.name || t("common.unassigned")} />
-          <DrawerMeta label={t("detail.dueDate")} value={ticket.dueDate ? new Date(ticket.dueDate).toLocaleString() : t("common.notSet")} />
+          <DrawerMeta label={t("detail.dueDate")} value={ticket.dueDate ? new Date(ticket.dueDate).toLocaleString(getDateLocale(t)) : t("common.notSet")} />
         </section>
       </div>
     </Drawer>
   );
 }
 
-function DueLabel({ ticket }) {
+function DueLabel({ ticket, t }) {
   if (!ticket.dueDate) return "-";
 
   const dueDate = new Date(ticket.dueDate);
-  const formatted = dueDate.toLocaleDateString();
+  const formatted = dueDate.toLocaleDateString(getDateLocale(t));
 
   if (isOverdue(ticket)) {
     return <span className="font-bold text-rose-600 dark:text-rose-300">{formatted}</span>;
@@ -218,6 +218,10 @@ function DueLabel({ ticket }) {
     return <span className="font-bold text-amber-600 dark:text-amber-300">{formatted}</span>;
   }
   return formatted;
+}
+
+function getDateLocale(t) {
+  return t?.language === "en" ? "en-US" : "th-TH";
 }
 
 function toDateTimeLocalValue(value) {

@@ -73,10 +73,11 @@ function RequesterQueueCard({ canViewTicket, onOpenDrawer, onViewTicket, request
   const summaryOnly = !canViewTicket;
   const statusLabel = getStatusLabel(ticket.status, t);
   const isActive = !isCompleted(ticket);
+  const dateLocale = getDateLocale(t);
   const updatedLabel = ticket.updatedAt
-    ? new Date(ticket.updatedAt).toLocaleDateString()
+    ? new Date(ticket.updatedAt).toLocaleDateString(dateLocale)
     : ticket.createdAt
-      ? new Date(ticket.createdAt).toLocaleDateString()
+      ? new Date(ticket.createdAt).toLocaleDateString(dateLocale)
       : "-";
 
   return (
@@ -172,6 +173,10 @@ function RequesterMeta({ label, value }) {
       </dd>
     </div>
   );
+}
+
+function getDateLocale(t) {
+  return t?.language === "en" ? "en-US" : "th-TH";
 }
 
 function RequesterEmptyState({ activeQueue, requesterText }) {

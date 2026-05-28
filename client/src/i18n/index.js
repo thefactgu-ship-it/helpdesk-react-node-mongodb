@@ -16,7 +16,7 @@ export function persistLanguage(language) {
 export function createTranslator(language) {
   const dictionary = translations[language] || translations[DEFAULT_LANGUAGE];
 
-  return (key, params = {}) => {
+  const translate = (key, params = {}) => {
     const value = key.split(".").reduce((current, part) => current?.[part], dictionary);
     const fallback = key.split(".").reduce(
       (current, part) => current?.[part],
@@ -29,6 +29,10 @@ export function createTranslator(language) {
       template,
     );
   };
+
+  translate.language = language;
+
+  return translate;
 }
 
 export function getPageMeta(pageId, language) {
@@ -1063,10 +1067,14 @@ export const translations = {
       actions: {
         fullDetail: "Full detail",
       },
+      drawer: {
+        requesterTitle: "Read only",
+        requesterDescription: "You can review department ticket details to check history and avoid duplicate reports, but you cannot edit or act on this ticket.",
+      },
       ticketNumber: "Ticket #",
       criticalReview: "Critical review",
       ownTicketHelp: "Open details to add updates or confirm the result.",
-      summaryOnly: "Summary only",
+      summaryOnly: "View details",
       summaryOnlyHelp: "This is shown so your team does not report the same issue twice.",
       previous: "Previous",
       next: "Next",
@@ -1084,6 +1092,7 @@ export const translations = {
         mine: "Mine",
         department: "Department",
         feedback: "Feedback",
+        history: "Resolved/Closed",
         all: "All related",
       },
       badges: {
@@ -1108,6 +1117,8 @@ export const translations = {
         departmentDescription: "Nothing similar is open in your department right now.",
         feedbackTitle: "Nothing waiting for you",
         feedbackDescription: "When IT resolves a request, it will appear here for confirmation.",
+        historyTitle: "No resolved or closed tickets",
+        historyDescription: "Resolved or closed tickets in your scope will appear here.",
         allTitle: "No related tickets",
         allDescription: "Report a new issue when you need IT help.",
       },
