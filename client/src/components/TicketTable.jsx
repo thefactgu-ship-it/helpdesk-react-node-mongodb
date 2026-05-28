@@ -727,6 +727,7 @@ function buildQueueOptions(tickets, currentUserId, t, workQueueProfile) {
       { id: "mine", label: requesterText.tabs.mine, count: count("mine"), activeClass: primaryActive },
       { id: "department", label: requesterText.tabs.department, count: count("department"), activeClass: "border-emerald-600 bg-emerald-600 text-white" },
       { id: "feedback", label: requesterText.tabs.feedback, count: count("feedback"), activeClass: "border-amber-500 bg-amber-500 text-white" },
+      { id: "history", label: requesterText.tabs.history, count: count("history"), activeClass: "border-slate-600 bg-slate-600 text-white" },
       { id: "all", label: requesterText.tabs.all, count: count("all"), activeClass: primaryActive },
     ];
   }
@@ -786,8 +787,9 @@ function getTicketRowAccentClass(ticket) {
 
 function matchesQueue(ticket, queueId, currentUserId, workQueueProfile = "staff") {
   if (workQueueProfile === "requester") {
-    if (queueId === "department") return !canViewTicketDetails(ticket, currentUserId) && !isCompleted(ticket);
+    if (queueId === "department") return !canViewTicketDetails(ticket, currentUserId);
     if (queueId === "feedback") return canViewTicketDetails(ticket, currentUserId) && isWaitingRequester(ticket);
+    if (queueId === "history") return isCompleted(ticket);
     if (queueId === "all") return true;
     return canViewTicketDetails(ticket, currentUserId);
   }
@@ -1067,6 +1069,10 @@ function getRequesterQueueText(t) {
         title: pickText(t, "queue.userEmpty.feedbackTitle", "ยังไม่มีเรื่องที่รอคุณยืนยัน"),
         description: pickText(t, "queue.userEmpty.feedbackDescription", "เมื่อ IT แก้เสร็จ รายการจะมาอยู่ตรงนี้ให้ยืนยัน"),
       },
+      history: {
+        title: pickText(t, "queue.userEmpty.historyTitle", "ยังไม่มีประวัติ ticket"),
+        description: pickText(t, "queue.userEmpty.historyDescription", "ticket ที่แก้ไขแล้วหรือปิดงานแล้วในขอบเขตของคุณจะแสดงที่นี่"),
+      },
       mine: {
         title: pickText(t, "queue.userEmpty.mineTitle", "ตอนนี้ไม่มีเรื่องค้าง"),
         description: pickText(t, "queue.userEmpty.mineDescription", "ถ้ามีเรื่องให้ IT ช่วย กดแจ้งปัญหาใหม่ได้เลย"),
@@ -1076,6 +1082,7 @@ function getRequesterQueueText(t) {
       all: pickText(t, "queue.userTabs.all", "ทั้งหมดที่เกี่ยวข้อง"),
       department: pickText(t, "queue.userTabs.department", "ในแผนก"),
       feedback: pickText(t, "queue.userTabs.feedback", "รอ feedback"),
+      history: pickText(t, "queue.userTabs.history", "ประวัติ"),
       mine: pickText(t, "queue.userTabs.mine", "ของฉัน"),
     },
   };

@@ -150,10 +150,13 @@ function buildTicketVisibilityQuery(user) {
   }
 
   if (departmentQuery.length) {
-    ownTicketQuery.push({
-      status: { $nin: ["resolved", "closed"] },
-      $or: departmentQuery,
-    });
+    const departmentVisibility = { $or: departmentQuery };
+
+    if (user?.role !== "User") {
+      departmentVisibility.status = { $nin: ["resolved", "closed"] };
+    }
+
+    ownTicketQuery.push(departmentVisibility);
   }
 
   return {

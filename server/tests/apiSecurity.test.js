@@ -646,6 +646,42 @@ test("agent visibility includes active unassigned tickets in hotel scope", () =>
   );
 });
 
+test("requester visibility includes same-department ticket history", () => {
+  const departmentId = "507f1f77bcf86cd799439015";
+  const query = ticketController._private.buildTicketVisibilityQuery({
+    id: "507f1f77bcf86cd799439011",
+    role: "User",
+    hotelId: "507f1f77bcf86cd799439012",
+    departmentId,
+    departmentName: "Front Office",
+  });
+
+  const departmentCondition = query.$or.find((condition) =>
+    condition.$or?.some((item) => item.departmentId === departmentId)
+  );
+
+  assert.ok(departmentCondition);
+  assert.equal(departmentCondition.status, undefined);
+});
+
+test("agent same-department visibility remains active-only", () => {
+  const departmentId = "507f1f77bcf86cd799439015";
+  const query = ticketController._private.buildTicketVisibilityQuery({
+    id: "507f1f77bcf86cd799439011",
+    role: "Agent",
+    hotelId: "507f1f77bcf86cd799439012",
+    departmentId,
+    departmentName: "Front Office",
+  });
+
+  const departmentCondition = query.$or.find((condition) =>
+    condition.$or?.some((item) => item.departmentId === departmentId)
+  );
+
+  assert.ok(departmentCondition);
+  assert.deepEqual(departmentCondition.status, { $nin: ["resolved", "closed"] });
+});
+
 test("ticket status audit actions are specific for resolved and closed states", () => {
   assert.equal(ticketController._private.getTicketStatusAuditAction("resolved"), "ticket.resolved");
   assert.equal(ticketController._private.getTicketStatusAuditAction("closed"), "ticket.closed");
