@@ -12,6 +12,7 @@ function RequesterQueueCards({
   currentPage,
   currentUserId,
   loading,
+  onOpenDrawer,
   onViewTicket,
   queueTickets,
   requesterText,
@@ -49,6 +50,7 @@ function RequesterQueueCards({
           <RequesterQueueCard
             key={ticket._id || ticket.id}
             canViewTicket={canViewTicketDetails(ticket, currentUserId)}
+            onOpenDrawer={onOpenDrawer}
             onViewTicket={onViewTicket}
             requesterText={requesterText}
             t={t}
@@ -67,7 +69,7 @@ function RequesterQueueCards({
   );
 }
 
-function RequesterQueueCard({ canViewTicket, onViewTicket, requesterText, t, ticket }) {
+function RequesterQueueCard({ canViewTicket, onOpenDrawer, onViewTicket, requesterText, t, ticket }) {
   const summaryOnly = !canViewTicket;
   const statusLabel = getStatusLabel(ticket.status, t);
   const isActive = !isCompleted(ticket);
@@ -79,9 +81,22 @@ function RequesterQueueCard({ canViewTicket, onViewTicket, requesterText, t, tic
 
   return (
     <article
+      role={summaryOnly ? "button" : undefined}
+      tabIndex={summaryOnly ? 0 : undefined}
+      onClick={summaryOnly ? () => onOpenDrawer(ticket) : undefined}
+      onKeyDown={
+        summaryOnly
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onOpenDrawer(ticket);
+              }
+            }
+          : undefined
+      }
       className={`ops-soft-card ${
         summaryOnly
-          ? "border-amber-200/80 dark:border-amber-400/25"
+          ? "cursor-pointer border-amber-200/80 dark:border-amber-400/25"
           : ""
       }`}
     >
@@ -139,7 +154,7 @@ function RequesterQueueCard({ canViewTicket, onViewTicket, requesterText, t, tic
             {t("common.view")}
           </button>
         ) : (
-          <span className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 px-4 py-2 text-xs font-black text-slate-500 dark:bg-slate-900 dark:text-slate-400">
+          <span className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 px-4 py-2 text-xs font-black text-slate-600 dark:bg-slate-900 dark:text-slate-300">
             {requesterText.summaryOnly}
           </span>
         )}

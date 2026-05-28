@@ -204,6 +204,7 @@ function sanitizeRequesterListTicket(user, ticket) {
     ticketNumber: plainTicket.ticketNumber,
     hotelId: plainTicket.hotelId,
     title: plainTicket.title,
+    description: plainTicket.description,
     requester: plainTicket.requester ? "Department teammate" : "",
     requesterUserId: plainTicket.requesterUserId
       ? {

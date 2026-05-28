@@ -144,9 +144,11 @@ function TicketTable({
     ticket &&
     !ticket.assignedTo &&
     !isCompleted(ticket);
+  const canOpenActiveDrawerFullDetail =
+    Boolean(activeDrawerTicket) &&
+    (canManageTickets || canViewTicketDetails(activeDrawerTicket, currentUserId));
 
   const openQueueDrawer = (ticket) => {
-    if (isRequester) return;
     setDrawerTicket(ticket);
     setOpenActionTicketId(null);
   };
@@ -476,19 +478,20 @@ function TicketTable({
         </>
       )}
 
-      {!isRequester && (
+      {activeDrawerTicket && (
         <WorkQueueTicketDrawer
           assignTicket={assignTicket}
           claimTicket={claimTicket}
           addTicketComment={addTicketComment}
           assignableUsers={getAssignableUsersForTicket(assignableUsers, activeDrawerTicket)}
-          canClaimTicket={activeDrawerTicket ? canClaimTicket(activeDrawerTicket) : false}
-          canDelete={canManageTickets}
+          canClaimTicket={!isRequester && canClaimTicket(activeDrawerTicket)}
+          canDelete={!isRequester && canManageTickets}
           canManageTickets={canManageTickets}
-          canReopenTicket={activeDrawerTicket ? canReopenTicket(activeDrawerTicket) : false}
-          canUpdateStatus={activeDrawerTicket ? canUpdateTicketStatus(activeDrawerTicket) : false}
+          canReopenTicket={!isRequester && canReopenTicket(activeDrawerTicket)}
+          canUpdateStatus={!isRequester && canUpdateTicketStatus(activeDrawerTicket)}
+          canViewFullDetail={canOpenActiveDrawerFullDetail}
           workQueueProfile={workQueueProfile}
-          deleting={activeDrawerTicket ? deletingTicketId === (activeDrawerTicket._id || activeDrawerTicket.id) : false}
+          deleting={deletingTicketId === (activeDrawerTicket._id || activeDrawerTicket.id)}
           disabled={
             activeDrawerTicket
               ? [updatingTicketId, assigningTicketId, deletingTicketId].includes(activeDrawerTicket._id || activeDrawerTicket.id)
@@ -1070,7 +1073,7 @@ function getRequesterQueueText(t) {
         description: pickText(t, "queue.userEmpty.feedbackDescription", "เมื่อ IT แก้เสร็จ รายการจะมาอยู่ตรงนี้ให้ยืนยัน"),
       },
       history: {
-        title: pickText(t, "queue.userEmpty.historyTitle", "ยังไม่มีประวัติ ticket"),
+        title: pickText(t, "queue.userEmpty.historyTitle", "ยังไม่มี ticket ที่แก้แล้ว/ปิดแล้ว"),
         description: pickText(t, "queue.userEmpty.historyDescription", "ticket ที่แก้ไขแล้วหรือปิดงานแล้วในขอบเขตของคุณจะแสดงที่นี่"),
       },
       mine: {
@@ -1082,7 +1085,7 @@ function getRequesterQueueText(t) {
       all: pickText(t, "queue.userTabs.all", "ทั้งหมดที่เกี่ยวข้อง"),
       department: pickText(t, "queue.userTabs.department", "ในแผนก"),
       feedback: pickText(t, "queue.userTabs.feedback", "รอ feedback"),
-      history: pickText(t, "queue.userTabs.history", "ประวัติ"),
+      history: pickText(t, "queue.userTabs.history", "แก้แล้ว/ปิดแล้ว"),
       mine: pickText(t, "queue.userTabs.mine", "ของฉัน"),
     },
   };

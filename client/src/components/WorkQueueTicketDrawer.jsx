@@ -24,6 +24,7 @@ function WorkQueueTicketDrawer({
   canManageTickets,
   canReopenTicket,
   canUpdateStatus,
+  canViewFullDetail = true,
   claimTicket,
   deleting,
   disabled,
@@ -48,40 +49,44 @@ function WorkQueueTicketDrawer({
   const isClosedTicket = ticket.status === "closed";
   const ticketControlsDisabled = disabled || isClosedTicket;
   const drawerStatusOptions = getDrawerStatusOptions(statusOptions, workQueueProfile);
+  const actions = [
+    canViewFullDetail && (
+      <Button
+        key="full-detail"
+        onClick={() => onViewFullDetail(ticketId)}
+        size="lg"
+        variant="primary"
+      >
+        {drawerText.fullDetail}
+      </Button>
+    ),
+    isClosedTicket && canReopenTicket && (
+      <Button
+        key="reopen"
+        disabled={disabled || !reopenTicket}
+        onClick={() => reopenTicket(ticketId)}
+        size="lg"
+        variant="success"
+      >
+        {drawerText.reopenTicket}
+      </Button>
+    ),
+    canDelete && (
+      <Button
+        key="delete"
+        disabled={disabled || deleting}
+        onClick={() => onDelete(ticketId)}
+        size="lg"
+        variant="danger"
+      >
+        {deleting ? t("common.deleting") : t("common.delete")}
+      </Button>
+    ),
+  ].filter(Boolean);
 
   return (
     <Drawer
-      actions={
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Button
-            onClick={() => onViewFullDetail(ticketId)}
-            size="lg"
-            variant="primary"
-          >
-            {drawerText.fullDetail}
-          </Button>
-          {isClosedTicket && canReopenTicket && (
-            <Button
-              disabled={disabled || !reopenTicket}
-              onClick={() => reopenTicket(ticketId)}
-              size="lg"
-              variant="success"
-            >
-              {drawerText.reopenTicket}
-            </Button>
-          )}
-          {canDelete && (
-            <Button
-              disabled={disabled || deleting}
-              onClick={() => onDelete(ticketId)}
-              size="lg"
-              variant="danger"
-            >
-              {deleting ? t("common.deleting") : t("common.delete")}
-            </Button>
-          )}
-        </div>
-      }
+      actions={actions.length ? <div className="grid gap-3 sm:grid-cols-2">{actions}</div> : null}
       eyebrow={ticket.ticketNumber}
       onClose={onClose}
       open={Boolean(ticket)}
@@ -384,6 +389,19 @@ function getDrawerText(t, workQueueProfile) {
         t,
         "managerQueue.drawer.description",
         "Assign the owner, adjust priority, update status, and use the full detail view for comments or attachments.",
+      ),
+    };
+  }
+
+  if (workQueueProfile === "requester") {
+    return {
+      fullDetail,
+      reopenTicket,
+      roleTitle: pickText(t, "queue.drawer.requesterTitle", "อ่านอย่างเดียว"),
+      roleDescription: pickText(
+        t,
+        "queue.drawer.requesterDescription",
+        "คุณดูรายละเอียด ticket ในแผนกได้เพื่อเช็กประวัติและลดการแจ้งซ้ำ แต่ไม่สามารถแก้ไขหรือดำเนินการกับ ticket นี้ได้",
       ),
     };
   }
