@@ -101,7 +101,7 @@ function ProgressRow({ name, total, value }) {
           {value.toLocaleString()} / {percent}%
         </span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+      <div className="h-3 overflow-hidden rounded-full bg-purple-100/70 dark:bg-purple-400/10">
         <div
           className="h-full rounded-full bg-gradient-to-r from-purple-700 to-purple-400"
           style={{ width: `${percent}%` }}

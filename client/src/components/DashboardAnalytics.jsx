@@ -24,13 +24,13 @@ import {
 import StatCard from "./StatCard";
 import { getCompletionStats, getSuccessDetail, isCompletedTicket } from "../utils/ticketMetrics";
 
-const softBlue = "#6366f1";
-const softBlueDark = "#93c5fd";
+const softBlue = "#6d28d9";
+const softBlueDark = "#c4b5fd";
 const softRose = "#fb7185";
-const gridLight = "#e8edf5";
-const gridDark = "#334155";
-const textLight = "#64748b";
-const textDark = "#cbd5e1";
+const gridLight = "#eadcff";
+const gridDark = "#3b2b63";
+const textLight = "#6b6484";
+const textDark = "#ddd6fe";
 
 function formatStatus(status) {
   return status.replace("_", " ").replace(/\b\w/g, (char) => char.toUpperCase());
@@ -248,7 +248,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
     gridColor,
     accent,
     tooltipClass:
-      "rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200",
+      "rounded-xl border border-purple-100/90 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(29,10,52,0.16)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95 dark:text-slate-200",
   };
 
   return (
@@ -467,7 +467,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
               <span>50%</span>
               <span>100%</span>
             </div>
-            <div className="relative h-5 rounded-full bg-slate-100 dark:bg-slate-800">
+            <div className="relative h-5 rounded-full bg-purple-100/70 dark:bg-purple-400/10">
               <div
                 className="h-full rounded-full bg-gradient-to-r from-purple-600 via-fuchsia-400 to-emerald-300"
                 style={{ width: `${data.completionStats.successRate}%` }}
@@ -580,7 +580,7 @@ function ProgressRow({ label, percent, value }) {
           {value.toLocaleString()} / {percent}%
         </span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+      <div className="h-3 overflow-hidden rounded-full bg-purple-100/70 dark:bg-purple-400/10">
         <div
           className="h-full rounded-full bg-gradient-to-r from-purple-600 to-purple-300"
           style={{ width: `${percent}%` }}
@@ -603,7 +603,7 @@ function ChartTooltip({ active, label, payload }) {
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
+    <div className="rounded-xl border border-purple-100/90 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(29,10,52,0.16)] backdrop-blur-md dark:border-purple-400/15 dark:bg-[#140d24]/95 dark:text-slate-200">
       <p className="font-semibold">{label}</p>
       <p>{payload[0].value.toLocaleString()} tickets</p>
     </div>

@@ -27,6 +27,16 @@ import {
   makeReportFilename,
 } from "../utils/reportExport";
 
+const chartColors = {
+  amber: "#f59e0b",
+  axis: "#6b6484",
+  emerald: "#10b981",
+  grid: "#eadcff",
+  indigo: "#4f46e5",
+  rose: "#e11d48",
+  violet: "#6d28d9",
+};
+
 function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] }) {
   const [selectedMonth, setSelectedMonth] = useState(getMonthInputValue(new Date()));
   const report = buildMonthlyReport(tickets, selectedMonth);
@@ -95,16 +105,16 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={report.trend}>
-                <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
-                <YAxis allowDecimals={false} tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
+                <CartesianGrid stroke={chartColors.grid} strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
                 <Tooltip content={<ChartTooltip labelSuffix="tickets" />} />
                 <Line
                   type="monotone"
                   dataKey="total"
-                  stroke="#7c3aed"
+                  stroke={chartColors.violet}
                   strokeWidth={3}
-                  dot={{ fill: "#7c3aed", r: 3 }}
+                  dot={{ fill: chartColors.violet, r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -132,7 +142,7 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={report.prioritySummary}>
-                <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
+                <XAxis dataKey="name" tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
                 <YAxis hide allowDecimals={false} />
                 <Tooltip content={<ChartTooltip labelSuffix="tickets" />} />
                 <Bar dataKey="value" radius={[12, 12, 0, 0]}>
@@ -322,7 +332,7 @@ function ProgressRow({ name, tone = "purple", total, value }) {
           {value.toLocaleString()} / {percent}%
         </span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+      <div className="h-3 overflow-hidden rounded-full bg-purple-100/70 dark:bg-purple-400/10">
         <div
           className={`h-full rounded-full ${toneClass}`}
           style={{ width: `${percent}%` }}
@@ -335,21 +345,21 @@ function ProgressRow({ name, tone = "purple", total, value }) {
 function getStatusTone(status) {
   if (status === "closed") return "emerald";
   if (status === "resolved") return "amber";
-  if (status === "open") return "slate";
+  if (status === "open") return "purple";
   return "purple";
 }
 
 function getCategoryTone(index) {
-  return ["purple", "emerald", "amber", "rose", "slate"][index] || "purple";
+  return ["purple", "emerald", "amber", "rose", "purple"][index] || "purple";
 }
 
 function getPriorityColor(priority) {
   return {
-    critical: "#e11d48",
-    high: "#f59e0b",
-    medium: "#7c3aed",
-    low: "#10b981",
-  }[priority] || "#64748b";
+    critical: chartColors.rose,
+    high: chartColors.amber,
+    medium: chartColors.violet,
+    low: chartColors.emerald,
+  }[priority] || chartColors.indigo;
 }
 
 function SnapshotRow({ label, value }) {

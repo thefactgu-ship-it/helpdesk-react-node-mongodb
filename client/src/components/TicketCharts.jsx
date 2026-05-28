@@ -12,6 +12,16 @@ import {
   Line,
 } from "recharts";
 
+const chartColors = {
+  amber: "#f59e0b",
+  axis: "#6b6484",
+  emerald: "#10b981",
+  grid: "#eadcff",
+  indigo: "#4f46e5",
+  rose: "#e11d48",
+  violet: "#6d28d9",
+};
+
 function TicketCharts({ tickets, averageResolutionHours, overdueCount }) {
   const open = tickets.filter((t) => t.status === "open").length;
   const progress = tickets.filter((t) => t.status === "in_progress").length;
@@ -58,30 +68,30 @@ function TicketCharts({ tickets, averageResolutionHours, overdueCount }) {
   });
 
   const pieData = [
-    { name: "Open", value: open, color: "#2563eb" },
-    { name: "In Progress", value: progress, color: "#0ea5e9" },
-    { name: "Resolved", value: resolved, color: "#10b981" },
-    { name: "Closed", value: closed, color: "#64748b" },
+    { name: "Open", value: open, color: chartColors.violet },
+    { name: "In Progress", value: progress, color: chartColors.indigo },
+    { name: "Resolved", value: resolved, color: chartColors.amber },
+    { name: "Closed", value: closed, color: chartColors.emerald },
   ];
 
   return (
     <section className="grid grid-cols-1 gap-6 xl:grid-cols-4">
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 xl:col-span-2">
+      <div className="ops-panel xl:col-span-2">
         <h3 className="mb-4 font-bold">Ticket Status</h3>
 
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={statusData}>
-              <XAxis dataKey="name" />
-              <YAxis allowDecimals={false} />
+              <XAxis dataKey="name" tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
               <Tooltip />
-              <Bar dataKey="value" radius={[8, 8, 0, 0]} fill="#2563eb" />
+              <Bar dataKey="value" radius={[8, 8, 0, 0]} fill={chartColors.violet} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div className="ops-panel">
         <h3 className="mb-4 font-bold">Status Summary</h3>
 
         <div className="h-44">
@@ -119,19 +129,19 @@ function TicketCharts({ tickets, averageResolutionHours, overdueCount }) {
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 xl:col-span-2">
+      <div className="ops-panel xl:col-span-2">
         <h3 className="mb-4 font-bold">Business Insights</h3>
 
         <div className="grid gap-3 text-sm">
-          <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+          <div className="ops-meta-card">
             <p className="text-slate-500">Avg. Resolution Time</p>
             <p className="mt-2 text-2xl font-semibold">{averageResolutionHours}h</p>
           </div>
-          <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+          <div className="ops-meta-card">
             <p className="text-slate-500">Overdue Tickets</p>
             <p className="mt-2 text-2xl font-semibold">{overdueCount}</p>
           </div>
-          <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-700">
+          <div className="ops-meta-card">
             <p className="text-slate-500">Most Common Categories</p>
             <div className="mt-3 space-y-2">
               {topCategories.map((category) => (
@@ -146,15 +156,15 @@ function TicketCharts({ tickets, averageResolutionHours, overdueCount }) {
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800 xl:col-span-4">
+      <div className="ops-panel xl:col-span-4">
         <h3 className="mb-4 font-bold">Ticket Trend</h3>
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={monthlyTrend}>
-              <XAxis dataKey="month" />
-              <YAxis allowDecimals={false} />
+              <XAxis dataKey="month" tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
+              <YAxis allowDecimals={false} tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
               <Tooltip />
-              <Line type="monotone" dataKey="count" stroke="#2563eb" strokeWidth={3} />
+              <Line type="monotone" dataKey="count" stroke={chartColors.violet} strokeWidth={3} />
             </LineChart>
           </ResponsiveContainer>
         </div>

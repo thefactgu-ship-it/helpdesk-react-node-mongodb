@@ -227,13 +227,13 @@ function Sidebar({
               <p className="truncate text-sm font-bold text-white">
                 {userName}
               </p>
-              <p className="truncate, text-xs text-purple-300">
+              <p className="truncate, text-xs text-teal-200/80">
                 {userRole}
                 {userTeam ? ` / ${userTeam}` : ""}
               </p>
             </div>
             <ChevronDown
-              className={`h-4 w-4 shrink-0 text-purple-300 transition ${
+              className={`h-4 w-4 shrink-0 text-teal-200/80 transition ${
                 userMenuOpen ? "rotate-180" : ""
               }`}
               aria-hidden="true"
@@ -283,7 +283,7 @@ function MobileChrome({
           <p className="truncate text-sm font-black text-white">
             IT Help Desk
           </p>
-          <p className="truncate text-xs text-purple-300">
+          <p className="truncate text-xs text-teal-200/80">
             {userName}
           </p>
         </div>
@@ -291,7 +291,7 @@ function MobileChrome({
         <button
           type="button"
           onClick={onOpenProfile}
-          className="grid h-11 w-11 place-items-center rounded-lg border border-white/10 bg-purple-600 text-xs font-black text-white shadow-[0_10px_24px_rgba(109,40,217,0.25)] transition-colors hover:bg-purple-500"
+          className="grid h-11 w-11 place-items-center rounded-lg border border-teal-100/15 bg-gradient-to-br from-teal-300 to-emerald-700 text-xs font-black text-white shadow-[0_10px_24px_rgba(6,95,70,0.22)] transition-colors hover:from-teal-200 hover:to-emerald-600"
           aria-label={t("nav.profile")}
         >
           {getInitials(userName)}
@@ -359,8 +359,8 @@ function MobileChrome({
               onClick={item.action}
               className={`flex flex-col items-center justify-center gap-1 rounded-lg px-1 py-2 text-[11px] font-bold transition-colors duration-200 ${
                 active
-                  ? "bg-purple-600 text-white shadow-sm dark:bg-purple-500"
-                  : "text-purple-300 hover:bg-white/10 hover:text-white dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-purple-200"
+                  ? "bg-teal-500/25 text-teal-50 shadow-sm ring-1 ring-teal-100/15 dark:bg-teal-400/20"
+                  : "text-teal-100/70 hover:bg-teal-100/10 hover:text-white dark:text-slate-400 dark:hover:bg-teal-100/10 dark:hover:text-teal-100"
               }`}
               aria-current={active ? "page" : undefined}
             >
@@ -377,7 +377,7 @@ function MobileChrome({
 function BrandHeader({ compact }) {
   return (
     <div className={`${compact ? "flex items-center gap-3" : "border-b border-white/10 p-5"}`}>
-      <div className={`${compact ? "" : "mb-5"} flex h-10 w-10 items-center justify-center rounded-lg bg-[#6B21A8] text-sm font-bold text-white shadow-[0_10px_28px_rgba(107,33,168,0.25)] ring-1 ring-purple-900/10 dark:bg-purple-600`}>
+      <div className={`${compact ? "" : "mb-5"} flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-teal-300 to-emerald-700 text-sm font-bold text-white shadow-[0_10px_28px_rgba(6,95,70,0.22)] ring-1 ring-teal-100/10`}>
         <ShieldCheck className="h-5 w-5" aria-hidden="true" />
       </div>
 
@@ -385,7 +385,7 @@ function BrandHeader({ compact }) {
         <h1 className={`${compact ? "text-base" : "text-2xl"} font-black leading-tight text-white`}>
           IT Help Desk
         </h1>
-        <p className="text-xs font-bold text-purple-300 dark:text-purple-200">
+        <p className="text-xs font-bold text-teal-200/80 dark:text-teal-100/80">
           Multi-Hotel Support
         </p>
       </div>
@@ -396,7 +396,7 @@ function BrandHeader({ compact }) {
 function NavGroup({ activePage, group, onNavigate, t }) {
   return (
     <div>
-      <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-purple-400/60">
+      <p className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.18em] text-teal-200/45">
         {t(group.labelKey)}
       </p>
 
@@ -418,22 +418,22 @@ function NavGroup({ activePage, group, onNavigate, t }) {
 
 function ProfileMenu({ onLogout, onOpenPassword, onOpenProfile, t }) {
   return (
-    <div className="absolute bottom-[5.25rem] left-4 right-4 z-20 overflow-hidden rounded-lg border border-white/10 bg-[rgba(29,10,52,0.84)] p-2 shadow-[0_22px_50px_rgba(9,5,20,0.35)] backdrop-blur-xl dark:bg-[rgba(9,5,20,0.86)]">
+    <div className="absolute bottom-[5.25rem] left-4 right-4 z-20 overflow-hidden rounded-lg border border-teal-100/10 bg-[rgba(10,31,35,0.86)] p-2 shadow-[0_22px_50px_rgba(6,24,28,0.38)] backdrop-blur-xl dark:bg-[rgba(6,24,28,0.88)]">
       <button
         type="button"
         onClick={onOpenProfile}
-        className="w-full rounded-md px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-purple-500/10 hover:text-white dark:text-slate-200 dark:hover:bg-purple-500/20 dark:hover:text-purple-100"
+        className="w-full rounded-md px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-teal-100/10 hover:text-white dark:text-slate-200 dark:hover:bg-teal-100/10 dark:hover:text-teal-100"
       >
         {t("nav.updateProfile")}
       </button>
       <button
         type="button"
         onClick={onOpenPassword}
-        className="w-full rounded-md px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-purple-500/10 hover:text-white dark:text-slate-200 dark:hover:bg-purple-500/20 dark:hover:text-purple-100"
+        className="w-full rounded-md px-3 py-2.5 text-left text-sm font-bold text-slate-200 transition-colors hover:bg-teal-100/10 hover:text-white dark:text-slate-200 dark:hover:bg-teal-100/10 dark:hover:text-teal-100"
       >
         {t("nav.changePassword")}
       </button>
-      <div className="my-2 h-px bg-purple-100/15 dark:bg-purple-200/10" />
+      <div className="my-2 h-px bg-teal-100/15 dark:bg-teal-100/10" />
       <button
         type="button"
         onClick={onLogout}
@@ -447,7 +447,7 @@ function ProfileMenu({ onLogout, onOpenPassword, onOpenProfile, t }) {
 
 function Avatar({ name }) {
   return (
-    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-purple-600 text-xs font-bold text-white shadow-sm dark:bg-purple-500">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-teal-300 to-emerald-700 text-xs font-bold text-white shadow-sm">
       {getInitials(name)}
     </div>
   );
@@ -469,9 +469,9 @@ function MenuItem({ text, icon: Icon, active, enabled, onClick }) {
       aria-current={active ? "page" : undefined}
     >
       {active && (
-        <span className="absolute -left-4 top-2 h-[calc(100%-1rem)] w-1 rounded-r bg-purple-500 dark:bg-purple-300" />
+        <span className="absolute -left-4 top-2 h-[calc(100%-1rem)] w-1 rounded-r bg-teal-400 dark:bg-teal-300" />
       )}
-      <span className={active ? "ops-nav-icon bg-purple-600 text-white" : "ops-nav-icon"}>
+      <span className={active ? "ops-nav-icon bg-teal-100/15 text-teal-50" : "ops-nav-icon"}>
         <Icon className="h-4 w-4" aria-hidden="true" />
       </span>
       <span className="min-w-0 flex-1 truncate">{text}</span>

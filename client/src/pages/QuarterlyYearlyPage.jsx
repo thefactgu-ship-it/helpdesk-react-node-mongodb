@@ -29,6 +29,16 @@ import {
   makeReportFilename,
 } from "../utils/reportExport";
 
+const chartColors = {
+  active: "#6d28d9",
+  amber: "#f59e0b",
+  axis: "#6b6484",
+  closed: "#10b981",
+  grid: "#eadcff",
+  overdue: "#e11d48",
+  trend: "#6d28d9",
+};
+
 function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [] }) {
   const [mode, setMode] = useState("quarterly");
   const [year, setYear] = useState(String(new Date().getFullYear()));
@@ -121,16 +131,16 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={report.periods}>
-                <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
-                <YAxis allowDecimals={false} tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
+                <CartesianGrid stroke={chartColors.grid} strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
                 <Tooltip content={<ChartTooltip />} />
                 <Line
                   type="monotone"
                   dataKey="total"
-                  stroke="#10b981"
+                  stroke={chartColors.trend}
                   strokeWidth={3}
-                  dot={{ fill: "#10b981", r: 3 }}
+                  dot={{ fill: chartColors.trend, r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -152,22 +162,22 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={report.periods}>
-                <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
-                <XAxis dataKey="name" tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
-                <YAxis allowDecimals={false} tick={{ fill: "#64748b", fontSize: 11 }} tickLine={false} />
+                <CartesianGrid stroke={chartColors.grid} strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
+                <YAxis allowDecimals={false} tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
                 <Tooltip content={<ChartTooltip />} />
-                <Bar dataKey="active" fill="#64748b" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="resolved" fill="#f59e0b" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="closed" fill="#22c55e" radius={[8, 8, 0, 0]} />
-                <Bar dataKey="overdue" fill="#e11d48" radius={[8, 8, 0, 0]} />
+                <Bar dataKey="active" fill={chartColors.active} radius={[8, 8, 0, 0]} />
+                <Bar dataKey="resolved" fill={chartColors.amber} radius={[8, 8, 0, 0]} />
+                <Bar dataKey="closed" fill={chartColors.closed} radius={[8, 8, 0, 0]} />
+                <Bar dataKey="overdue" fill={chartColors.overdue} radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
           <div className="mt-4 flex flex-wrap gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            <LegendDot color="#64748b" label="Active" />
-            <LegendDot color="#f59e0b" label="Waiting confirm" />
-            <LegendDot color="#22c55e" label="Closed" />
-            <LegendDot color="#e11d48" label="Overdue" />
+            <LegendDot color={chartColors.active} label="Active" />
+            <LegendDot color={chartColors.amber} label="Waiting confirm" />
+            <LegendDot color={chartColors.closed} label="Closed" />
+            <LegendDot color={chartColors.overdue} label="Overdue" />
           </div>
         </ReportPanel>
       </section>

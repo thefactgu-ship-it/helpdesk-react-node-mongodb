@@ -363,7 +363,7 @@ function UserManagement({
               <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
                 Hotel Access
               </span>
-              <div className="grid max-h-48 gap-2 overflow-y-auto rounded-lg border border-slate-200/80 bg-white/70 p-3 dark:border-white/10 dark:bg-white/5 sm:grid-cols-2">
+              <div className="grid max-h-48 gap-2 overflow-y-auto rounded-lg border border-purple-100/80 bg-white/70 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.75)] backdrop-blur-sm dark:border-white/10 dark:bg-white/[0.06] sm:grid-cols-2">
                 {hotels.map((hotel) => {
                   const hotelId = getEntityId(hotel);
                   const selected = normalizeHotelAccess(
@@ -378,8 +378,8 @@ function UserManagement({
                       key={hotelId}
                       className={`flex min-w-0 items-center gap-3 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
                         selected
-                          ? "border-emerald-200 bg-white text-emerald-700 shadow-sm dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-200"
-                          : "border-transparent bg-transparent text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-white/5"
+                          ? "border-emerald-200 bg-emerald-50/80 text-emerald-700 shadow-sm dark:border-emerald-400/30 dark:bg-emerald-500/10 dark:text-emerald-200"
+                          : "border-transparent bg-transparent text-slate-600 hover:bg-white/80 hover:text-purple-800 dark:text-slate-300 dark:hover:bg-white/8 dark:hover:text-purple-100"
                       }`}
                     >
                       <input
@@ -409,7 +409,7 @@ function UserManagement({
                   );
                 })}
                 {!hotels.length && (
-                  <div className="rounded-xl border border-dashed border-slate-300 p-4 text-sm text-slate-500 dark:border-slate-700">
+                  <div className="rounded-xl border border-dashed border-purple-100/90 bg-white/50 p-4 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400">
                     No hotels available
                   </div>
                 )}
@@ -444,14 +444,14 @@ function UserManagement({
                 {filteredUsers.length} visible accounts in this view
               </p>
             </div>
-            <div className="grid grid-cols-2 rounded-lg border border-slate-200/80 bg-white/70 p-1 text-sm font-bold dark:border-white/10 dark:bg-white/5">
+            <div className="ops-segmented grid-cols-2">
               <button
                 type="button"
                 onClick={() => handleAccountViewChange("staff")}
-                className={`rounded-xl px-4 py-2 transition ${
+                className={`ops-segmented-item ${
                   accountView === "staff"
-                    ? "bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950"
-                    : "text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
+                    ? "ops-segmented-item-active"
+                    : ""
                 }`}
               >
                 Staff
@@ -459,10 +459,10 @@ function UserManagement({
               <button
                 type="button"
                 onClick={() => handleAccountViewChange("requester")}
-                className={`rounded-xl px-4 py-2 transition ${
+                className={`ops-segmented-item ${
                   accountView === "requester"
-                    ? "bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950"
-                    : "text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"
+                    ? "ops-segmented-item-active"
+                    : ""
                 }`}
               >
                 Requesters
@@ -550,7 +550,7 @@ function UserManagement({
                   <button
                     type="button"
                     onClick={() => setDetailUser(user)}
-                    className="rounded-xl bg-slate-200 px-4 py-2.5 text-sm font-bold text-slate-800 transition hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+                    className="ops-button-secondary px-4 py-2.5 text-sm"
                   >
                     Details
                   </button>
@@ -569,7 +569,7 @@ function UserManagement({
                     type="button"
                     disabled={deletingUserId === userId}
                     onClick={() => handleDeleteUser(userId)}
-                    className="mt-3 w-full rounded-xl border border-rose-200 bg-white px-4 py-2.5 text-sm font-bold text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-rose-500/30 dark:bg-slate-950 dark:text-rose-200 dark:hover:bg-rose-500/10"
+                    className="ops-danger-button mt-3 w-full px-4 py-2.5"
                   >
                     {deletingUserId === userId ? "Deleting..." : "Delete account"}
                   </button>
@@ -586,7 +586,7 @@ function UserManagement({
         <div className="hidden overflow-visible md:block">
           <table className="w-full table-fixed text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500 dark:border-slate-800 dark:text-slate-400">
+              <tr className="ops-table-header-row">
                 <th className="w-[31%] px-3 py-3">User</th>
                 <th className="w-[21%] px-3">Role & status</th>
                 <th className="w-[18%] px-3">Department</th>
@@ -604,7 +604,7 @@ function UserManagement({
                 return (
                   <tr
                     key={userId}
-                    className={`border-b border-slate-100 last:border-0 dark:border-slate-800 ${getUserRowAccentClass(setupIssues)}`}
+                    className={`border-b border-purple-100/70 bg-white/35 transition-colors duration-150 last:border-0 hover:bg-purple-50/60 dark:border-white/10 dark:bg-white/[0.02] dark:hover:bg-white/[0.06] ${getUserRowAccentClass(setupIssues)}`}
                   >
                     <td className="px-3 py-4">
                       <div className="truncate font-bold text-slate-900 dark:text-white">
@@ -714,7 +714,7 @@ function AccountStat({ label, tone = "default", value }) {
       : "text-slate-950 dark:text-white";
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+    <div className="ops-meta-card">
       <p className={`text-2xl font-black ${toneClass}`}>{value.toLocaleString()}</p>
       <p className="mt-1 text-xs font-bold text-slate-500 dark:text-slate-400">{label}</p>
     </div>
@@ -835,7 +835,7 @@ function PaginationControls({
           <select
             value={pageSize}
             onChange={(event) => onPageSizeChange(Number(event.target.value))}
-            className="rounded-lg border border-slate-200 bg-white/90 px-3 py-2 font-bold text-slate-700 outline-none focus:border-purple-500 dark:border-white/10 dark:bg-white/5 dark:text-slate-100"
+            className="rounded-lg border border-purple-100/90 bg-white/80 px-3 py-2 font-bold text-slate-700 outline-none transition-colors focus:border-purple-500 dark:border-white/10 dark:bg-white/[0.06] dark:text-slate-100"
           >
             {pageSizeOptions.map((option) => (
               <option key={option} value={option}>
@@ -904,7 +904,7 @@ function UserDetailDrawer({
             type="button"
             disabled={isSelf || deleting || !canManageThisUser}
             onClick={() => onDelete(userId)}
-            className="rounded-xl border border-rose-200 px-4 py-3 text-sm font-black text-rose-600 transition hover:bg-rose-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-transparent dark:border-rose-500/30 dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:border-slate-800 dark:disabled:text-slate-600"
+            className="ops-danger-button px-4 py-3"
           >
             {deleting ? "Deleting..." : "Delete account"}
           </button>
@@ -937,13 +937,13 @@ function UserDetailDrawer({
               {accessHotels.map((label) => (
                 <div
                   key={label}
-                  className="rounded-lg border border-slate-200/80 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-200"
+                  className="ops-meta-card px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200"
                 >
                   {label}
                 </div>
               ))}
               {!accessHotels.length && (
-                <div className="rounded-xl border border-dashed border-slate-300 px-3 py-3 text-sm text-slate-500 dark:border-slate-700">
+                <div className="rounded-xl border border-dashed border-purple-100/90 bg-white/50 px-3 py-3 text-sm text-slate-500 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400">
                   No hotel access configured
                 </div>
               )}
@@ -956,11 +956,11 @@ function UserDetailDrawer({
 
 function DetailItem({ label, value }) {
   return (
-    <div className="ops-card p-3">
-      <div className="text-[11px] font-black uppercase tracking-wide text-slate-400">
+    <div className="ops-meta-card">
+      <div className="ops-meta-label">
         {label}
       </div>
-      <div className="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">
+      <div className="ops-meta-value text-sm">
         {value}
       </div>
     </div>
@@ -1003,11 +1003,11 @@ function RoleBadge({ role }) {
 
 function MobileMeta({ label, value }) {
   return (
-    <div className="rounded-lg border border-slate-200/80 bg-white/90 p-3 dark:border-white/10 dark:bg-white/5">
-      <dt className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+    <div className="ops-meta-card">
+      <dt className="ops-meta-label">
         {label}
       </dt>
-      <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
+      <dd className="ops-meta-value">
         {value}
       </dd>
     </div>
