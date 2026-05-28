@@ -26,8 +26,9 @@
     --ops-shadow-soft: 0 18px 46px rgba(64, 18, 112, 0.11);
     --ops-shadow-card: 0 10px 30px rgba(64, 18, 112, 0.08);
     --ops-shadow-hero: 0 14px 34px rgba(29, 10, 52, 0.18);
-    --ops-sidebar-bg: #1d0a34;
-    --ops-sidebar-border: #2d1c45;
+    --ops-sidebar-bg: rgba(29, 10, 52, 0.92);
+    --ops-sidebar-border: rgba(233, 213, 255, 0.12);
+    --ops-sidebar-highlight: rgba(255, 255, 255, 0.08);
     --ops-glow-purple: rgba(124, 58, 237, 0.2);
   }
 
@@ -51,6 +52,9 @@
     --ops-shadow-soft: 0 18px 46px rgba(9, 5, 20, 0.48);
     --ops-shadow-card: 0 10px 30px rgba(9, 5, 20, 0.38);
     --ops-glow-purple: rgba(192, 132, 252, 0.18);
+    --ops-sidebar-bg: rgba(9, 5, 20, 0.92);
+    --ops-sidebar-border: rgba(255, 255, 255, 0.1);
+    --ops-sidebar-highlight: rgba(255, 255, 255, 0.07);
   }
 
   html {
@@ -131,11 +135,15 @@
   }
 
   .ops-sidebar {
-    @apply hidden w-72 flex-col border-r border-[var(--ops-sidebar-border)] bg-[var(--ops-sidebar-bg)] text-slate-300 shadow-[12px_0_34px_rgba(29,10,52,0.18)] dark:border-slate-800 dark:bg-slate-950/95 dark:text-slate-300 md:flex md:min-h-dvh;
+    @apply hidden w-72 flex-col border-r border-[var(--ops-sidebar-border)] bg-[var(--ops-sidebar-bg)] text-slate-300 shadow-none backdrop-blur-lg dark:text-slate-300 md:flex md:min-h-dvh;
+    box-shadow:
+      12px 0 34px rgba(29, 10, 52, 0.22),
+      inset -1px 0 0 var(--ops-sidebar-highlight),
+      inset 1px 0 0 rgba(255, 255, 255, 0.04);
   }
 
   .ops-sidebar-user-button {
-    @apply flex w-full items-center gap-3 rounded-lg border border-purple-100/15 bg-purple-950/20 p-3 text-left shadow-[0_8px_24px_rgba(0,0,0,0.1)] transition-colors duration-200 hover:border-purple-500/50 hover:bg-purple-950/30 dark:border-slate-800 dark:bg-slate-900/85 dark:hover:border-slate-700 dark:hover:bg-slate-800;
+    @apply flex w-full items-center gap-3 rounded-xl border border-white/10 bg-white/[0.08] p-3 text-left shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-colors duration-200 hover:border-white/15 hover:bg-white/[0.15] dark:border-white/10 dark:bg-white/[0.08] dark:hover:border-white/15 dark:hover:bg-white/[0.15];
   }
 
   .ops-nav-item {
@@ -155,19 +163,19 @@
   }
 
   .ops-mobile-header {
-    @apply sticky top-0 z-40 flex items-center justify-between border-b border-purple-100 bg-white/90 px-4 py-3 shadow-[0_8px_24px_rgba(109,40,217,0.05)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 md:hidden;
+    @apply sticky top-0 z-40 flex items-center justify-between border-b border-white/10 bg-[rgba(29,10,52,0.92)] px-4 py-3 shadow-[0_10px_30px_rgba(29,10,52,0.22)] backdrop-blur-lg dark:bg-[rgba(9,5,20,0.92)] md:hidden;
   }
 
   .ops-mobile-icon-button {
-    @apply grid h-11 w-11 place-items-center rounded-lg border border-purple-100 bg-white/85 text-slate-700 shadow-sm transition-colors hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800;
+    @apply grid h-11 w-11 place-items-center rounded-lg border border-white/10 bg-white/[0.08] text-purple-100 shadow-sm transition-colors hover:border-white/15 hover:bg-white/[0.15] hover:text-white dark:border-white/10 dark:bg-white/[0.08] dark:text-slate-200 dark:hover:bg-white/[0.15];
   }
 
   .ops-mobile-drawer {
-    @apply absolute inset-y-0 left-0 flex w-[min(22rem,88vw)] flex-col border-r border-purple-100 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-950;
+    @apply absolute inset-y-0 left-0 flex w-[min(22rem,88vw)] flex-col border-r border-white/10 bg-[rgba(29,10,52,0.94)] shadow-2xl backdrop-blur-xl dark:bg-[rgba(9,5,20,0.94)];
   }
 
   .ops-mobile-bottom-nav {
-    @apply fixed inset-x-0 bottom-0 z-40 grid border-t border-purple-100 bg-white/90 px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-12px_34px_rgba(109,40,217,0.10)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/95 md:hidden;
+    @apply fixed inset-x-0 bottom-0 z-40 grid border-t border-white/10 bg-[rgba(29,10,52,0.92)] px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-12px_34px_rgba(29,10,52,0.20)] backdrop-blur-lg dark:bg-[rgba(9,5,20,0.92)] md:hidden;
   }
 
   .ops-surface {

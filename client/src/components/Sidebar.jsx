@@ -202,7 +202,7 @@ function Sidebar({
 
         <div
           ref={userMenuRef}
-          className="relative border-t border-[#2d1c45] p-4 dark:border-slate-800"
+          className="relative border-t border-white/10 p-4"
         >
           {userMenuOpen && (
             <ProfileMenu
@@ -216,7 +216,7 @@ function Sidebar({
           <button
             type="button"
             onClick={() => setUserMenuOpen((open) => !open)}
-            className="flex w-full items-center gap-3 rounded-xl bg-[#2d1c45] p-3 text-left transition hover:bg-white/10"
+            className="ops-sidebar-user-button"
             aria-expanded={userMenuOpen}
             aria-haspopup="menu"
             aria-label={t("nav.accountMenu")}
@@ -269,11 +269,11 @@ function MobileChrome({
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-[#2d1c45] bg-[#1e0a3d] px-4 py-3 md:hidden">
+      <header className="ops-mobile-header">
         <button
           type="button"
           onClick={onOpenDrawer}
-          className="grid h-11 w-11 place-items-center rounded-xl border border-[#2d1c45] text-purple-200 bg-white/5 hover:bg-white/10"
+          className="ops-mobile-icon-button"
           aria-label={t("nav.openMenu")}
         >
           <Menu className="h-5 w-5" aria-hidden="true" />
@@ -291,7 +291,7 @@ function MobileChrome({
         <button
           type="button"
           onClick={onOpenProfile}
-          className="grid h-11 w-11 place-items-center rounded-xl bg-purple-600 text-xs font-black text-white"
+          className="grid h-11 w-11 place-items-center rounded-lg border border-white/10 bg-purple-600 text-xs font-black text-white shadow-[0_10px_24px_rgba(109,40,217,0.25)] transition-colors hover:bg-purple-500"
           aria-label={t("nav.profile")}
         >
           {getInitials(userName)}
@@ -306,13 +306,13 @@ function MobileChrome({
             onClick={onCloseDrawer}
             aria-label={t("nav.closeMenu")}
           />
-          <div className="absolute inset-y-0 left-0 flex w-[min(22rem,88vw)] flex-col bg-[#1e0a3d] border-r border-[#2d1c45] shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#2d1c45] p-4">
+          <div className="ops-mobile-drawer">
+            <div className="flex items-center justify-between border-b border-white/10 p-4">
               <BrandHeader compact />
               <button
                 type="button"
                 onClick={onCloseDrawer}
-                className="grid h-11 w-11 place-items-center rounded-xl border border-[#2d1c45] text-purple-200 bg-white/5 hover:bg-white/10"
+                className="ops-mobile-icon-button"
                 aria-label={t("nav.closeMenu")}
               >
                 <X className="h-5 w-5" aria-hidden="true" />
@@ -331,7 +331,7 @@ function MobileChrome({
               ))}
             </nav>
 
-            <div className="border-t border-[#2d1c45] p-4">
+            <div className="border-t border-white/10 p-4">
               <button
                 type="button"
                 onClick={onLogout}
@@ -345,7 +345,7 @@ function MobileChrome({
         </div>
       )}
 
-      <nav className={`fixed inset-x-0 bottom-0 z-40 grid ${isRequester ? "grid-cols-4" : "grid-cols-5"} border-t border-[#2d1c45] bg-[#1e0a3d] px-2 pb-[max(env(safe-area-inset-bottom),0.5rem)] pt-2 shadow-[0_-10px_30px_rgba(0,0,0,0.2)] backdrop-blur md:hidden`} aria-label="Mobile primary navigation">
+      <nav className={`ops-mobile-bottom-nav ${isRequester ? "grid-cols-4" : "grid-cols-5"}`} aria-label="Mobile primary navigation">
         {bottomItems.map((item) => {
           const Icon = item.icon;
           const active =
@@ -376,7 +376,7 @@ function MobileChrome({
 
 function BrandHeader({ compact }) {
   return (
-    <div className={`${compact ? "flex items-center gap-3" : "border-b border-purple-100/15 p-5 dark:border-purple-200/10"}`}>
+    <div className={`${compact ? "flex items-center gap-3" : "border-b border-white/10 p-5"}`}>
       <div className={`${compact ? "" : "mb-5"} flex h-10 w-10 items-center justify-center rounded-lg bg-[#6B21A8] text-sm font-bold text-white shadow-[0_10px_28px_rgba(107,33,168,0.25)] ring-1 ring-purple-900/10 dark:bg-purple-600`}>
         <ShieldCheck className="h-5 w-5" aria-hidden="true" />
       </div>
@@ -418,7 +418,7 @@ function NavGroup({ activePage, group, onNavigate, t }) {
 
 function ProfileMenu({ onLogout, onOpenPassword, onOpenProfile, t }) {
   return (
-    <div className="absolute bottom-[5.25rem] left-4 right-4 z-20 overflow-hidden rounded-lg border border-purple-100/15 bg-purple-950/50 p-2 shadow-xl backdrop-blur dark:border-purple-200/10 dark:bg-purple-950/70 dark:shadow-slate-950/50">
+    <div className="absolute bottom-[5.25rem] left-4 right-4 z-20 overflow-hidden rounded-lg border border-white/10 bg-[rgba(29,10,52,0.84)] p-2 shadow-[0_22px_50px_rgba(9,5,20,0.35)] backdrop-blur-xl dark:bg-[rgba(9,5,20,0.86)]">
       <button
         type="button"
         onClick={onOpenProfile}
