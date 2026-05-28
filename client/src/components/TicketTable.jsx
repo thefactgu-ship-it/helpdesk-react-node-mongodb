@@ -311,6 +311,7 @@ function TicketTable({
           currentPage={currentPage}
           currentUserId={currentUserId}
           loading={loading}
+          onOpenDrawer={openQueueDrawer}
           onViewTicket={onViewTicket}
           queueTickets={queueTickets}
           requesterText={requesterText}
@@ -1057,7 +1058,7 @@ function getRequesterQueueText(t) {
     ownTicketHelp: pickText(t, "queue.ownTicketHelp", "เปิดรายละเอียดเพื่อเพิ่มข้อมูลหรือยืนยันผลการแก้ไข"),
     statusLabel: pickText(t, "queue.requesterFields.status", "สถานะ"),
     summaryOnlyHelp: pickText(t, "queue.summaryOnlyHelp", "แสดงไว้เพื่อให้ทีมไม่ต้องแจ้งเรื่องเดียวกันซ้ำ"),
-    summaryOnly: pickText(t, "queue.summaryOnly", "ดูสรุป"),
+    summaryOnly: pickText(t, "queue.summaryOnly", "ดูรายละเอียด"),
     updatedLabel: pickText(t, "queue.requesterFields.updated", "อัปเดต"),
     empty: {
       all: {
