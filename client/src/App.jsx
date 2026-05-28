@@ -184,6 +184,7 @@ function App() {
   const [deletingUserId, setDeletingUserId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
   const [deleteUserId, setDeleteUserId] = useState(null);
+  const [pendingAdminClose, setPendingAdminClose] = useState(null);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const selectedTicketRef = useRef(null);
   const [profileInitialSection, setProfileInitialSection] = useState("profile");
@@ -455,12 +456,7 @@ function App() {
     }
   };
 
-  const updateStatus = async (id, status) => {
-    if (!canManageTickets && currentUser?.role !== "Agent") {
-      toast.error("Only assigned agents, managers, or admins can update ticket status");
-      return;
-    }
-
+  const performUpdateStatus = async (id, status) => {
     try {
       setUpdatingTicketId(id);
       await axios.patch(
@@ -471,7 +467,15 @@ function App() {
           params: scopedParams,
         },
       );
-      toast.success("Status updated");
+      toast.success(
+        status === "closed" && canManageTickets
+          ? getTextByLanguage(
+              language,
+              "ปิด ticket แล้วโดยไม่บันทึกคะแนนแทนผู้แจ้ง",
+              "Ticket closed without requester rating",
+            )
+          : "Status updated",
+      );
       await fetchTickets();
       await fetchSummaryTickets();
       if (selectedTicket && selectedTicket._id === id) {
@@ -483,6 +487,33 @@ function App() {
     } finally {
       setUpdatingTicketId(null);
     }
+  };
+
+  const updateStatus = async (id, status) => {
+    if (!canManageTickets && currentUser?.role !== "Agent") {
+      toast.error("Only assigned agents, managers, or admins can update ticket status");
+      return;
+    }
+
+    if (status === "closed" && canManageTickets) {
+      const ticket = [selectedTicket, ...tickets, ...summaryTickets].filter(Boolean).find(
+        (item) => String(item._id || item.id) === String(id),
+      );
+      setPendingAdminClose({
+        id,
+        title: ticket?.title || ticket?.ticketNumber || id,
+      });
+      return;
+    }
+
+    await performUpdateStatus(id, status);
+  };
+
+  const confirmAdminCloseTicket = async () => {
+    const ticket = pendingAdminClose;
+    setPendingAdminClose(null);
+    if (!ticket?.id) return;
+    await performUpdateStatus(ticket.id, "closed");
   };
 
   const reopenTicket = async (id) => {
@@ -1107,6 +1138,18 @@ function App() {
         }? This account will no longer be able to access the system.`}
         onCancel={() => setDeleteUserId(null)}
         onConfirm={confirmDeleteUser}
+      />
+      <ConfirmModal
+        confirmLabel={getTextByLanguage(language, "ปิด ticket", "Close ticket")}
+        open={!!pendingAdminClose}
+        title={getTextByLanguage(language, "ปิด ticket โดยผู้ดูแล", "Close ticket as admin")}
+        message={getTextByLanguage(
+          language,
+          `ต้องการปิด "${pendingAdminClose?.title || "ticket นี้"}" ใช่ไหม? การปิดโดยผู้ดูแลจะไม่บันทึกคะแนนแทนผู้แจ้ง และจะไม่ถูกนับในคะแนนความพึงพอใจเฉลี่ย`,
+          `Close "${pendingAdminClose?.title || "this ticket"}"? Admin closure will not submit a requester rating and will not count toward average satisfaction.`,
+        )}
+        onCancel={() => setPendingAdminClose(null)}
+        onConfirm={confirmAdminCloseTicket}
       />
       <TicketDetailModal
         open={!!selectedTicket}

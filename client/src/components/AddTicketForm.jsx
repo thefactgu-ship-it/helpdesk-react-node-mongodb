@@ -39,7 +39,7 @@ function AddTicketForm({
 
   return (
     <section className="ops-soft-panel mx-auto max-w-4xl md:p-6">
-      <div className="mb-6 flex flex-col gap-3 border-b border-purple-100 pb-5 dark:border-purple-400/10 md:flex-row md:items-start md:justify-between">
+      <div className="mb-6 flex flex-col gap-3 border-b border-slate-200/80 pb-5 dark:border-white/10 md:flex-row md:items-start md:justify-between">
         <div className="max-w-2xl">
           <p className="ops-chip-primary">
             <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
@@ -52,15 +52,15 @@ function AddTicketForm({
             {t("addTicket.intro")}
           </p>
         </div>
-        <div className="rounded-lg border border-purple-100/80 bg-purple-50/70 px-4 py-3 text-sm text-purple-950 shadow-[0_8px_24px_rgba(76,29,149,0.05)] dark:border-purple-400/15 dark:bg-purple-500/10 dark:text-purple-100">
-          <p className="font-bold">{t("addTicket.goalTitle")}</p>
-          <p className="mt-1 text-xs leading-5">{t("addTicket.goalBody")}</p>
+        <div className="rounded-lg border border-emerald-100/90 bg-emerald-50/80 px-4 py-3 text-sm text-emerald-950 shadow-[0_8px_24px_rgba(16,185,129,0.07)] dark:border-emerald-400/15 dark:bg-emerald-500/10 dark:text-emerald-100">
+          <p className="font-black">{t("addTicket.goalTitle")}</p>
+          <p className="mt-1 text-xs leading-5 text-emerald-800 dark:text-emerald-100/80">{t("addTicket.goalBody")}</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-5 lg:grid-cols-[1.4fr_0.9fr]">
-          <div className="space-y-5">
+          <div className="space-y-5 rounded-xl border border-slate-200/80 bg-white/70 p-4 dark:border-white/10 dark:bg-white/[0.03]">
             <Field label={t("addTicket.titleLabel")} labelClass={labelClass} required>
               <input
                 type="text"
@@ -106,7 +106,7 @@ function AddTicketForm({
                         className={`rounded-full border px-3 py-1.5 text-xs font-bold transition-colors duration-200 ${
                           selected
                             ? "border-purple-600 bg-purple-700 text-white dark:border-purple-400 dark:bg-purple-500"
-                            : "border-purple-100 bg-white/85 text-slate-600 hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 dark:border-purple-400/15 dark:bg-white/5 dark:text-slate-300"
+                            : "border-slate-200 bg-white/85 text-slate-600 hover:border-purple-200 hover:bg-purple-50 hover:text-purple-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"
                         }`}
                       >
                         {type.name}
@@ -138,7 +138,7 @@ function AddTicketForm({
           </div>
 
           <aside className="space-y-4">
-            <Card>
+            <Card className="border-slate-200/80 dark:border-white/10">
               <div className="flex items-start gap-3">
                 <span className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg ${selectedGuidance.iconClass}`}>
                   <GuidanceIcon className="h-4 w-4" aria-hidden="true" />
@@ -230,8 +230,8 @@ function AddTicketForm({
               </Card>
             )}
 
-            <Card className="bg-purple-50/55 dark:bg-purple-500/10">
-              <p className="text-sm font-black text-purple-950 dark:text-purple-100">
+            <Card className="border-slate-200/80 bg-white/90 dark:border-white/10 dark:bg-white/[0.04]">
+              <p className="text-sm font-black text-slate-900 dark:text-white">
                 {t("addTicket.summary")}
               </p>
               <dl className="mt-3 space-y-2 text-sm">
@@ -240,7 +240,7 @@ function AddTicketForm({
                 <SummaryItem label={t("addTicket.priority")} value={submissionSummary?.priority} />
               </dl>
               {submitting && (
-                  <p className="mt-3 rounded-md bg-white/90 px-3 py-2 text-xs font-semibold text-purple-700 dark:bg-[#140d24] dark:text-purple-200">
+                  <p className="mt-3 rounded-md bg-purple-50 px-3 py-2 text-xs font-semibold text-purple-700 dark:bg-purple-500/10 dark:text-purple-200">
                   {t("addTicket.creating")}
                 </p>
               )}
@@ -248,7 +248,7 @@ function AddTicketForm({
           </aside>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-purple-100 pt-5 dark:border-purple-400/10 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-t border-slate-200/80 pt-5 dark:border-white/10 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             {t("addTicket.submitHint")}
           </p>
@@ -328,7 +328,7 @@ function Field({ children, label, labelClass, required = false }) {
 
 function SummaryItem({ label, value }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md bg-white/90 px-3 py-2 ring-1 ring-purple-100 dark:bg-white/5 dark:ring-purple-400/10">
+    <div className="flex items-center justify-between gap-3 rounded-md bg-white/90 px-3 py-2 ring-1 ring-slate-200 dark:bg-white/5 dark:ring-white/10">
       <dt className="text-xs font-semibold text-slate-500 dark:text-slate-400">
         {label}
       </dt>
