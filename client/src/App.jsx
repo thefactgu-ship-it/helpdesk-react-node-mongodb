@@ -1027,7 +1027,6 @@ function App() {
   useEffect(() => {
     if (!token) return undefined;
     if (currentUser?.mustChangePassword) {
-      setLoading(false);
       return undefined;
     }
 
