@@ -22,7 +22,7 @@ import StatCard from "../components/StatCard";
 import PeriodExecutiveSummary from "../components/PeriodExecutiveSummary";
 import ThemedSelect from "../components/ThemedSelect";
 import { buildExecutiveReportInsights } from "../utils/periodReportInsights";
-import { getCompletionStats, getSuccessDetail, isCompletedTicket } from "../utils/ticketMetrics";
+import { getCompletionStats, isCompletedTicket } from "../utils/ticketMetrics";
 import {
   exportReportPrompt,
   getHotelScopeLabel,
@@ -39,19 +39,23 @@ const chartColors = {
   trend: "#0a1f23",
 };
 
-function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [] }) {
+function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", t = (key) => key, tickets = [] }) {
   const [mode, setMode] = useState("quarterly");
   const [year, setYear] = useState(String(new Date().getFullYear()));
-  const report = buildPeriodReport(tickets, Number(year), mode);
+  const report = buildPeriodReport(tickets, Number(year), mode, t);
   const years = getAvailableYears(tickets);
   const scopeLabel = getHotelScopeLabel(selectedHotelId, hotels);
-  const periodLabel = mode === "quarterly" ? `Quarterly ${year}` : `Yearly ${year}`;
+  const periodLabel = mode === "quarterly"
+    ? t("reports.period.quarterlyYear", { year })
+    : t("reports.period.yearlyYear", { year });
   const filenameBase = makeReportFilename(`helpdesk-${mode}`, year, scopeLabel);
   const exportPayload = {
     filename: filenameBase,
     periodLabel,
     report,
-    reportTitle: mode === "quarterly" ? "Quarterly Helpdesk Report" : "Yearly Helpdesk Report",
+    reportTitle: mode === "quarterly"
+      ? t("reports.period.quarterlyReportTitle")
+      : t("reports.period.yearlyReportTitle"),
     scopeLabel,
     tickets: report.filteredTickets,
   };
@@ -61,35 +65,35 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
       <section className="ops-panel flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="ops-section-label mb-2">
-            Reports
+            {t("reports.period.eyebrow")}
           </p>
           <h3 className="text-2xl font-black text-slate-950 dark:text-white">
-            Quarterly / Yearly
+            {t("reports.period.title")}
           </h3>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Compare ticket trend, waiting confirmation, closed work, and overdue volume by period.
+            {t("reports.period.description")}
           </p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
-              View
+              {t("reports.period.view")}
             </span>
             <ThemedSelect
               className="sm:w-44"
               value={mode}
               onChange={setMode}
               options={[
-                { value: "quarterly", label: "Quarterly", prefix: "Q" },
-                { value: "yearly", label: "Yearly", prefix: "Y" },
+                { value: "quarterly", label: t("reports.period.quarterly"), prefix: "Q" },
+                { value: "yearly", label: t("reports.period.yearly"), prefix: "Y" },
               ]}
             />
           </label>
 
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
-              Year
+              {t("reports.period.year")}
             </span>
             <ThemedSelect
               className="sm:w-36"
@@ -110,24 +114,24 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
               className="ops-button-secondary px-4 py-3 text-sm"
             >
               <FileText size={16} />
-              Export Prompt
+              {t("reports.common.exportPrompt")}
             </button>
           </div>
         </div>
       </section>
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
-        <StatCard className="pl-5" title="Tickets" value={report.total} detail={year} icon={ClipboardList} />
-        <StatCard className="pl-5" title="Waiting Confirm" value={report.resolved} detail="resolved, not closed" icon={Activity} />
-        <StatCard className="pl-5" title="Closed" value={report.closed} detail={`${report.completionRate}% of tickets`} icon={CheckCircle2} />
-        <StatCard className="pl-5" title="SLA Success" value={`${report.successRate}%`} detail={report.successDetail} icon={Gauge} />
-        <StatCard className="pl-5" title="Avg. Rating" value={report.avgSatisfactionLabel} detail={`${report.satisfactionCount} ratings`} icon={Star} />
+        <StatCard className="pl-5" title={t("reports.common.tickets")} value={report.total} detail={year} icon={ClipboardList} />
+        <StatCard className="pl-5" title={t("reports.common.waitingConfirm")} value={report.resolved} detail={t("reports.common.resolvedNotClosed")} icon={Activity} />
+        <StatCard className="pl-5" title={t("reports.common.closed")} value={report.closed} detail={t("reports.common.percentOfTickets", { percent: report.completionRate })} icon={CheckCircle2} />
+        <StatCard className="pl-5" title={t("reports.common.slaSuccess")} value={`${report.successRate}%`} detail={report.successDetail} icon={Gauge} />
+        <StatCard className="pl-5" title={t("reports.common.avgRating")} value={report.avgSatisfactionLabel} detail={t("reports.common.ratings", { count: report.satisfactionCount })} icon={Star} />
       </section>
 
-      <PeriodExecutiveSummary report={report} />
+      <PeriodExecutiveSummary report={report} t={t} />
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-        <ReportPanel className="xl:col-span-8" title={`${report.label} Ticket Trend`}>
+        <ReportPanel className="xl:col-span-8" title={t("reports.period.ticketTrend", { label: report.label })}>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={report.periods}>
@@ -147,18 +151,18 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
           </div>
         </ReportPanel>
 
-        <ReportPanel className="xl:col-span-4" title="Year Snapshot">
+        <ReportPanel className="xl:col-span-4" title={t("reports.period.snapshot")}>
           <div className="grid gap-3 text-sm">
-            <SnapshotRow label="Best period" value={report.bestPeriod} />
-            <SnapshotRow label="Most overdue period" value={report.mostOverduePeriod} />
-            <SnapshotRow label="Waiting confirmation" value={report.resolved} />
-            <SnapshotRow label="Closed tickets" value={report.closed} />
-            <SnapshotRow label="Avg. resolve time" value={`${report.avgResolutionHours}h`} />
-            <SnapshotRow label="Active tickets" value={report.active} />
+            <SnapshotRow label={t("reports.period.bestPeriod")} value={report.bestPeriod} />
+            <SnapshotRow label={t("reports.period.mostOverduePeriod")} value={report.mostOverduePeriod} />
+            <SnapshotRow label={t("reports.common.waitingConfirmation")} value={report.resolved} />
+            <SnapshotRow label={t("reports.common.closedTickets")} value={report.closed} />
+            <SnapshotRow label={t("reports.common.avgResolveTime")} value={t("reports.common.hours", { value: report.avgResolutionHours })} />
+            <SnapshotRow label={t("reports.common.activeTickets")} value={report.active} />
           </div>
         </ReportPanel>
 
-        <ReportPanel className="xl:col-span-12" title="Active / Waiting / Closed / Overdue Comparison">
+        <ReportPanel className="xl:col-span-12" title={t("reports.period.comparison")}>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={report.periods}>
@@ -166,18 +170,18 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
                 <XAxis dataKey="name" tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
                 <YAxis allowDecimals={false} tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
                 <Tooltip content={<ChartTooltip />} />
-                <Bar dataKey="active" fill={chartColors.active} radius={[8, 8, 0, 0]} />
-                <Bar dataKey="resolved" fill={chartColors.amber} radius={[8, 8, 0, 0]} />
-                <Bar dataKey="closed" fill={chartColors.closed} radius={[8, 8, 0, 0]} />
-                <Bar dataKey="overdue" fill={chartColors.overdue} radius={[8, 8, 0, 0]} />
+                <Bar dataKey="active" name={t("reports.common.active")} fill={chartColors.active} radius={[8, 8, 0, 0]} />
+                <Bar dataKey="resolved" name={t("reports.common.waitingConfirm")} fill={chartColors.amber} radius={[8, 8, 0, 0]} />
+                <Bar dataKey="closed" name={t("reports.common.closed")} fill={chartColors.closed} radius={[8, 8, 0, 0]} />
+                <Bar dataKey="overdue" name={t("reports.common.overdue")} fill={chartColors.overdue} radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
           <div className="mt-4 flex flex-wrap gap-4 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            <LegendDot color={chartColors.active} label="Active" />
-            <LegendDot color={chartColors.amber} label="Waiting confirm" />
-            <LegendDot color={chartColors.closed} label="Closed" />
-            <LegendDot color={chartColors.overdue} label="Overdue" />
+            <LegendDot color={chartColors.active} label={t("reports.common.active")} />
+            <LegendDot color={chartColors.amber} label={t("reports.common.waitingConfirm")} />
+            <LegendDot color={chartColors.closed} label={t("reports.common.closed")} />
+            <LegendDot color={chartColors.overdue} label={t("reports.common.overdue")} />
           </div>
         </ReportPanel>
       </section>
@@ -185,13 +189,13 @@ function QuarterlyYearlyPage({ hotels = [], selectedHotelId = "all", tickets = [
   );
 }
 
-function buildPeriodReport(tickets, year, mode) {
+function buildPeriodReport(tickets, year, mode, t) {
   const yearTickets = tickets.filter((ticket) => {
     return new Date(ticket.createdAt).getFullYear() === year;
   });
   const periods = mode === "quarterly"
     ? buildQuarterlyPeriods(yearTickets)
-    : buildYearlyPeriods(yearTickets);
+    : buildYearlyPeriods(yearTickets, t.language === "th" ? "th-TH" : "en-US");
   const total = yearTickets.length;
   const resolved = yearTickets.filter((ticket) => ticket.status === "resolved").length;
   const closed = yearTickets.filter((ticket) => ticket.status === "closed").length;
@@ -212,7 +216,7 @@ function buildPeriodReport(tickets, year, mode) {
     overdue,
     resolved,
     successRate: completionStats.successRate,
-  });
+  }, t);
 
   return {
     active,
@@ -225,14 +229,17 @@ function buildPeriodReport(tickets, year, mode) {
     completedCount: completionStats.completedCount,
     completionRate: completionStats.completionRate,
     filteredTickets: yearTickets,
-    label: mode === "quarterly" ? "Quarterly" : "Yearly",
+    label: mode === "quarterly" ? t("reports.period.quarterly") : t("reports.period.yearly"),
     mostOverduePeriod: getTopPeriod(periods, "overdue"),
     overdue,
     periods,
     resolved,
     ...executiveInsights,
     satisfactionCount: completionStats.satisfactionCount,
-    successDetail: getSuccessDetail(completionStats),
+    successDetail: t("reports.common.onTime", {
+      total: completionStats.successEligibleCount || 0,
+      value: completionStats.successfulCount,
+    }),
     successRate: completionStats.successRate,
     total,
   };
@@ -250,10 +257,9 @@ function buildQuarterlyPeriods(tickets) {
   });
 }
 
-function buildYearlyPeriods(tickets) {
-  const labels = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-  return labels.map((name, month) => {
+function buildYearlyPeriods(tickets, locale) {
+  return Array.from({ length: 12 }, (_, month) => {
+    const name = new Date(2026, month, 1).toLocaleDateString(locale, { month: "short" });
     const periodTickets = tickets.filter((ticket) => {
       return new Date(ticket.createdAt).getMonth() === month;
     });

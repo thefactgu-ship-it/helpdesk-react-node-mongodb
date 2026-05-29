@@ -1,9 +1,9 @@
-export function buildExecutiveReportInsights(tickets, stats = {}) {
-  const topCategories = countBy(tickets, (ticket) => ticket.category || "General")
+export function buildExecutiveReportInsights(tickets, stats = {}, t = (key) => key) {
+  const topCategories = countBy(tickets, (ticket) => ticket.category || t("reports.common.general"))
     .slice(0, 5)
     .map(toNameValue);
-  const focusAreas = buildFocusAreas(tickets).slice(0, 5);
-  const recurringIssues = buildRecurringIssues(tickets).slice(0, 6);
+  const focusAreas = buildFocusAreas(tickets, t).slice(0, 5);
+  const recurringIssues = buildRecurringIssues(tickets, t).slice(0, 6);
 
   return {
     focusAreas,
@@ -16,20 +16,20 @@ export function buildExecutiveReportInsights(tickets, stats = {}) {
       successRate: stats.successRate || 0,
       topCategories,
       total: tickets.length,
-    }),
+    }, t),
     recurringIssues,
     topCategories,
   };
 }
 
-function buildFocusAreas(tickets) {
+function buildFocusAreas(tickets, t) {
   return countBy(tickets, (ticket) => {
-    const hotel = getTicketHotelName(ticket);
-    const department = getTicketDepartmentName(ticket);
+    const hotel = getTicketHotelName(ticket, t);
+    const department = getTicketDepartmentName(ticket, t);
     return `${hotel} / ${department}`;
   }).map(([name, value]) => {
     const areaTickets = tickets.filter((ticket) => {
-      return `${getTicketHotelName(ticket)} / ${getTicketDepartmentName(ticket)}` === name;
+      return `${getTicketHotelName(ticket, t)} / ${getTicketDepartmentName(ticket, t)}` === name;
     });
     const overdue = areaTickets.filter(isOverdue).length;
     const urgent = areaTickets.filter((ticket) => ["critical", "high"].includes(ticket.priority)).length;
@@ -45,9 +45,9 @@ function buildFocusAreas(tickets) {
   });
 }
 
-function buildRecurringIssues(tickets) {
+function buildRecurringIssues(tickets, t) {
   return countBy(tickets, (ticket) => {
-    const category = ticket.category || "General";
+    const category = ticket.category || t("reports.common.general");
     const title = normalizeIssueTitle(ticket.title || ticket.subject || ticket.description || "");
     return title ? `${category} / ${title}` : category;
   })
@@ -64,9 +64,9 @@ function buildManagementInsights({
   successRate,
   topCategories,
   total,
-}) {
+}, t) {
   if (!total) {
-    return ["No ticket data in this period yet."];
+    return [t("reports.insights.noTicketData")];
   }
 
   const insights = [];
@@ -75,44 +75,53 @@ function buildManagementInsights({
   const recurring = recurringIssues[0];
 
   if (topCategory) {
-    insights.push(`${topCategory.name} is the largest problem area with ${topCategory.value} tickets.`);
+    insights.push(t("reports.insights.topCategory", {
+      count: topCategory.value,
+      name: topCategory.name,
+    }));
   }
 
   if (topFocus) {
     const riskText = topFocus.overdue || topFocus.urgent
-      ? `${topFocus.overdue} overdue / ${topFocus.urgent} urgent`
-      : `${topFocus.value} tickets`;
-    insights.push(`${topFocus.name} should be reviewed first (${riskText}).`);
+      ? t("reports.insights.riskText", { overdue: topFocus.overdue, urgent: topFocus.urgent })
+      : t("reports.insights.ticketCount", { count: topFocus.value });
+    insights.push(t("reports.insights.topFocus", {
+      name: topFocus.name,
+      riskText,
+    }));
   }
 
   if (recurring) {
-    insights.push(`Recurring pattern detected: ${recurring.name} (${recurring.value} times).`);
+    insights.push(t("reports.insights.recurring", {
+      count: recurring.value,
+      name: recurring.name,
+    }));
   }
 
   if (resolved > 0) {
-    insights.push(`${resolved} resolved tickets are waiting requester confirmation before closure.`);
+    insights.push(t("reports.insights.waitingConfirmation", { count: resolved }));
   }
 
   if (overdue > 0) {
-    insights.push(`${overdue} active tickets are overdue and may affect SLA perception.`);
+    insights.push(t("reports.insights.overdue", { count: overdue }));
   } else if (successRate >= 90) {
-    insights.push("SLA performance is healthy; continue monitoring high-volume categories.");
+    insights.push(t("reports.insights.healthySla"));
   }
 
   if (active > 0 && insights.length < 4) {
-    insights.push(`${active} tickets are still active and should stay visible in the work queue.`);
+    insights.push(t("reports.insights.activeWork", { count: active }));
   }
 
   return insights.slice(0, 5);
 }
 
-function getTicketHotelName(ticket) {
+function getTicketHotelName(ticket, t) {
   if (ticket.hotelId?.code && ticket.hotelId?.name) return `${ticket.hotelId.code} / ${ticket.hotelId.name}`;
-  return ticket.hotelId?.name || ticket.hotelName || ticket.hotel || ticket.hotelCode || "No hotel";
+  return ticket.hotelId?.name || ticket.hotelName || ticket.hotel || ticket.hotelCode || t("reports.common.noHotel");
 }
 
-function getTicketDepartmentName(ticket) {
-  return ticket.departmentId?.name || ticket.departmentName || ticket.department || ticket.team || "No department";
+function getTicketDepartmentName(ticket, t) {
+  return ticket.departmentId?.name || ticket.departmentName || ticket.department || ticket.team || t("reports.common.noDepartment");
 }
 
 function normalizeIssueTitle(value) {

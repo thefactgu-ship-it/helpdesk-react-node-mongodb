@@ -20,7 +20,7 @@ import {
   Star,
 } from "lucide-react";
 import StatCard from "../components/StatCard";
-import { getCompletionStats, getSuccessDetail, isCompletedTicket } from "../utils/ticketMetrics";
+import { getCompletionStats, isCompletedTicket } from "../utils/ticketMetrics";
 import {
   exportReportPrompt,
   getHotelScopeLabel,
@@ -37,16 +37,16 @@ const chartColors = {
   trend: "#0a1f23",
 };
 
-function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] }) {
+function MonthlyReportPage({ hotels = [], selectedHotelId = "all", t = (key) => key, tickets = [] }) {
   const [selectedMonth, setSelectedMonth] = useState(getMonthInputValue(new Date()));
-  const report = buildMonthlyReport(tickets, selectedMonth);
+  const report = buildMonthlyReport(tickets, selectedMonth, t);
   const scopeLabel = getHotelScopeLabel(selectedHotelId, hotels);
   const filenameBase = makeReportFilename("helpdesk-monthly", selectedMonth, scopeLabel);
   const exportPayload = {
     filename: filenameBase,
     periodLabel: report.monthLabel,
     report,
-    reportTitle: "Monthly Helpdesk Report",
+    reportTitle: t("reports.monthly.reportTitle"),
     scopeLabel,
     tickets: report.filteredTickets,
   };
@@ -56,20 +56,20 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
       <section className="ops-panel flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="ops-section-label mb-2">
-            Monthly Report
+            {t("reports.monthly.eyebrow")}
           </p>
           <h3 className="text-2xl font-black text-slate-950 dark:text-white">
             {report.monthLabel}
           </h3>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Summary is calculated from tickets created in the selected month.
+            {t("reports.monthly.description")}
           </p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-300">
-              Filter month
+              {t("reports.monthly.filterMonth")}
             </span>
             <input
               type="month"
@@ -86,29 +86,29 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
               className="ops-button-secondary px-4 py-3 text-sm"
             >
               <FileText size={16} />
-              Export Prompt
+              {t("reports.common.exportPrompt")}
             </button>
           </div>
         </div>
       </section>
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
-        <StatCard className="pl-5" title={report.shortMonthLabel} value={report.total} detail="tickets" icon={CalendarDays} />
-        <StatCard className="pl-5" title="Waiting Confirm" value={report.resolved} detail="resolved, not closed" icon={Activity} />
-        <StatCard className="pl-5" title="Closed" value={report.closed} detail={`${report.completionRate}% of tickets`} icon={CheckCircle2} />
-        <StatCard className="pl-5" title="SLA Success" value={`${report.successRate}%`} detail={report.successDetail} icon={Gauge} />
-        <StatCard className="pl-5" title="Avg. Rating" value={report.avgSatisfactionLabel} detail={`${report.satisfactionCount} ratings`} icon={Star} />
+        <StatCard className="pl-5" title={report.shortMonthLabel} value={report.total} detail={t("reports.common.tickets")} icon={CalendarDays} />
+        <StatCard className="pl-5" title={t("reports.common.waitingConfirm")} value={report.resolved} detail={t("reports.common.resolvedNotClosed")} icon={Activity} />
+        <StatCard className="pl-5" title={t("reports.common.closed")} value={report.closed} detail={t("reports.common.percentOfTickets", { percent: report.completionRate })} icon={CheckCircle2} />
+        <StatCard className="pl-5" title={t("reports.common.slaSuccess")} value={`${report.successRate}%`} detail={report.successDetail} icon={Gauge} />
+        <StatCard className="pl-5" title={t("reports.common.avgRating")} value={report.avgSatisfactionLabel} detail={t("reports.common.ratings", { count: report.satisfactionCount })} icon={Star} />
       </section>
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-        <ReportPanel className="xl:col-span-8" title="Monthly Ticket Trend">
+        <ReportPanel className="xl:col-span-8" title={t("reports.monthly.ticketTrend")}>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={report.trend}>
                 <CartesianGrid stroke={chartColors.grid} strokeDasharray="3 3" />
                 <XAxis dataKey="name" tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
                 <YAxis allowDecimals={false} tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
-                <Tooltip content={<ChartTooltip labelSuffix="tickets" />} />
+                <Tooltip content={<ChartTooltip labelSuffix={t("reports.common.tickets")} />} />
                 <Line
                   type="monotone"
                   dataKey="total"
@@ -121,7 +121,7 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
           </div>
         </ReportPanel>
 
-        <ReportPanel className="xl:col-span-4" title="Status Summary">
+        <ReportPanel className="xl:col-span-4" title={t("reports.common.statusSummary")}>
           <div className="space-y-4">
             {report.statusSummary.map((item) => (
               <ProgressRow key={item.name} {...item} total={report.total} tone={getStatusTone(item.key)} />
@@ -129,22 +129,22 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
           </div>
         </ReportPanel>
 
-        <ReportPanel className="xl:col-span-4" title="Top Categories">
+        <ReportPanel className="xl:col-span-4" title={t("reports.common.topCategories")}>
           <div className="space-y-4">
             {report.topCategories.map((item, index) => (
               <ProgressRow key={item.name} {...item} total={report.total} tone={getCategoryTone(index)} />
             ))}
-            {!report.topCategories.length && <EmptyState message="No category data" />}
+            {!report.topCategories.length && <EmptyState message={t("reports.common.noCategoryData")} />}
           </div>
         </ReportPanel>
 
-        <ReportPanel className="xl:col-span-4" title="Priority Summary">
+        <ReportPanel className="xl:col-span-4" title={t("reports.common.prioritySummary")}>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={report.prioritySummary}>
                 <XAxis dataKey="name" tick={{ fill: chartColors.axis, fontSize: 11 }} tickLine={false} />
                 <YAxis hide allowDecimals={false} />
-                <Tooltip content={<ChartTooltip labelSuffix="tickets" />} />
+                <Tooltip content={<ChartTooltip labelSuffix={t("reports.common.tickets")} />} />
                 <Bar dataKey="value" radius={[12, 12, 0, 0]}>
                   {report.prioritySummary.map((entry) => (
                     <Cell key={entry.name} fill={entry.color} />
@@ -155,15 +155,15 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
           </div>
         </ReportPanel>
 
-        <ReportPanel className="xl:col-span-4" title="Monthly Snapshot">
+        <ReportPanel className="xl:col-span-4" title={t("reports.monthly.snapshot")}>
           <div className="grid gap-3 text-sm">
-            <SnapshotRow label="Most common category" value={report.topCategoryName} />
-            <SnapshotRow label="Critical tickets" value={report.critical} />
-            <SnapshotRow label="Waiting confirmation" value={report.resolved} />
-            <SnapshotRow label="Closed tickets" value={report.closed} />
-            <SnapshotRow label="Overdue tickets" value={report.overdue} />
-            <SnapshotRow label="Avg. resolve time" value={`${report.avgResolutionHours}h`} />
-            <SnapshotRow label="Active tickets" value={report.active} />
+            <SnapshotRow label={t("reports.common.mostCommonCategory")} value={report.topCategoryName} />
+            <SnapshotRow label={t("reports.common.criticalTickets")} value={report.critical} />
+            <SnapshotRow label={t("reports.common.waitingConfirmation")} value={report.resolved} />
+            <SnapshotRow label={t("reports.common.closedTickets")} value={report.closed} />
+            <SnapshotRow label={t("reports.common.overdueTickets")} value={report.overdue} />
+            <SnapshotRow label={t("reports.common.avgResolveTime")} value={t("reports.common.hours", { value: report.avgResolutionHours })} />
+            <SnapshotRow label={t("reports.common.activeTickets")} value={report.active} />
           </div>
         </ReportPanel>
       </section>
@@ -171,7 +171,8 @@ function MonthlyReportPage({ hotels = [], selectedHotelId = "all", tickets = [] 
   );
 }
 
-function buildMonthlyReport(tickets, selectedMonth) {
+function buildMonthlyReport(tickets, selectedMonth, t) {
+  const locale = t.language === "th" ? "th-TH" : "en-US";
   const selectedDate = parseMonthInputValue(selectedMonth);
   const monthTickets = tickets.filter((ticket) => {
     const createdAt = new Date(ticket.createdAt);
@@ -213,33 +214,36 @@ function buildMonthlyReport(tickets, selectedMonth) {
     completionRate: completionStats.completionRate,
     critical,
     filteredTickets: monthTickets,
-    monthLabel: selectedDate.toLocaleDateString("en-US", {
+    monthLabel: selectedDate.toLocaleDateString(locale, {
       month: "long",
       year: "numeric",
     }),
     overdue,
     prioritySummary: ["critical", "high", "medium", "low"].map((priority) => ({
       color: getPriorityColor(priority),
-      name: capitalize(priority),
+      name: t(`reports.priority.${priority}`),
       value: monthTickets.filter((ticket) => ticket.priority === priority).length,
     })),
     resolved,
     satisfactionCount: completionStats.satisfactionCount,
-    shortMonthLabel: selectedDate.toLocaleDateString("en-US", {
+    shortMonthLabel: selectedDate.toLocaleDateString(locale, {
       month: "short",
       year: "numeric",
     }),
-    successDetail: getSuccessDetail(completionStats),
+    successDetail: t("reports.common.onTime", {
+      total: completionStats.successEligibleCount || 0,
+      value: completionStats.successfulCount,
+    }),
     successRate: completionStats.successRate,
     statusSummary: ["open", "in_progress", "resolved", "closed"].map((status) => ({
       key: status,
-      name: formatStatus(status),
+      name: t(`reports.status.${status}`),
       value: monthTickets.filter((ticket) => ticket.status === status).length,
     })),
     topCategories,
     topCategoryName: topCategories[0]?.name || "-",
     total,
-    trend: buildSixMonthTrend(tickets),
+    trend: buildSixMonthTrend(tickets, locale),
   };
 }
 
@@ -256,14 +260,14 @@ function parseMonthInputValue(value) {
   return new Date(year, month - 1, 1);
 }
 
-function buildSixMonthTrend(tickets) {
+function buildSixMonthTrend(tickets, locale) {
   return Array.from({ length: 6 }, (_, index) => {
     const date = new Date();
     date.setDate(1);
     date.setMonth(date.getMonth() - (5 - index));
 
     return {
-      name: date.toLocaleDateString("en-US", { month: "short" }),
+      name: date.toLocaleDateString(locale, { month: "short" }),
       total: tickets.filter((ticket) => {
         const createdAt = new Date(ticket.createdAt);
         return (
@@ -289,14 +293,6 @@ function isOverdue(ticket) {
   if (!ticket.dueDate) return false;
   if (["resolved", "closed"].includes(ticket.status)) return false;
   return new Date() > new Date(ticket.dueDate);
-}
-
-function formatStatus(status) {
-  return status.replace("_", " ").replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function capitalize(value) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function ReportPanel({ children, className = "", title }) {

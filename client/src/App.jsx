@@ -1434,6 +1434,7 @@ function App() {
                 <MonthlyReportPage
                   hotels={hotels}
                   selectedHotelId={selectedHotelId}
+                  t={t}
                   tickets={summaryTickets}
                 />
               )}
@@ -1442,6 +1443,7 @@ function App() {
                 <QuarterlyYearlyPage
                   hotels={hotels}
                   selectedHotelId={selectedHotelId}
+                  t={t}
                   tickets={summaryTickets}
                 />
               )}

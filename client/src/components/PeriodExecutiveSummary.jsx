@@ -5,16 +5,16 @@ import {
   ListChecks,
 } from "lucide-react";
 
-function PeriodExecutiveSummary({ report }) {
+function PeriodExecutiveSummary({ report, t = (key) => key }) {
   return (
     <section className="grid grid-cols-1 gap-4 xl:grid-cols-12">
       <ExecutivePanel
         className="xl:col-span-4"
         icon={AlertTriangle}
-        title="Top Problem Areas"
+        title={t("reports.executive.topProblemAreas")}
       >
         <RankList
-          emptyText="No problem category data in this period."
+          emptyText={t("reports.executive.noProblemCategoryData")}
           items={report.topCategories}
           total={report.total}
         />
@@ -23,18 +23,19 @@ function PeriodExecutiveSummary({ report }) {
       <ExecutivePanel
         className="xl:col-span-4"
         icon={Building2}
-        title="Hotel / Department Focus"
+        title={t("reports.executive.hotelDepartmentFocus")}
       >
         <FocusList
-          emptyText="No hotel or department pattern yet."
+          emptyText={t("reports.executive.noHotelDepartmentPattern")}
           items={report.focusAreas}
+          t={t}
         />
       </ExecutivePanel>
 
       <ExecutivePanel
         className="xl:col-span-4"
         icon={Lightbulb}
-        title="Management Insight"
+        title={t("reports.executive.managementInsight")}
       >
         <InsightList insights={report.managementInsights} />
       </ExecutivePanel>
@@ -42,10 +43,10 @@ function PeriodExecutiveSummary({ report }) {
       <ExecutivePanel
         className="xl:col-span-12"
         icon={ListChecks}
-        title="Recurring Issues"
+        title={t("reports.executive.recurringIssues")}
       >
         <RecurringIssueList
-          emptyText="No recurring issue pattern strong enough to highlight."
+          emptyText={t("reports.executive.noRecurringIssues")}
           items={report.recurringIssues}
         />
       </ExecutivePanel>
@@ -111,7 +112,7 @@ function ProgressRow({ name, total, value }) {
   );
 }
 
-function FocusList({ emptyText, items = [] }) {
+function FocusList({ emptyText, items = [], t }) {
   if (!items.length) {
     return <EmptyReportText>{emptyText}</EmptyReportText>;
   }
@@ -132,7 +133,7 @@ function FocusList({ emptyText, items = [] }) {
             </span>
           </div>
           <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            {item.overdue} overdue / {item.urgent} urgent
+            {t("reports.executive.riskSummary", { overdue: item.overdue, urgent: item.urgent })}
           </p>
         </div>
       ))}
