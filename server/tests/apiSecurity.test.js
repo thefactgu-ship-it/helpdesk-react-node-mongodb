@@ -820,6 +820,122 @@ test("ticket status update rejects reopening closed tickets before persistence u
   }
 });
 
+test("ticket status update enforces forward workflow transitions", async () => {
+  const originalFindOneAndUpdate = Ticket.findOneAndUpdate;
+  let updateCalled = false;
+  const hotelId = "507f1f77bcf86cd799439012";
+  const restoreTicket = stubScopedTicket({
+    _id: "507f1f77bcf86cd799439021",
+    hotelId,
+    status: "open",
+    assignedTo: "507f1f77bcf86cd799439014",
+  });
+
+  Ticket.findOneAndUpdate = () => {
+    updateCalled = true;
+    throw new Error("Unexpected update");
+  };
+
+  try {
+    const req = {
+      body: { status: "resolved" },
+      params: { id: "507f1f77bcf86cd799439021" },
+      query: {},
+      user: mockAuthenticatedUser("Manager", { hotelId, hotelAccess: [hotelId] }),
+    };
+    const res = mockResponse();
+
+    await ticketController.updateTicketStatus(req, res);
+
+    assert.equal(res.statusCode, 409);
+    assert.equal(res.body.message, "Invalid status transition from open to resolved");
+    assert.equal(updateCalled, false);
+  } finally {
+    restoreTicket();
+    Ticket.findOneAndUpdate = originalFindOneAndUpdate;
+  }
+});
+
+test("admin close requires and records a close reason", async () => {
+  const originalFindOneAndUpdate = Ticket.findOneAndUpdate;
+  let updateCalled = false;
+  const hotelId = "507f1f77bcf86cd799439012";
+  const ticketId = "507f1f77bcf86cd799439021";
+  const restoreTicket = stubScopedTicket({
+    _id: ticketId,
+    hotelId,
+    status: "open",
+    assignedTo: "507f1f77bcf86cd799439014",
+  });
+
+  Ticket.findOneAndUpdate = () => {
+    updateCalled = true;
+    throw new Error("Unexpected update");
+  };
+
+  try {
+    const req = {
+      body: { status: "closed" },
+      params: { id: ticketId },
+      query: {},
+      user: mockAuthenticatedUser("Manager", { hotelId, hotelAccess: [hotelId] }),
+    };
+    const res = mockResponse();
+
+    await ticketController.updateTicketStatus(req, res);
+
+    assert.equal(res.statusCode, 400);
+    assert.equal(res.body.message, "Admin close reason is required");
+    assert.equal(updateCalled, false);
+  } finally {
+    restoreTicket();
+    Ticket.findOneAndUpdate = originalFindOneAndUpdate;
+  }
+});
+
+test("admin close stores close reason in activity log", async () => {
+  const originalFindOneAndUpdate = Ticket.findOneAndUpdate;
+  const hotelId = "507f1f77bcf86cd799439012";
+  const ticketId = "507f1f77bcf86cd799439021";
+  let capturedUpdate = null;
+  const restoreTicket = stubScopedTicket({
+    _id: ticketId,
+    hotelId,
+    status: "resolved",
+    assignedTo: "507f1f77bcf86cd799439014",
+  });
+
+  Ticket.findOneAndUpdate = (query, update) => {
+    capturedUpdate = update;
+    return {
+      populate: async () => ({
+        _id: query._id,
+        hotelId,
+        status: update.status,
+      }),
+    };
+  };
+
+  try {
+    const req = {
+      body: { status: "closed", adminCloseReason: "Requester confirmed by phone" },
+      params: { id: ticketId },
+      query: {},
+      user: mockAuthenticatedUser("Manager", { hotelId, hotelAccess: [hotelId] }),
+    };
+    const res = mockResponse();
+
+    await ticketController.updateTicketStatus(req, res);
+
+    assert.equal(res.statusCode, 200);
+    assert.equal(capturedUpdate.status, "closed");
+    assert.match(capturedUpdate.$push.activityLog.details, /Requester confirmed by phone/);
+  } finally {
+    restoreTicket();
+    Ticket.findOneAndUpdate = originalFindOneAndUpdate;
+  }
+});
+
 test("ticket assignment rejects closed tickets before checking assignee", async () => {
   const originalFindOneAndUpdate = Ticket.findOneAndUpdate;
   const originalUserFindById = User.findById;

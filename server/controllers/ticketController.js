@@ -102,6 +102,12 @@ function rejectClosedTicketMutation(res) {
   });
 }
 
+function rejectInvalidStatusTransition(res, fromStatus, toStatus) {
+  return res.status(409).json({
+    message: `Invalid status transition from ${fromStatus} to ${toStatus}`,
+  });
+}
+
 function getUserDepartmentId(user) {
   return String(user?.departmentId?._id || user?.departmentId || "");
 }
@@ -168,6 +174,36 @@ function canWorkOnTicket(user, ticket) {
 function canSetTicketStatus(user, status) {
   if (canManageTickets(user)) return true;
   return user?.role === "Agent" && status !== "closed";
+}
+
+function canTransitionTicketStatus(user, fromStatus, toStatus) {
+  if (!toStatus || fromStatus === toStatus) return true;
+  if (toStatus === "closed" && canManageTickets(user) && !isClosedStatus(fromStatus)) return true;
+
+  const allowedTransitions = {
+    open: ["in_progress"],
+    in_progress: ["resolved"],
+    resolved: ["closed"],
+    closed: [],
+  };
+
+  return (allowedTransitions[fromStatus] || []).includes(toStatus);
+}
+
+function normalizeAdminCloseReason(value) {
+  return String(value || "").trim();
+}
+
+function ensureAdminCloseReason(req, res, status) {
+  if (status !== "closed" || !canManageTickets(req.user)) return null;
+
+  const reason = normalizeAdminCloseReason(req.body.adminCloseReason || req.body.closeReason);
+  if (!reason) {
+    res.status(400).json({ message: "Admin close reason is required" });
+    return null;
+  }
+
+  return reason.slice(0, 500);
 }
 
 function buildTicketVisibilityQuery(user) {
@@ -876,9 +912,19 @@ async function updateTicket(req, res) {
       if (!canSetTicketStatus(req.user, status)) {
         return res.status(403).json({ message: "Only managers or admins can close tickets" });
       }
+      if (!canTransitionTicketStatus(req.user, existingTicket.status, status)) {
+        return rejectInvalidStatusTransition(res, existingTicket.status, status);
+      }
+
+      const closeReason = ensureAdminCloseReason(req, res, status);
+      if (status === "closed" && canManageTickets(req.user) && !closeReason) return undefined;
 
       updateFields.status = status;
-      logDetails.push(`Status changed to ${status}`);
+      logDetails.push(
+        status === "closed" && closeReason
+          ? `Status changed to closed; admin close reason: ${closeReason}`
+          : `Status changed to ${status}`
+      );
       applyResolvedAtForStatus(updateFields, existingTicket, status);
     }
 
@@ -962,15 +1008,24 @@ async function updateTicketStatus(req, res) {
     if (isClosedStatus(existingTicket.status) && status !== "closed") {
       return rejectClosedTicketMutation(res);
     }
+    if (!canTransitionTicketStatus(req.user, existingTicket.status, status)) {
+      return rejectInvalidStatusTransition(res, existingTicket.status, status);
+    }
+
+    const closeReason = ensureAdminCloseReason(req, res, status);
+    if (status === "closed" && canManageTickets(req.user) && !closeReason) return undefined;
 
     // Build update data
+    const statusLogDetails = status === "closed" && closeReason
+      ? `Status changed to closed; admin close reason: ${closeReason}`
+      : `Status changed to ${status}`;
     const updateData = {
       status,
       updatedBy: req.user.id,
       $push: {
         activityLog: buildLogEntry(
           "status",
-          `Status changed to ${status}`,
+          statusLogDetails,
           req.user.id
         ),
       },

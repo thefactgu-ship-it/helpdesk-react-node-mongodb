@@ -59,6 +59,14 @@ function getErrorMessage(error, fallback) {
   return validationMessage || error?.response?.data?.message || error?.message || fallback;
 }
 
+function getStoredUser() {
+  try {
+    return JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    return null;
+  }
+}
+
 function getEntityId(entity) {
   if (typeof entity === "string") return entity;
   return String(entity?._id || entity?.id || "");
@@ -185,8 +193,10 @@ function App() {
   const [deleteId, setDeleteId] = useState(null);
   const [deleteUserId, setDeleteUserId] = useState(null);
   const [pendingAdminClose, setPendingAdminClose] = useState(null);
+  const [adminCloseReason, setAdminCloseReason] = useState("");
   const [selectedTicket, setSelectedTicket] = useState(null);
   const selectedTicketRef = useRef(null);
+  const passwordChangeToastShownRef = useRef(false);
   const [profileInitialSection, setProfileInitialSection] = useState("profile");
   const [form, setForm] = useState({
     title: "",
@@ -225,6 +235,39 @@ function App() {
     return params;
   }, [currentUser?.role, filterPriority, filterStatus, scopedParams]);
   const t = useMemo(() => createTranslator(language), [language]);
+
+  useEffect(() => {
+    const interceptorId = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error?.response?.data?.code === "PASSWORD_CHANGE_REQUIRED") {
+          const storedUser = getStoredUser();
+          const forcedUser = {
+            ...(storedUser || {}),
+            ...(currentUser || {}),
+            mustChangePassword: true,
+          };
+
+          localStorage.setItem("user", JSON.stringify(forcedUser));
+          setCurrentUser(forcedUser);
+          setActivePage("profile");
+          setProfileInitialSection("password");
+          setLoading(false);
+
+          if (!passwordChangeToastShownRef.current) {
+            toast.error("Please set a new password before continuing.");
+            passwordChangeToastShownRef.current = true;
+          }
+        }
+
+        return Promise.reject(error);
+      },
+    );
+
+    return () => {
+      axios.interceptors.response.eject(interceptorId);
+    };
+  }, [currentUser]);
 
   const fetchTickets = useCallback(async (options = {}) => {
     const { silent = false } = options;
@@ -317,6 +360,7 @@ function App() {
       const res = await axios.post(`${AUTH_URL}/login`, loginForm);
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
+      passwordChangeToastShownRef.current = false;
       setToken(res.data.token);
       setCurrentUser(res.data.user);
       setActivePage(res.data.user?.mustChangePassword ? "profile" : "dashboard");
@@ -338,6 +382,7 @@ function App() {
   };
 
   const handleLogout = () => {
+    passwordChangeToastShownRef.current = false;
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setToken(null);
@@ -461,12 +506,17 @@ function App() {
     }
   };
 
-  const performUpdateStatus = async (id, status) => {
+  const performUpdateStatus = async (id, status, options = {}) => {
     try {
       setUpdatingTicketId(id);
+      const payload = { status };
+      if (options.adminCloseReason) {
+        payload.adminCloseReason = options.adminCloseReason;
+      }
+
       await axios.patch(
         `${API_URL}/${id}/status`,
-        { status },
+        payload,
         {
           headers: authHeaders,
           params: scopedParams,
@@ -504,6 +554,7 @@ function App() {
       const ticket = [selectedTicket, ...tickets, ...summaryTickets].filter(Boolean).find(
         (item) => String(item._id || item.id) === String(id),
       );
+      setAdminCloseReason("");
       setPendingAdminClose({
         id,
         title: ticket?.title || ticket?.ticketNumber || id,
@@ -516,9 +567,17 @@ function App() {
 
   const confirmAdminCloseTicket = async () => {
     const ticket = pendingAdminClose;
-    setPendingAdminClose(null);
     if (!ticket?.id) return;
-    await performUpdateStatus(ticket.id, "closed");
+
+    const reason = adminCloseReason.trim();
+    if (!reason) {
+      toast.error("Admin close reason is required");
+      return;
+    }
+
+    setPendingAdminClose(null);
+    setAdminCloseReason("");
+    await performUpdateStatus(ticket.id, "closed", { adminCloseReason: reason });
   };
 
   const reopenTicket = async (id) => {
@@ -870,6 +929,7 @@ function App() {
         headers: authHeaders,
       });
       toast.success("Password updated. Please log in again.");
+      passwordChangeToastShownRef.current = false;
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       setToken(null);
@@ -1180,6 +1240,7 @@ function App() {
       />
       <ConfirmModal
         confirmLabel={getTextByLanguage(language, "ปิด ticket", "Close ticket")}
+        confirmDisabled={!adminCloseReason.trim()}
         open={!!pendingAdminClose}
         title={getTextByLanguage(language, "ปิด ticket โดยผู้ดูแล", "Close ticket as admin")}
         message={getTextByLanguage(
@@ -1187,9 +1248,31 @@ function App() {
           `ต้องการปิด "${pendingAdminClose?.title || "ticket นี้"}" ใช่ไหม? การปิดโดยผู้ดูแลจะไม่บันทึกคะแนนแทนผู้แจ้ง และจะไม่ถูกนับในคะแนนความพึงพอใจเฉลี่ย`,
           `Close "${pendingAdminClose?.title || "this ticket"}"? Admin closure will not submit a requester rating and will not count toward average satisfaction.`,
         )}
-        onCancel={() => setPendingAdminClose(null)}
+        onCancel={() => {
+          setPendingAdminClose(null);
+          setAdminCloseReason("");
+        }}
         onConfirm={confirmAdminCloseTicket}
-      />
+      >
+        <label className="block text-sm font-bold text-slate-700 dark:text-slate-200" htmlFor="admin-close-reason">
+          {getTextByLanguage(language, "เหตุผลการปิด ticket", "Close reason")}
+        </label>
+        <textarea
+          id="admin-close-reason"
+          className="ops-input mt-2 min-h-28 resize-y"
+          maxLength={500}
+          onChange={(event) => setAdminCloseReason(event.target.value)}
+          placeholder={getTextByLanguage(
+            language,
+            "เช่น ผู้แจ้งยืนยันทางโทรศัพท์ / ปิดงานซ้ำ / เป็นงาน cleanup",
+            "Example: requester confirmed by phone / duplicate / admin cleanup",
+          )}
+          value={adminCloseReason}
+        />
+        <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">
+          {adminCloseReason.trim().length}/500
+        </p>
+      </ConfirmModal>
       <TicketDetailModal
         open={!!selectedTicket}
         ticket={selectedTicket}

@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { Button, ModalShell } from "./ui";
 
 function ConfirmModal({
+  children,
+  confirmDisabled = false,
   confirmLabel = "Delete",
   open,
   title,
@@ -45,7 +47,7 @@ function ConfirmModal({
             <Button onClick={onCancel} variant="secondary">
               Cancel
             </Button>
-            <Button onClick={onConfirm} variant="danger">
+            <Button disabled={confirmDisabled} onClick={onConfirm} variant="danger">
               {confirmLabel}
             </Button>
           </>
@@ -57,6 +59,7 @@ function ConfirmModal({
         <p className="text-sm leading-6 text-slate-500 dark:text-slate-300">
           {message}
         </p>
+        {children && <div className="mt-4">{children}</div>}
       </ModalShell>
     </div>,
     document.body,

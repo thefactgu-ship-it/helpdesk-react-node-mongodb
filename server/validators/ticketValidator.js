@@ -125,6 +125,11 @@ const updateTicketValidationRules = () => [
     .optional()
     .isIn(["open", "in_progress", "resolved", "closed"])
     .withMessage("Invalid status"),
+  body("adminCloseReason")
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ min: 1, max: 500 })
+    .withMessage("Admin close reason must be between 1 and 500 characters"),
   body("dueDate")
     .optional()
     .isISO8601()
@@ -144,6 +149,11 @@ const updateStatusValidationRules = () => [
     .withMessage("Status is required")
     .isIn(["open", "in_progress", "resolved", "closed"])
     .withMessage("Invalid status"),
+  body("adminCloseReason")
+    .optional({ checkFalsy: true })
+    .trim()
+    .isLength({ min: 1, max: 500 })
+    .withMessage("Admin close reason must be between 1 and 500 characters"),
 ];
 
 /**
