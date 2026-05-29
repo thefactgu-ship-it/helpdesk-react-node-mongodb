@@ -255,7 +255,7 @@ function App() {
           setLoading(false);
 
           if (!passwordChangeToastShownRef.current) {
-            toast.error("Please set a new password before continuing.");
+            toast.error(t("common.passwordChangeRequired"));
             passwordChangeToastShownRef.current = true;
           }
         }
@@ -267,7 +267,7 @@ function App() {
     return () => {
       axios.interceptors.response.eject(interceptorId);
     };
-  }, [currentUser]);
+  }, [currentUser, t]);
 
   const fetchTickets = useCallback(async (options = {}) => {
     const { silent = false } = options;
@@ -370,8 +370,8 @@ function App() {
       setDepartments([]);
       toast.success(
         res.data.user?.mustChangePassword
-          ? "Please set a new password before continuing."
-          : "Login successful",
+          ? t("common.passwordChangeRequired")
+          : t("common.loginSuccessful"),
       );
       return true;
     } catch (error) {
@@ -524,12 +524,8 @@ function App() {
       );
       toast.success(
         status === "closed" && canManageTickets
-          ? getTextByLanguage(
-              language,
-              "ปิด ticket แล้วโดยไม่บันทึกคะแนนแทนผู้แจ้ง",
-              "Ticket closed without requester rating",
-            )
-          : "Status updated",
+          ? t("common.ticketClosedWithoutRequesterRating")
+          : t("common.statusUpdated"),
       );
       await fetchTickets();
       await fetchSummaryTickets();
@@ -571,7 +567,7 @@ function App() {
 
     const reason = adminCloseReason.trim();
     if (!reason) {
-      toast.error("Admin close reason is required");
+      toast.error(t("common.adminCloseReasonRequired"));
       return;
     }
 
@@ -1239,15 +1235,13 @@ function App() {
         onConfirm={confirmDeleteUser}
       />
       <ConfirmModal
-        confirmLabel={getTextByLanguage(language, "ปิด ticket", "Close ticket")}
+        confirmLabel={t("common.closeTicket")}
         confirmDisabled={!adminCloseReason.trim()}
         open={!!pendingAdminClose}
-        title={getTextByLanguage(language, "ปิด ticket โดยผู้ดูแล", "Close ticket as admin")}
-        message={getTextByLanguage(
-          language,
-          `ต้องการปิด "${pendingAdminClose?.title || "ticket นี้"}" ใช่ไหม? การปิดโดยผู้ดูแลจะไม่บันทึกคะแนนแทนผู้แจ้ง และจะไม่ถูกนับในคะแนนความพึงพอใจเฉลี่ย`,
-          `Close "${pendingAdminClose?.title || "this ticket"}"? Admin closure will not submit a requester rating and will not count toward average satisfaction.`,
-        )}
+        title={t("common.closeTicketAsAdmin")}
+        message={t("common.adminCloseMessage", {
+          title: pendingAdminClose?.title || t("common.closeTicket"),
+        })}
         onCancel={() => {
           setPendingAdminClose(null);
           setAdminCloseReason("");
@@ -1255,18 +1249,14 @@ function App() {
         onConfirm={confirmAdminCloseTicket}
       >
         <label className="block text-sm font-bold text-slate-700 dark:text-slate-200" htmlFor="admin-close-reason">
-          {getTextByLanguage(language, "เหตุผลการปิด ticket", "Close reason")}
+          {t("common.adminCloseReason")}
         </label>
         <textarea
           id="admin-close-reason"
           className="ops-input mt-2 min-h-28 resize-y"
           maxLength={500}
           onChange={(event) => setAdminCloseReason(event.target.value)}
-          placeholder={getTextByLanguage(
-            language,
-            "เช่น ผู้แจ้งยืนยันทางโทรศัพท์ / ปิดงานซ้ำ / เป็นงาน cleanup",
-            "Example: requester confirmed by phone / duplicate / admin cleanup",
-          )}
+          placeholder={t("common.adminCloseReasonPlaceholder")}
           value={adminCloseReason}
         />
         <p className="mt-2 text-xs font-semibold text-slate-500 dark:text-slate-400">

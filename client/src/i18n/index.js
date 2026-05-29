@@ -65,6 +65,16 @@ export const translations = {
       submit: "ส่ง",
       saving: "กำลังบันทึก...",
       required: "จำเป็น",
+      passwordChangeRequired: "กรุณาตั้งรหัสผ่านใหม่ก่อนใช้งานระบบต่อ",
+      loginSuccessful: "เข้าสู่ระบบสำเร็จ",
+      statusUpdated: "อัปเดตสถานะแล้ว",
+      ticketClosedWithoutRequesterRating: "ปิด ticket แล้วโดยไม่บันทึกคะแนนแทนผู้แจ้ง",
+      closeTicket: "ปิด ticket",
+      closeTicketAsAdmin: "ปิด ticket โดยผู้ดูแล",
+      adminCloseMessage: "ต้องการปิด \"{title}\" ใช่ไหม? การปิดโดยผู้ดูแลจะไม่บันทึกคะแนนแทนผู้แจ้ง และจะไม่ถูกนับในคะแนนความพึงพอใจเฉลี่ย",
+      adminCloseReason: "เหตุผลการปิด ticket",
+      adminCloseReasonRequired: "กรุณาระบุเหตุผลการปิด ticket",
+      adminCloseReasonPlaceholder: "เช่น ผู้แจ้งยืนยันทางโทรศัพท์ / ปิดงานซ้ำ / เป็นงาน cleanup",
     },
     pages: {
       dashboard: {
@@ -601,6 +611,16 @@ export const translations = {
       submit: "Submit",
       saving: "Saving...",
       required: "Required",
+      passwordChangeRequired: "Please set a new password before continuing.",
+      loginSuccessful: "Login successful",
+      statusUpdated: "Status updated",
+      ticketClosedWithoutRequesterRating: "Ticket closed without requester rating",
+      closeTicket: "Close ticket",
+      closeTicketAsAdmin: "Close ticket as admin",
+      adminCloseMessage: "Close \"{title}\"? Admin closure will not submit a requester rating and will not count toward average satisfaction.",
+      adminCloseReason: "Close reason",
+      adminCloseReasonRequired: "Admin close reason is required",
+      adminCloseReasonPlaceholder: "Example: requester confirmed by phone / duplicate / admin cleanup",
     },
     pages: {
       dashboard: {
