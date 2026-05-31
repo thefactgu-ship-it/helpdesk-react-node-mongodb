@@ -9,6 +9,7 @@ function UserManagementPage({
   onUpdateUser,
   savingUser,
   users,
+  allHotels = [],
   hotels,
   selectedHotelId,
 }) {
@@ -22,6 +23,7 @@ function UserManagementPage({
       onUpdateUser={onUpdateUser}
       savingUser={savingUser}
       users={users}
+      allHotels={allHotels}
       hotels={hotels}
       selectedHotelId={selectedHotelId}
     />

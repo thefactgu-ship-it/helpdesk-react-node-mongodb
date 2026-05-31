@@ -17,7 +17,15 @@ const emptyForm = {
   active: true,
 };
 
-function HotelManagementPage({ hotels = [], onHotelsChange, t = (key) => key, token }) {
+const HOTEL_CODE_EDIT_ROLES = ["GroupAdmin", "Admin"];
+
+function HotelManagementPage({
+  currentUser,
+  hotels = [],
+  onHotelsChange,
+  t = (key) => key,
+  token,
+}) {
   const [form, setForm] = useState(emptyForm);
   const [editingHotelId, setEditingHotelId] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -26,6 +34,7 @@ function HotelManagementPage({ hotels = [], onHotelsChange, t = (key) => key, to
   const [formDrawerOpen, setFormDrawerOpen] = useState(false);
   const [openActionHotelId, setOpenActionHotelId] = useState(null);
   const isEditing = Boolean(editingHotelId);
+  const canEditHotelCode = HOTEL_CODE_EDIT_ROLES.includes(currentUser?.role);
   const activeHotels = useMemo(
     () => hotels.filter((hotel) => hotel.active !== false),
     [hotels],
@@ -185,11 +194,16 @@ function HotelManagementPage({ hotels = [], onHotelsChange, t = (key) => key, to
             <Field label={t("settings.hotel.code")}>
               <input
                 value={form.code}
-                disabled={saving || isEditing}
+                disabled={saving || (isEditing && !canEditHotelCode)}
                 onChange={(event) => setForm({ ...form, code: event.target.value })}
                 className={inputClass}
                 placeholder="TBV"
               />
+              {isEditing && canEditHotelCode && (
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  {t("settings.hotel.codeEditHint")}
+                </p>
+              )}
             </Field>
 
             <Field label={t("settings.hotel.region")}>

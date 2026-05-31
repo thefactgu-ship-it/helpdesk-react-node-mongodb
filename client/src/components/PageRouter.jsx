@@ -41,6 +41,7 @@ function PageRouter({
   handleSearchChange,
   handleSelectedHotelChange,
   handleSubmit,
+  allHotels = [],
   hotels,
   loading,
   openTicketDetails,
@@ -165,7 +166,13 @@ function PageRouter({
       )}
 
       {visibleActivePage === "hotels" && ["GroupAdmin", "Admin"].includes(currentUser?.role) && (
-        <HotelManagementPage hotels={hotels} onHotelsChange={fetchHotels} t={t} token={token} />
+        <HotelManagementPage
+          currentUser={currentUser}
+          hotels={allHotels}
+          onHotelsChange={fetchHotels}
+          t={t}
+          token={token}
+        />
       )}
 
       {visibleActivePage === "user-management" && canManageUsers && (
@@ -178,6 +185,7 @@ function PageRouter({
           savingUser={savingUser}
           users={users}
           departments={departments}
+          allHotels={allHotels}
           hotels={hotels}
           selectedHotelId={selectedHotelId}
         />

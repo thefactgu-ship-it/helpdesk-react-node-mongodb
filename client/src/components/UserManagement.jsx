@@ -35,9 +35,11 @@ function UserManagement({
   onUpdateUser,
   savingUser,
   users,
+  allHotels = [],
   hotels = [],
   selectedHotelId = "all",
 }) {
+  const hotelLabels = allHotels.length ? allHotels : hotels;
   const [form, setForm] = useState(getEmptyUserForm(selectedHotelId));
   const [editingUserId, setEditingUserId] = useState(null);
   const [accountView, setAccountView] = useState("staff");
@@ -543,7 +545,7 @@ function UserManagement({
 
                 <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <MobileMeta label="Team" value={user.departmentId?.name || user.departmentName || user.team || "-"} />
-                  <MobileMeta label="Hotel scope" value={getAccessSummary(user, hotels)} />
+                  <MobileMeta label="Hotel scope" value={getAccessSummary(user, hotelLabels)} />
                 </dl>
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
@@ -629,7 +631,7 @@ function UserManagement({
                       {user.departmentId?.name || user.departmentName || user.team}
                     </td>
                     <td className="truncate px-3 text-slate-600 dark:text-slate-300">
-                      {getAccessSummary(user, hotels)}
+                      {getAccessSummary(user, hotelLabels)}
                     </td>
                     <td className="relative px-3">
                       <UserActionMenu
@@ -682,7 +684,7 @@ function UserManagement({
         <UserDetailDrawer
           currentUser={currentUser}
           deleting={detailUser ? deletingUserId === (detailUser._id || detailUser.id) : false}
-          hotels={hotels}
+          hotels={hotelLabels}
           onClose={() => setDetailUser(null)}
           onDelete={handleDeleteUser}
           onEdit={startEdit}

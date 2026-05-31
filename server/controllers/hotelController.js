@@ -5,9 +5,15 @@ const auditLog = require("../utils/auditLogger");
 
 async function getHotels(req, res) {
   try {
+    const includeInactive =
+      String(req.query.includeInactive) === "true" && canManageHotels(req.user);
     const query = canManageHotels(req.user)
       ? {}
       : { _id: { $in: [req.user.hotelId, ...(req.user.hotelAccess || [])].filter(Boolean) } };
+
+    if (!includeInactive) {
+      query.active = { $ne: false };
+    }
 
     const hotels = await Hotel.find(query).sort({ region: 1, name: 1 });
     res.json(hotels);
@@ -26,6 +32,9 @@ async function createHotel(req, res) {
     auditLog("hotel.created", req, { hotelId: hotel._id, code: hotel.code });
     res.status(201).json(hotel);
   } catch (error) {
+    if (isDuplicateHotelCodeError(error)) {
+      return res.status(400).json({ message: "Hotel code already exists" });
+    }
     sendError(res, 400, "Failed to create hotel", error);
   }
 }
@@ -44,9 +53,12 @@ async function updateHotel(req, res) {
 
     if (!hotel) return res.status(404).json({ message: "Hotel not found" });
 
-    auditLog("hotel.updated", req, { hotelId: hotel._id });
+    auditLog("hotel.updated", req, { hotelId: hotel._id, code: hotel.code });
     res.json(hotel);
   } catch (error) {
+    if (isDuplicateHotelCodeError(error)) {
+      return res.status(400).json({ message: "Hotel code already exists" });
+    }
     sendError(res, 400, "Failed to update hotel", error);
   }
 }
@@ -90,6 +102,10 @@ function buildHotelPayload(body, options = {}) {
   }
 
   return payload;
+}
+
+function isDuplicateHotelCodeError(error) {
+  return error?.code === 11000;
 }
 
 function copyField(target, source, field, optional, transform = (value) => value) {

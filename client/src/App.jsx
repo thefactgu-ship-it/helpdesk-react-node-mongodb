@@ -29,7 +29,8 @@ import { API_BASE_URL } from "./services/api";
 import { getDepartments } from "./services/departmentService";
 import { getHotels } from "./services/hotelService";
 import { getActiveHotelContext } from "./utils/hotelContext";
-import { getErrorMessage, getUserHotelAccessIds } from "./utils/entityHelpers";
+import { getEntityId, getErrorMessage, getUserHotelAccessIds } from "./utils/entityHelpers";
+import { filterActiveHotels } from "./utils/hotelHelpers";
 import { lazyWithDeployRetry } from "./utils/lazyWithDeployRetry";
 
 const ProfilePage = lazyWithDeployRetry(() => import("./pages/ProfilePage"));
@@ -126,7 +127,7 @@ function App() {
     }
 
     try {
-      const data = await getHotels(token);
+      const data = await getHotels(token, { includeInactive: true });
       setHotels(data);
     } catch (error) {
       console.error("Failed to fetch hotels", error);
@@ -147,14 +148,15 @@ function App() {
     }
   }, [scopedParams, token]);
 
+  const selectableHotels = useMemo(() => filterActiveHotels(hotels), [hotels]);
   const accessibleHotelIds = [...new Set(getUserHotelAccessIds(currentUser))];
   const canSelectHotel =
-    hotels.length > 1 &&
+    selectableHotels.length > 1 &&
     (groupRoles.includes(currentUser?.role) || accessibleHotelIds.length > 1);
   const shouldShowDashboardHotelChip = dashboardHotelChipRoles.has(currentUser?.role);
   const activeHotelContext = useMemo(
-    () => getActiveHotelContext({ currentUser, hotels, language, selectedHotelId, t }),
-    [currentUser, hotels, language, selectedHotelId, t],
+    () => getActiveHotelContext({ currentUser, hotels: selectableHotels, language, selectedHotelId, t }),
+    [currentUser, selectableHotels, language, selectedHotelId, t],
   );
 
   const visibleActivePage = useMemo(() => {
@@ -291,7 +293,7 @@ function App() {
                 return null;
               })
           : Promise.resolve([]),
-        getHotels(token).catch((error) => {
+        getHotels(token, { includeInactive: true }).catch((error) => {
           console.error("Failed to fetch hotels", error);
           return null;
         }),
@@ -353,6 +355,16 @@ function App() {
     if (!selectedHotelId) return;
     localStorage.setItem("selectedHotelId", selectedHotelId);
   }, [selectedHotelId]);
+
+  useEffect(() => {
+    if (!selectedHotelId || selectedHotelId === "all") return;
+    const isStillSelectable = selectableHotels.some(
+      (hotel) => getEntityId(hotel) === String(selectedHotelId),
+    );
+    if (!isStillSelectable) {
+      setSelectedHotelId("all");
+    }
+  }, [selectableHotels, selectedHotelId]);
 
   useEffect(() => {
     persistLanguage(language);
@@ -476,7 +488,7 @@ function App() {
               canSelectHotel={canSelectHotel}
               currentPageMeta={currentPageMeta}
               darkMode={darkMode}
-              hotels={hotels}
+              hotels={selectableHotels}
               language={language}
               onOpenNotificationTicket={ticketActions.openNotificationTicket}
               onRealtimeNotification={ticketActions.syncTicketsFromRealtime}
@@ -523,7 +535,8 @@ function App() {
                 handleSearchChange={handleSearchChange}
                 handleSelectedHotelChange={handleSelectedHotelChange}
                 handleSubmit={ticketActions.handleSubmit}
-                hotels={hotels}
+                allHotels={hotels}
+                hotels={selectableHotels}
                 loading={loading}
                 openTicketDetails={ticketActions.openTicketDetails}
                 profileInitialSection={profileInitialSection}
