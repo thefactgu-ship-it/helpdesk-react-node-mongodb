@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 import { API_BASE_URL } from "../services/api";
 import ThemedSelect from "./ThemedSelect";
 import { Badge, Button, Card } from "./ui";
@@ -22,6 +23,8 @@ function TicketDetailModal({
   onUpdatePriority,
   t,
 }) {
+  useBodyScrollLock(open);
+
   if (!open || !ticket) return null;
 
   return (
@@ -71,11 +74,9 @@ function TicketDetailModalContent({
     };
 
     document.addEventListener("keydown", closeOnEscape);
-    document.body.style.overflow = "hidden";
 
     return () => {
       document.removeEventListener("keydown", closeOnEscape);
-      document.body.style.overflow = "";
     };
   }, [onClose]);
 

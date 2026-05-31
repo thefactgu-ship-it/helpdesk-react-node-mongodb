@@ -24,6 +24,7 @@ import {
   canManageHotelSettings,
   canManageUsers,
 } from "../config/rolePolicy";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 
 const menuGroups = [
   {
@@ -97,6 +98,7 @@ function Sidebar({
   const isHotelSettingsManager = canManageHotelSettings(currentUser?.role);
   const isUserManager = canManageUsers(currentUser?.role);
   const isRequester = currentUser?.role === "User";
+  useBodyScrollLock(drawerOpen);
   const visibleGroups = useMemo(
     () =>
       menuGroups
@@ -139,11 +141,9 @@ function Sidebar({
     };
 
     document.addEventListener("keydown", closeOnEscape);
-    document.body.style.overflow = "hidden";
 
     return () => {
       document.removeEventListener("keydown", closeOnEscape);
-      document.body.style.overflow = "";
     };
   }, [drawerOpen]);
 

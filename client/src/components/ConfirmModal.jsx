@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 import { Button, ModalShell } from "./ui";
 
 function ConfirmModal({
@@ -12,6 +13,8 @@ function ConfirmModal({
   onCancel,
   onConfirm,
 }) {
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (!open) return undefined;
 
@@ -22,12 +25,9 @@ function ConfirmModal({
     };
 
     document.addEventListener("keydown", handleKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
     };
   }, [onCancel, open]);
 

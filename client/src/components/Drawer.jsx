@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 import { DrawerShell } from "./ui";
 
 function Drawer({
@@ -12,6 +13,8 @@ function Drawer({
   title,
   widthClass = "max-w-xl",
 }) {
+  useBodyScrollLock(open);
+
   useEffect(() => {
     if (!open) return undefined;
 
@@ -20,12 +23,9 @@ function Drawer({
     };
 
     document.addEventListener("keydown", handleKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
     };
   }, [onClose, open]);
 
