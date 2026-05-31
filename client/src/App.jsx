@@ -29,8 +29,8 @@ import { API_BASE_URL } from "./services/api";
 import { getDepartments } from "./services/departmentService";
 import { getHotels } from "./services/hotelService";
 import { getActiveHotelContext } from "./utils/hotelContext";
-import { getEntityId, getErrorMessage, getUserHotelAccessIds } from "./utils/entityHelpers";
-import { filterActiveHotels } from "./utils/hotelHelpers";
+import { getErrorMessage, getUserHotelAccessIds } from "./utils/entityHelpers";
+import { filterActiveHotels, resolveSelectedHotelId } from "./utils/hotelHelpers";
 import { lazyWithDeployRetry } from "./utils/lazyWithDeployRetry";
 
 const ProfilePage = lazyWithDeployRetry(() => import("./pages/ProfilePage"));
@@ -74,10 +74,16 @@ function App() {
     updateMyProfile,
   } = auth;
 
+  const selectableHotels = useMemo(() => filterActiveHotels(hotels), [hotels]);
+  const effectiveSelectedHotelId = useMemo(
+    () => resolveSelectedHotelId(selectedHotelId, selectableHotels),
+    [selectedHotelId, selectableHotels],
+  );
+
   const scopedParams = useMemo(() => {
-    if (!selectedHotelId || selectedHotelId === "all") return {};
-    return { hotelId: selectedHotelId };
-  }, [selectedHotelId]);
+    if (!effectiveSelectedHotelId || effectiveSelectedHotelId === "all") return {};
+    return { hotelId: effectiveSelectedHotelId };
+  }, [effectiveSelectedHotelId]);
 
   const ticketListParams = useMemo(() => {
     const params = { ...scopedParams };
@@ -113,7 +119,7 @@ function App() {
     authHeaders,
     currentUser,
     scopedParams,
-    selectedHotelId,
+    selectedHotelId: effectiveSelectedHotelId,
     setCurrentUser,
     token,
   });
@@ -128,7 +134,9 @@ function App() {
 
     try {
       const data = await getHotels(token, { includeInactive: true });
+      const activeHotels = filterActiveHotels(data);
       setHotels(data);
+      setSelectedHotelId((current) => resolveSelectedHotelId(current, activeHotels));
     } catch (error) {
       console.error("Failed to fetch hotels", error);
     }
@@ -148,15 +156,21 @@ function App() {
     }
   }, [scopedParams, token]);
 
-  const selectableHotels = useMemo(() => filterActiveHotels(hotels), [hotels]);
   const accessibleHotelIds = [...new Set(getUserHotelAccessIds(currentUser))];
   const canSelectHotel =
     selectableHotels.length > 1 &&
     (groupRoles.includes(currentUser?.role) || accessibleHotelIds.length > 1);
   const shouldShowDashboardHotelChip = dashboardHotelChipRoles.has(currentUser?.role);
   const activeHotelContext = useMemo(
-    () => getActiveHotelContext({ currentUser, hotels: selectableHotels, language, selectedHotelId, t }),
-    [currentUser, selectableHotels, language, selectedHotelId, t],
+    () =>
+      getActiveHotelContext({
+        currentUser,
+        hotels: selectableHotels,
+        language,
+        selectedHotelId: effectiveSelectedHotelId,
+        t,
+      }),
+    [currentUser, selectableHotels, effectiveSelectedHotelId, language, t],
   );
 
   const visibleActivePage = useMemo(() => {
@@ -352,19 +366,9 @@ function App() {
   ]);
 
   useEffect(() => {
-    if (!selectedHotelId) return;
-    localStorage.setItem("selectedHotelId", selectedHotelId);
-  }, [selectedHotelId]);
-
-  useEffect(() => {
-    if (!selectedHotelId || selectedHotelId === "all") return;
-    const isStillSelectable = selectableHotels.some(
-      (hotel) => getEntityId(hotel) === String(selectedHotelId),
-    );
-    if (!isStillSelectable) {
-      setSelectedHotelId("all");
-    }
-  }, [selectableHotels, selectedHotelId]);
+    if (!effectiveSelectedHotelId) return;
+    localStorage.setItem("selectedHotelId", effectiveSelectedHotelId);
+  }, [effectiveSelectedHotelId]);
 
   useEffect(() => {
     persistLanguage(language);
@@ -496,7 +500,7 @@ function App() {
               onSelectedHotelChange={handleSelectedHotelChange}
               onToggleDarkMode={() => setDarkMode((current) => !current)}
               onToggleLanguage={() => setLanguage((current) => (current === "th" ? "en" : "th"))}
-              selectedHotelId={selectedHotelId}
+              selectedHotelId={effectiveSelectedHotelId}
               shouldShowDashboardHotelChip={shouldShowDashboardHotelChip}
               t={t}
               token={token}
@@ -544,7 +548,7 @@ function App() {
                 savingProfile={savingProfile}
                 savingUser={userActions.savingUser}
                 search={search}
-                selectedHotelId={selectedHotelId}
+                selectedHotelId={effectiveSelectedHotelId}
                 setActivePage={setActivePage}
                 setCurrentPage={setCurrentPage}
                 setForm={ticketActions.setForm}
