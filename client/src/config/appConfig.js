@@ -29,6 +29,10 @@ export const pageTitles = {
     title: "Monthly Report",
     subtitle: "Review helpdesk performance by month",
   },
+  "weekly-report": {
+    title: "Weekly Report",
+    subtitle: "Review helpdesk performance by week",
+  },
   "quarterly-report": {
     title: "Quarterly / Yearly",
     subtitle: "Compare ticket trends across longer periods",

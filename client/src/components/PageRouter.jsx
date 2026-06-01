@@ -9,6 +9,7 @@ const HotelManagementPage = lazyWithDeployRetry(() => import("../pages/HotelMana
 const MonthlyReportPage = lazyWithDeployRetry(() => import("../pages/MonthlyReportPage"));
 const ProblemTypesPage = lazyWithDeployRetry(() => import("../pages/ProblemTypesPage"));
 const ProfilePage = lazyWithDeployRetry(() => import("../pages/ProfilePage"));
+const WeeklyReportPage = lazyWithDeployRetry(() => import("../pages/WeeklyReportPage"));
 const QuarterlyYearlyPage = lazyWithDeployRetry(() => import("../pages/QuarterlyYearlyPage"));
 const TicketsPage = lazyWithDeployRetry(() => import("../pages/TicketsPage"));
 const UserManagementPage = lazyWithDeployRetry(() => import("../pages/UserManagementPage"));
@@ -140,6 +141,10 @@ function PageRouter({
 
       {visibleActivePage === "monthly-report" && (
         <MonthlyReportPage hotels={hotels} selectedHotelId={selectedHotelId} t={t} tickets={summaryTickets} />
+      )}
+
+      {visibleActivePage === "weekly-report" && (
+        <WeeklyReportPage hotels={hotels} selectedHotelId={selectedHotelId} t={t} tickets={summaryTickets} />
       )}
 
       {visibleActivePage === "quarterly-report" && (

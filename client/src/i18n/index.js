@@ -93,6 +93,10 @@ export const translations = {
         title: "รายงานรายเดือน",
         subtitle: "สรุปผลงาน Helpdesk รายเดือน",
       },
+      "weekly-report": {
+        title: "รายงานรายสัปดาห์",
+        subtitle: "สรุปผลงาน Helpdesk รายสัปดาห์",
+      },
       "quarterly-report": {
         title: "รายงานไตรมาส / ปี",
         subtitle: "เปรียบเทียบแนวโน้ม ticket ในช่วงเวลายาวขึ้น",
@@ -134,6 +138,7 @@ export const translations = {
       tickets: "คิวงาน",
       addTicket: "แจ้งปัญหา",
       monthlyReport: "รายงานรายเดือน",
+      weeklyReport: "รายงานรายสัปดาห์",
       quarterlyReport: "ไตรมาส / ปี",
       assets: "ทรัพย์สิน",
       auditLogs: "Audit Logs",
@@ -551,6 +556,14 @@ export const translations = {
         snapshot: "ภาพรวมรายเดือน",
         ticketTrend: "แนวโน้ม ticket รายเดือน",
       },
+      weekly: {
+        description: "สรุปจาก ticket ที่สร้างในสัปดาห์ที่เลือก",
+        eyebrow: "รายงานรายสัปดาห์",
+        filterWeek: "กรองสัปดาห์",
+        reportTitle: "รายงาน Helpdesk รายสัปดาห์",
+        snapshot: "ภาพรวมรายสัปดาห์",
+        ticketTrend: "แนวโน้ม ticket รายสัปดาห์",
+      },
       period: {
         bestPeriod: "ช่วงที่มีงานมากที่สุด",
         comparison: "เปรียบเทียบ Active / รอยืนยัน / ปิดแล้ว / เกินกำหนด",
@@ -731,6 +744,10 @@ export const translations = {
         title: "Monthly Report",
         subtitle: "Review helpdesk performance by month",
       },
+      "weekly-report": {
+        title: "Weekly Report",
+        subtitle: "Review helpdesk performance by week",
+      },
       "quarterly-report": {
         title: "Quarterly / Yearly",
         subtitle: "Compare ticket trends across longer periods",
@@ -772,6 +789,7 @@ export const translations = {
       tickets: "Work Queue",
       addTicket: "Add Ticket",
       monthlyReport: "Monthly Report",
+      weeklyReport: "Weekly Report",
       quarterlyReport: "Quarterly / Yearly",
       assets: "Asset Management",
       auditLogs: "Audit Logs",
@@ -1346,6 +1364,14 @@ export const translations = {
         reportTitle: "Monthly Helpdesk Report",
         snapshot: "Monthly Snapshot",
         ticketTrend: "Monthly Ticket Trend",
+      },
+      weekly: {
+        description: "Summary is calculated from tickets created in the selected week.",
+        eyebrow: "Weekly Report",
+        filterWeek: "Filter week",
+        reportTitle: "Weekly Helpdesk Report",
+        snapshot: "Weekly Snapshot",
+        ticketTrend: "Weekly Ticket Trend",
       },
       period: {
         bestPeriod: "Best period",

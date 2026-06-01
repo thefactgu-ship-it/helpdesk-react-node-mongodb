@@ -39,6 +39,7 @@ const menuGroups = [
     labelKey: "nav.reports",
     items: [
       { id: "monthly-report", textKey: "nav.monthlyReport", icon: CalendarDays, enabled: true },
+      { id: "weekly-report", textKey: "nav.weeklyReport", icon: CalendarDays, enabled: true },
       { id: "quarterly-report", textKey: "nav.quarterlyReport", icon: BarChart3, enabled: true },
     ],
   },

@@ -176,7 +176,7 @@ function App() {
   const visibleActivePage = useMemo(() => {
     if (
       currentUser?.role === "User" &&
-      (activePage === "monthly-report" || activePage === "quarterly-report")
+      (activePage === "monthly-report" || activePage === "quarterly-report" || activePage === "weekly-report")
     ) {
       return "dashboard";
     }
