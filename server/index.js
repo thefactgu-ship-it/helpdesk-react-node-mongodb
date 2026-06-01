@@ -58,16 +58,21 @@ app.use(sanitizeRequest);
 // Uploaded files are served through protected ticket attachment routes.
 
 // Rate limiting middleware
+const getProdRateLimit = (defaultValue, envVar) => {
+  if (process.env.NODE_ENV !== "production") return 20;
+  return Number(process.env[envVar]) || defaultValue;
+};
+
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === "production" ? 5 : 20,
+  max: getProdRateLimit(15, "PROD_RATE_LIMIT_AUTH_MAX"),
   message: "Too many authentication attempts, please try again later",
   standardHeaders: true,
   legacyHeaders: false,
 });
 const passwordChangeLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === "production" ? 5 : 20,
+  max: getProdRateLimit(10, "PROD_RATE_LIMIT_PASSWORD_MAX"),
   message: "Too many password change attempts, please try again later",
   standardHeaders: true,
   legacyHeaders: false,
