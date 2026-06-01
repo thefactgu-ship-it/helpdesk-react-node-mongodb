@@ -170,16 +170,36 @@ async function ensureAdminUser(defaultHotel) {
   const adminPassword = process.env.ADMIN_PASSWORD || "ChangeMeNow!2026";
   const adminName = process.env.ADMIN_NAME || "System Admin";
 
-  const existingAdmin = await User.findOne({ email: adminEmail, hotelId: defaultHotel._id });
+  const existingAdmin = await User.findOne({ email: adminEmail });
 
   if (existingAdmin) {
-    if (!["Admin", "GroupAdmin"].includes(existingAdmin.role)) {
-      existingAdmin.role = "GroupAdmin";
-      existingAdmin.team = existingAdmin.team || "System";
-      existingAdmin.hotelId = existingAdmin.hotelId || defaultHotel._id;
+    let updated = false;
+
+    if (!['Admin', 'GroupAdmin'].includes(existingAdmin.role)) {
+      existingAdmin.role = 'GroupAdmin';
+      updated = true;
+    }
+
+    if (!existingAdmin.team) {
+      existingAdmin.team = 'System';
+      updated = true;
+    }
+
+    if (!existingAdmin.hotelId) {
+      existingAdmin.hotelId = defaultHotel._id;
+      updated = true;
+    }
+
+    if (!Array.isArray(existingAdmin.hotelAccess) || !existingAdmin.hotelAccess.length) {
+      existingAdmin.hotelAccess = [defaultHotel._id];
+      updated = true;
+    }
+
+    if (updated) {
       await existingAdmin.save();
       console.log(`Admin role ensured for ${adminEmail}`);
     }
+
     return;
   }
 
@@ -189,8 +209,8 @@ async function ensureAdminUser(defaultHotel) {
     name: adminName,
     email: adminEmail,
     password: hashedPassword,
-    role: "GroupAdmin",
-    team: "System",
+    role: 'GroupAdmin',
+    team: 'System',
     hotelId: defaultHotel._id,
     hotelAccess: [defaultHotel._id],
   });
