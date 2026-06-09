@@ -194,7 +194,7 @@ async function login(req, res) {
         hotelAccess: user.hotelAccess || [],
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "3d" }
     );
 
     res.json({
