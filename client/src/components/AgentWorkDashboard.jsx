@@ -222,7 +222,7 @@ function AgentKpi({ detail, icon: Icon, label, tone = "purple", value }) {
     amber: "bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200",
     purple: "bg-slate-100 text-slate-700 dark:bg-white/[0.06] dark:text-teal-50",
     emerald: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-200",
-    rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200",
+    rose: "bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-100",
   };
 
   return (

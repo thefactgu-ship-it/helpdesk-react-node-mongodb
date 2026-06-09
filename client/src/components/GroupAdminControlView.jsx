@@ -71,7 +71,7 @@ export function GroupAdminControlView({
       <div className="hidden overflow-x-auto 2xl:block">
         <table className="min-w-[78rem] w-full text-left text-sm">
           <thead>
-            <tr className="border-b border-slate-200 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
+            <tr className="border-b border-slate-200 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
               <th className="px-3 py-3 font-black">{text.ticketColumn}</th>
               <th className="px-3 font-black">{text.hotelColumn}</th>
               <th className="px-3 font-black">{text.riskColumn}</th>
@@ -133,7 +133,7 @@ export function GroupAdminQueueKpis({ kpis, text }) {
           <p className={`${hasSignal ? "text-3xl" : "text-2xl"} font-black text-slate-950 dark:text-white ${item.tone}`}>
             {item.value.toLocaleString()}
           </p>
-          <p className="mt-1 break-words text-xs font-bold text-slate-500 dark:text-slate-400">
+          <p className="mt-1 break-words text-sm font-bold text-slate-500 dark:text-slate-400">
             {item.label}
           </p>
         </div>
@@ -165,16 +165,25 @@ function GroupAdminControlRow({
   return (
     <tr
       className={`ops-table-row ${getControlRowAccentClass(ticket)}`}
+      role="button"
+      tabIndex={0}
       onClick={() => onOpenDrawer(ticket)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpenDrawer(ticket);
+        }
+      }}
+      aria-label={`${ticket.ticketNumber}, ${ticket.title}`}
     >
       <td className="max-w-xs px-3 py-4">
-        <p className="text-xs font-black text-teal-700 dark:text-teal-200">{ticket.ticketNumber}</p>
+        <p className="text-sm font-black text-teal-700 dark:text-teal-200">{ticket.ticketNumber}</p>
         <p className="mt-1 line-clamp-2 font-black text-slate-900 dark:text-white">{ticket.title}</p>
-        <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">
+        <p className="mt-1 truncate text-sm text-slate-500 dark:text-slate-400">
           {ticket.category || "-"}
         </p>
       </td>
-      <td className="min-w-44 px-3 text-xs text-slate-500 dark:text-slate-400">
+      <td className="min-w-44 px-3 text-sm text-slate-500 dark:text-slate-400">
         <p className="font-black text-slate-700 dark:text-slate-200">{getTicketHotelLabel(ticket, text.unknownHotel)}</p>
         <p className="mt-1">{ticket.departmentName || ticket.department || "-"}</p>
       </td>
@@ -191,10 +200,10 @@ function GroupAdminControlRow({
       <td className="px-3">
         <Badge text={getStatusLabel(ticket.status, t)} />
       </td>
-      <td className="px-3 text-slate-600 dark:text-slate-300">
+      <td className="px-3 text-sm text-slate-700 dark:text-slate-200">
         {ticket.assignedTo?.name || t("common.unassigned")}
       </td>
-      <td className="min-w-28 px-3 text-slate-500 dark:text-slate-400">
+      <td className="min-w-28 px-3 text-sm text-slate-500 dark:text-slate-400">
         <DueLabel ticket={ticket} />
       </td>
       <td className="relative px-3" onClick={(event) => event.stopPropagation()}>
@@ -246,15 +255,24 @@ function GroupAdminMobileControlCard({
   return (
     <article
       className={`ops-card cursor-pointer ${getControlRowAccentClass(ticket)}`}
+      role="button"
+      tabIndex={0}
       onClick={() => onOpenDrawer(ticket)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpenDrawer(ticket);
+        }
+      }}
+      aria-label={`${ticket.ticketNumber}, ${ticket.title}`}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-black text-teal-700 dark:text-teal-200">{ticket.ticketNumber}</p>
+          <p className="text-sm font-black text-teal-700 dark:text-teal-200">{ticket.ticketNumber}</p>
           <h4 className="mt-1 line-clamp-2 break-words text-base font-black text-slate-950 dark:text-white">
             {ticket.title}
           </h4>
-          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             {getTicketHotelLabel(ticket, text.unknownHotel)} / {ticket.departmentName || ticket.department || "-"}
           </p>
         </div>
@@ -315,10 +333,10 @@ function GroupAdminEmptyState({ activeQueue, text }) {
 function MobileMeta({ label, value }) {
   return (
     <div className="rounded-lg border border-teal-100/70 bg-white/80 p-3 dark:border-teal-300/10 dark:bg-white/5">
-      <dt className="text-[11px] font-bold text-slate-400">
+      <dt className="text-sm font-semibold text-slate-400">
         {label}
       </dt>
-      <dd className="mt-1 break-words font-semibold text-slate-800 dark:text-slate-100">
+      <dd className="mt-1 break-words text-sm font-semibold text-slate-800 dark:text-slate-100">
         {value}
       </dd>
     </div>

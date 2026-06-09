@@ -147,7 +147,7 @@ function InsightList({ insights = [] }) {
       {insights.map((insight) => (
         <div
           key={insight}
-          className="rounded-lg border-l-4 border-slate-700 bg-slate-100/80 px-3 py-2 text-sm font-semibold leading-6 text-slate-700 dark:border-teal-100/50 dark:bg-white/[0.06] dark:text-slate-200"
+          className="rounded-lg bg-slate-100/80 px-3 py-2 text-sm font-semibold leading-6 text-slate-700 ring-1 ring-slate-200/70 dark:bg-white/[0.08] dark:text-slate-100 dark:ring-teal-100/15"
         >
           {insight}
         </div>

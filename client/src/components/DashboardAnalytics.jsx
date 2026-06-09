@@ -248,7 +248,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
     gridColor,
     accent,
     tooltipClass:
-      "rounded-xl border border-teal-100/90 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(6,78,59,0.14)] backdrop-blur-md dark:border-teal-300/15 dark:bg-[#07181c]/95 dark:text-slate-200",
+      "rounded-xl border border-teal-100/90 bg-white/95 px-3 py-2 text-sm text-slate-700 shadow-[0_16px_40px_rgba(6,78,59,0.14)] backdrop-blur-md dark:border-teal-300/15 dark:bg-[#07181c]/95 dark:text-slate-200",
   };
 
   return (
@@ -288,6 +288,15 @@ function DashboardAnalytics({ darkMode, tickets }) {
             />
           </div>
         </div>
+      </section>
+
+      <section className="rounded-3xl border border-slate-200/70 bg-slate-50/90 p-4 text-sm text-slate-700 dark:border-white/10 dark:bg-white/5 dark:text-slate-300">
+        <p className="font-semibold text-slate-900 dark:text-white">How to use this dashboard</p>
+        <ul className="mt-3 space-y-2 list-inside text-slate-600 dark:text-slate-300">
+          <li>• Review SLA watch and escalation queue first—these are the tickets that need immediate attention.</li>
+          <li>• Check ticket status and category trends to spot recurring issues and workload shifts.</li>
+          <li>• Use the weekly trend line to confirm whether overall volume is increasing or easing.</li>
+        </ul>
       </section>
 
       <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
@@ -385,7 +394,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
         </DashboardPanel>
 
         <DashboardPanel className="xl:col-span-6" title="Tickets Weekly Trend">
-          <div className="mb-4 flex flex-wrap items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+          <div className="mb-4 flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
             <LegendDot label="Created" />
             <span className="font-semibold text-slate-800 dark:text-slate-100">
               {data.weeklyTrend.reduce((sum, item) => sum + item.value, 0)} total
@@ -398,12 +407,12 @@ function DashboardAnalytics({ darkMode, tickets }) {
                 <CartesianGrid stroke={chartTheme.gridColor} strokeDasharray="3 3" />
                 <XAxis
                   dataKey="name"
-                  tick={{ fill: chartTheme.axisColor, fontSize: 11 }}
+                  tick={{ fill: chartTheme.axisColor, fontSize: 12 }}
                   tickLine={false}
                 />
                 <YAxis
                   allowDecimals={false}
-                  tick={{ fill: chartTheme.axisColor, fontSize: 11 }}
+                  tick={{ fill: chartTheme.axisColor, fontSize: 12 }}
                   tickLine={false}
                 />
                 <Tooltip content={<ChartTooltip />} />
@@ -412,7 +421,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
                   dataKey="value"
                   stroke={chartTheme.accent}
                   strokeWidth={3}
-                  dot={{ fill: chartTheme.accent, r: 3 }}
+                  dot={{ fill: chartTheme.accent, r: 4 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -425,7 +434,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
               <BarChart data={data.severityData}>
                 <XAxis
                   dataKey="name"
-                  tick={{ fill: chartTheme.axisColor, fontSize: 10 }}
+                  tick={{ fill: chartTheme.axisColor, fontSize: 12 }}
                   tickLine={false}
                 />
                 <YAxis hide allowDecimals={false} />
@@ -461,7 +470,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
 
         <DashboardPanel className="xl:col-span-6" title="By Success Rate">
           <div className="flex h-full min-h-40 flex-col justify-center">
-            <div className="mb-5 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+            <div className="mb-5 flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
               <span>0%</span>
               <span>{getSuccessDetail(data.completionStats)}</span>
               <span>50%</span>
@@ -469,7 +478,7 @@ function DashboardAnalytics({ darkMode, tickets }) {
             </div>
             <div className="relative h-5 rounded-full bg-teal-100/70 dark:bg-teal-400/10">
               <div
-                className="h-full rounded-full bg-gradient-to-r from-teal-700 via-teal-400 to-emerald-300"
+                className="h-full rounded-full bg-teal-700 dark:bg-teal-200"
                 style={{ width: `${data.completionStats.successRate}%` }}
               />
               <div
@@ -483,12 +492,12 @@ function DashboardAnalytics({ darkMode, tickets }) {
         </DashboardPanel>
 
         <DashboardPanel className="xl:col-span-3" title="By Open Days">
-          <div className="h-48">
+          <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.openDayBuckets}>
                 <XAxis
                   dataKey="name"
-                  tick={{ fill: chartTheme.axisColor, fontSize: 10 }}
+                  tick={{ fill: chartTheme.axisColor, fontSize: 12 }}
                   tickLine={false}
                 />
                 <YAxis hide allowDecimals={false} />
@@ -510,22 +519,22 @@ function EscalationItem({ ticket }) {
     <article className="ops-soft-card">
       <div className="mb-3 flex items-center justify-between gap-3">
         <span
-          className={`rounded-full px-2.5 py-1 text-[11px] font-black ${
+          className={`rounded-full px-2.5 py-1 text-sm font-black ${
             isL2
-              ? "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-200"
+              ? "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-100"
               : "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-200"
           }`}
         >
           {ticket.escalationLevel}
         </span>
-        <span className="truncate text-[11px] font-bold uppercase text-slate-400">
+        <span className="truncate text-sm font-bold uppercase text-slate-400">
           {ticket.ticketNumber || ticket.priority}
         </span>
       </div>
       <h4 className="line-clamp-2 text-sm font-black text-slate-900 dark:text-white">
         {ticket.title}
       </h4>
-      <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+      <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
         <EscalationMeta label="Reason" value={ticket.escalationReason} />
         <EscalationMeta label="Owner" value={getAssigneeName(ticket)} />
         <EscalationMeta label="Priority" value={formatStatus(ticket.priority)} />
@@ -541,10 +550,10 @@ function EscalationItem({ ticket }) {
 function EscalationMeta({ label, value }) {
   return (
     <div className="min-w-0">
-      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+      <p className="text-sm font-semibold uppercase tracking-[0.12em] text-slate-400">
         {label}
       </p>
-      <p className="truncate font-semibold text-slate-700 dark:text-slate-200">
+      <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">
         {value}
       </p>
     </div>
@@ -561,7 +570,7 @@ function DashboardPanel({ children, className = "", title }) {
     <section
       className={`ops-soft-panel ${className}`}
     >
-      <h3 className="mb-5 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
+      <h3 className="mb-5 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
         {title}
       </h3>
       {children}
@@ -572,17 +581,17 @@ function DashboardPanel({ children, className = "", title }) {
 function ProgressRow({ label, percent, value }) {
   return (
     <div>
-      <div className="mb-2 flex items-center justify-between gap-3 text-xs">
-        <span className="truncate font-semibold text-slate-600 dark:text-slate-300">
+      <div className="mb-2 flex items-center justify-between gap-3 text-sm">
+        <span className="truncate font-semibold text-slate-700 dark:text-slate-200">
           {label}
         </span>
-        <span className="shrink-0 text-slate-500 dark:text-slate-400">
+        <span className="shrink-0 text-sm text-slate-500 dark:text-slate-400">
           {value.toLocaleString()} / {percent}%
         </span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full bg-teal-100/70 dark:bg-teal-400/10">
+      <div className="h-4 overflow-hidden rounded-full bg-teal-100/70 dark:bg-teal-400/10">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-teal-700 to-teal-300"
+          className="h-full rounded-full bg-teal-700 dark:bg-teal-200"
           style={{ width: `${percent}%` }}
         />
       </div>
@@ -592,7 +601,7 @@ function ProgressRow({ label, percent, value }) {
 
 function LegendDot({ label }) {
   return (
-    <span className="inline-flex items-center gap-2">
+    <span className="inline-flex items-center gap-2 text-sm">
       <span className="h-2.5 w-2.5 rounded-full bg-teal-600" />
       {label}
     </span>
@@ -603,9 +612,11 @@ function ChartTooltip({ active, label, payload }) {
   if (!active || !payload?.length) return null;
 
   return (
-    <div className="rounded-xl border border-teal-100/90 bg-white/95 px-3 py-2 text-xs text-slate-700 shadow-[0_16px_40px_rgba(6,78,59,0.14)] backdrop-blur-md dark:border-teal-300/15 dark:bg-[#07181c]/95 dark:text-slate-200">
-      <p className="font-semibold">{label}</p>
-      <p>{payload[0].value.toLocaleString()} tickets</p>
+    <div className="rounded-xl border border-teal-100/90 bg-white/95 px-3 py-2 text-sm text-slate-700 shadow-[0_16px_40px_rgba(6,78,59,0.14)] backdrop-blur-md dark:border-teal-300/15 dark:bg-[#07181c]/95 dark:text-slate-200">
+      <p className="font-semibold leading-6">{label}</p>
+      <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+        {payload[0].value.toLocaleString()} tickets
+      </p>
     </div>
   );
 }
@@ -629,7 +640,7 @@ function AnalyticsFocusChip({ icon: Icon, label, tone = "purple", value }) {
     <div className="ops-soft-card p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+          <p className="text-sm font-black uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
             {label}
           </p>
           <p className="mt-2 text-2xl font-black text-slate-950 dark:text-white">

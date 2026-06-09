@@ -65,9 +65,7 @@
   body {
     min-width: 320px;
     background:
-      radial-gradient(ellipse 56rem 30rem at 6% -10%, rgba(15, 118, 110, 0.1), transparent 60%),
-      radial-gradient(ellipse 44rem 28rem at 98% 4%, rgba(51, 65, 85, 0.08), transparent 58%),
-      linear-gradient(180deg, rgba(241, 245, 244, 0.82), rgba(248, 250, 252, 0.96) 24rem),
+      linear-gradient(180deg, rgba(248, 250, 252, 0.98), rgba(241, 245, 244, 0.98) 24rem),
       var(--ops-bg);
     color: var(--ops-text);
     font-family:
@@ -179,7 +177,7 @@
   }
 
   .ops-nav-item-idle {
-    @apply text-teal-50/55 hover:bg-teal-100/[0.10] hover:text-teal-50/90 dark:text-slate-400 dark:hover:bg-teal-100/[0.09] dark:hover:text-teal-100;
+    @apply text-teal-50/55 hover:bg-teal-100/[0.10] hover:text-teal-50/90 dark:text-slate-300 dark:hover:bg-teal-100/[0.09] dark:hover:text-teal-100;
   }
 
   .ops-nav-icon {
@@ -191,7 +189,7 @@
   }
 
   .ops-mobile-icon-button {
-    @apply grid h-11 w-11 place-items-center rounded-lg border border-teal-100/10 bg-white/[0.07] text-teal-100 shadow-sm transition-colors hover:border-teal-100/20 hover:bg-teal-100/[0.10] hover:text-white dark:border-teal-100/10 dark:bg-white/[0.07] dark:text-slate-200 dark:hover:bg-teal-100/[0.10];
+    @apply grid h-11 w-11 place-items-center rounded-lg border border-teal-100/10 bg-white/[0.07] text-teal-100 shadow-sm transition-colors hover:border-teal-100/20 hover:bg-teal-100/[0.10] hover:text-white dark:border-teal-100/10 dark:bg-white/[0.07] dark:text-teal-50 dark:hover:bg-teal-100/[0.10];
   }
 
   .ops-mobile-drawer {
@@ -243,7 +241,7 @@
   }
 
   .ops-danger-button {
-    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-rose-200 bg-white/80 px-4 py-2 text-sm font-black text-rose-600 shadow-sm backdrop-blur-sm transition-colors duration-200 hover:bg-rose-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-transparent dark:border-rose-500/30 dark:bg-white/[0.04] dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:border-slate-800 dark:disabled:text-slate-600;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-rose-200 bg-white/80 px-4 py-2 text-sm font-black text-rose-600 shadow-sm backdrop-blur-sm transition-colors duration-200 hover:bg-rose-50 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400 disabled:hover:bg-transparent dark:border-rose-500/30 dark:bg-white/[0.04] dark:text-rose-100 dark:hover:bg-rose-500/10 dark:disabled:border-slate-800 dark:disabled:text-slate-600;
   }
 
   .ops-table-header-row {
@@ -261,10 +259,7 @@
 
   .ops-hero-banner {
     @apply relative overflow-hidden rounded-xl border border-white/15 p-5 text-white shadow-[var(--ops-shadow-hero)] md:p-6;
-    background:
-      radial-gradient(ellipse 72% 58% at 100% 0%, rgba(45, 212, 191, 0.3), transparent 56%),
-      radial-gradient(ellipse 48% 38% at 0% 100%, rgba(16, 185, 129, 0.26), transparent 52%),
-      linear-gradient(135deg, #06181c 0%, #0a1f23 48%, #0f766e 100%);
+    background: linear-gradient(135deg, #06181c 0%, #0a1f23 48%, #0f766e 100%);
   }
 
   .ops-hero-banner::before {
@@ -350,19 +345,19 @@
   }
 
   .ops-row-accent-purple {
-    @apply border-l-4 border-l-slate-700 dark:border-l-teal-200/70;
+    @apply border-l border-l-slate-700 dark:border-l-teal-200/70;
   }
 
   .ops-row-accent-amber {
-    @apply border-l-4 border-l-amber-500;
+    @apply border-l border-l-amber-500;
   }
 
   .ops-row-accent-rose {
-    @apply border-l-4 border-l-rose-500;
+    @apply border-l border-l-rose-500;
   }
 
   .ops-row-accent-emerald {
-    @apply border-l-4 border-l-emerald-500;
+    @apply border-l border-l-emerald-500;
   }
 
   .ops-soft-icon {
@@ -410,11 +405,11 @@
   }
 
   .ops-menu-item {
-    @apply w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 transition-colors duration-150 hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-200 dark:hover:bg-white/[0.07] dark:hover:text-teal-50 dark:disabled:text-slate-600;
+    @apply w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-slate-700 transition-colors duration-150 hover:bg-slate-100 hover:text-slate-950 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-slate-100 dark:hover:bg-white/[0.07] dark:hover:text-teal-50 dark:disabled:text-slate-600;
   }
 
   .ops-menu-item-danger {
-    @apply w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-rose-600 transition-colors duration-150 hover:bg-rose-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-rose-300 dark:hover:bg-rose-500/10 dark:disabled:text-slate-600;
+    @apply w-full rounded-lg px-3 py-2 text-left text-sm font-semibold text-rose-600 transition-colors duration-150 hover:bg-rose-50 disabled:cursor-not-allowed disabled:text-slate-400 disabled:hover:bg-transparent dark:text-rose-100 dark:hover:bg-rose-500/10 dark:disabled:text-slate-600;
   }
 
   .ops-skeleton-card {
