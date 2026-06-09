@@ -5,5 +5,7 @@ client/.npm-cache
 .env
 dist
 .DS_Store
+.impeccable
+.githup
 server/uploads/*
 !server/uploads/.gitkeep
