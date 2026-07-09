@@ -1,11 +1,40 @@
-node_modules
-.npm-cache
-client/.npm-cache
-.codex/
+# Dependencies
+node_modules/
+.npm-cache/
+client/.npm-cache/
+
+# Local env files
 .env
-dist
+.env*.local
+.env.local
+
+# IDE and Editor files
+.vscode/
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
 .DS_Store
+
+# AI extensions / configs
+.continue/
+.codex/
 .impeccable
 .githup
+
+# Build outputs
+dist/
+dist-ssr/
+build/
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+
+# Server Uploads
 server/uploads/*
 !server/uploads/.gitkeep
