@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { API_BASE_URL } from "../services/api";
+import { API_BASE_URL, AUTH_EXPIRED_EVENT, setupAuthResponseInterceptor } from "../services/api";
 import { getErrorMessage, getStoredUser } from "../utils/entityHelpers";
 
 const AUTH_URL = `${API_BASE_URL}/auth`;
@@ -24,6 +24,17 @@ export function useAuth({ onPasswordChangeRequired, t }) {
 
   const passwordChangeToastShownRef = useRef(false);
 
+  const handleLogout = useCallback(() => {
+    passwordChangeToastShownRef.current = false;
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setToken(null);
+    setCurrentUser(null);
+    localStorage.removeItem("selectedHotelId");
+    setActivePage("dashboard");
+    toast.success("Logged out");
+  }, []);
+
   const authHeaders = useMemo(
     () =>
       token
@@ -34,7 +45,6 @@ export function useAuth({ onPasswordChangeRequired, t }) {
     [token],
   );
 
-  // Axios interceptor: redirect to profile page when password change is required
   useEffect(() => {
     const interceptorId = axios.interceptors.response.use(
       (response) => response,
@@ -67,6 +77,23 @@ export function useAuth({ onPasswordChangeRequired, t }) {
       axios.interceptors.response.eject(interceptorId);
     };
   }, [currentUser, onPasswordChangeRequired, t]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const handleAuthExpired = () => {
+      if (!token) return;
+      handleLogout();
+    };
+
+    window.addEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+    const authInterceptorId = setupAuthResponseInterceptor(axios);
+
+    return () => {
+      window.removeEventListener(AUTH_EXPIRED_EVENT, handleAuthExpired);
+      axios.interceptors.response.eject(authInterceptorId);
+    };
+  }, [handleLogout, token]);
 
   const handleLogin = async (loginForm) => {
     try {
@@ -107,17 +134,6 @@ export function useAuth({ onPasswordChangeRequired, t }) {
       return false;
     }
   };
-
-  const handleLogout = useCallback(() => {
-    passwordChangeToastShownRef.current = false;
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setToken(null);
-    setCurrentUser(null);
-    localStorage.removeItem("selectedHotelId");
-    setActivePage("dashboard");
-    toast.success("Logged out");
-  }, []);
 
   const openProfilePage = useCallback((section = "profile") => {
     setProfileInitialSection(section);
