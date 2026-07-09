@@ -84,7 +84,7 @@ function LoginPage({ onGoogleLogin, onLogin }) {
             window.google.accounts.id.renderButton(googleButtonRef.current, {
               theme: "outline",
               size: "large",
-              width: "auto",
+              width: "100%",
               text: "signin_with",
             });
             setGoogleRendered(true);
@@ -181,7 +181,7 @@ function LoginPage({ onGoogleLogin, onLogin }) {
           <button
             type="submit"
             disabled={loading || googleLoading}
-            className="ops-button-primary w-full py-3.5 text-center"
+            className="ops-button-primary w-full py-3.5"
           >
             {loading ? "Signing in..." : "Login"}
           </button>
@@ -194,7 +194,7 @@ function LoginPage({ onGoogleLogin, onLogin }) {
             <span className="h-px flex-1 bg-slate-200" />
           </div>
           <div className="w-full">
-            <div ref={googleButtonRef} className="mx-auto" />
+            <div ref={googleButtonRef} className="w-full" />
 
             {/* Fallback visible button shown only when the SDK button hasn't rendered */}
             {!googleRendered && (
