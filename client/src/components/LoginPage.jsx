@@ -181,7 +181,7 @@ function LoginPage({ onGoogleLogin, onLogin }) {
           <button
             type="submit"
             disabled={loading || googleLoading}
-            className="ops-button-primary w-full py-3.5 text-center text-sm"
+            className="ops-button-primary w-full py-3.5 text-center"
           >
             {loading ? "Signing in..." : "Login"}
           </button>
