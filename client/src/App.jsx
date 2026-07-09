@@ -296,7 +296,6 @@ function App() {
     if (!token) return undefined;
     if (currentUser?.mustChangePassword) return undefined;
     if (isPendingHotelAssignment(currentUser)) {
-      setLoading(false);
       return undefined;
     }
 
@@ -391,6 +390,18 @@ function App() {
     setTickets,
     setUsers,
   ]);
+
+  useEffect(() => {
+    if (!isPendingHotelAssignment(currentUser)) return undefined;
+
+    const timeoutId = window.setTimeout(() => {
+      setLoading(false);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [currentUser]);
 
   useEffect(() => {
     if (!effectiveSelectedHotelId) return;

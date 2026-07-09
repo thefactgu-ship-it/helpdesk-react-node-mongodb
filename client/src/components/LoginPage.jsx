@@ -40,12 +40,21 @@ function LoginPage({ onGoogleLogin, onLogin }) {
   });
 
   useEffect(() => {
-    if (!googleClientId || !onGoogleLogin) {
+    const timeoutId = window.setTimeout(() => {
       if (!googleClientId) {
         setGoogleError("Google login is not configured yet.");
+      } else {
+        setGoogleError("");
       }
-      return undefined;
-    }
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [googleClientId]);
+
+  useEffect(() => {
+    if (!googleClientId || !onGoogleLogin) return undefined;
 
     let cancelled = false;
 
