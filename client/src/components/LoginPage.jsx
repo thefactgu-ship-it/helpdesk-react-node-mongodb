@@ -81,10 +81,13 @@ function LoginPage({ onGoogleLogin, onLogin }) {
         // we'll keep the visible fallback button that calls `prompt()`.
         try {
           if (googleButtonRef.current && window.google?.accounts?.id?.renderButton) {
+            const containerWidth = googleButtonRef.current.offsetWidth;
+            const targetWidth = Math.min(400, Math.max(90, containerWidth || 384));
+
             window.google.accounts.id.renderButton(googleButtonRef.current, {
               theme: "outline",
               size: "large",
-              width: "100%",
+              width: targetWidth,
               text: "signin_with",
             });
             setGoogleRendered(true);
