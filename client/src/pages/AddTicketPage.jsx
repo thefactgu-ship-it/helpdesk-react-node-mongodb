@@ -127,43 +127,62 @@ function AddTicketPage({
       setForm((currentForm) => {
         const currentUserId = currentUser?.id || currentUser?._id || "";
         const isRequesterUser = currentUser?.role === "User";
+        const isWorkLogMode = ["admin", "groupadmin"].includes(
+          String(currentUser?.role || "").toLowerCase()
+        );
+
         const nextRequester = isRequesterUser
           ? currentUser?.name || ""
-          : currentForm.requester || currentUser?.name || "";
+          : isWorkLogMode
+            ? currentForm.requester || ""
+            : currentForm.requester || currentUser?.name || "";
+
         const defaultRequesterUserId = isRequesterUser ? currentUserId : "";
         const requesterIdIsCurrentManager =
           canAssignTickets &&
           currentUser?.role !== "User" &&
           currentForm.requesterUserId === currentUserId;
+
         const nextRequesterUserId = requesterIdIsCurrentManager
           ? ""
           : isRequesterUser
             ? defaultRequesterUserId
-            : currentForm.requesterUserId || defaultRequesterUserId;
-        const nextDepartmentId =
-          currentForm.departmentId ||
-          currentUser?.departmentId?._id ||
-          currentUser?.departmentId ||
-          "";
-        const nextUserDepartmentName =
-          currentUser?.departmentName || currentUser?.team || "";
+            : isWorkLogMode
+              ? currentForm.requesterUserId || ""
+              : currentForm.requesterUserId || defaultRequesterUserId;
+
+        const nextDepartmentId = isWorkLogMode
+          ? currentForm.departmentId || ""
+          : currentForm.departmentId ||
+            currentUser?.departmentId?._id ||
+            currentUser?.departmentId ||
+            "";
+
+        const nextUserDepartmentName = isWorkLogMode
+          ? ""
+          : currentUser?.departmentName || currentUser?.team || "";
+
         const currentDepartmentIsPlaceholder =
           currentForm.department === "IT" &&
           nextUserDepartmentName &&
           nextUserDepartmentName !== "IT" &&
           !currentForm.departmentId;
+
         const department = activeDepartments.find(
           (item) =>
             (item._id || item.id) === nextDepartmentId ||
-            item.name === currentUser?.departmentName ||
-            item.name === currentUser?.team ||
+            (nextUserDepartmentName && (
+              item.name === currentUser?.departmentName ||
+              item.name === currentUser?.team
+            )) ||
             (!currentDepartmentIsPlaceholder && item.name === currentForm.department),
         );
+
         const resolvedDepartmentId = department?._id || department?.id || nextDepartmentId;
         const nextDepartment =
           department?.name ||
           (currentDepartmentIsPlaceholder ? nextUserDepartmentName : currentForm.department) ||
-          nextUserDepartmentName ||
+          (isWorkLogMode ? "" : nextUserDepartmentName) ||
           "IT";
 
         const nextPriority = canAssignTickets
@@ -171,8 +190,13 @@ function AddTicketPage({
           : currentForm.criticalRequested
             ? "high"
             : "medium";
-        const nextAssignedTo = canAssignTickets ? currentForm.assignedTo || "" : "";
+
+        const nextAssignedTo = canAssignTickets
+          ? currentForm.assignedTo || (isWorkLogMode ? currentUserId : "")
+          : "";
+
         const nextDueDate = canAssignTickets ? currentForm.dueDate || "" : "";
+        const nextStatus = currentForm.status || (isWorkLogMode ? "closed" : "open");
 
         if (
           currentForm.requester === nextRequester &&
@@ -181,7 +205,8 @@ function AddTicketPage({
           currentForm.department === nextDepartment &&
           currentForm.priority === nextPriority &&
           currentForm.assignedTo === nextAssignedTo &&
-          currentForm.dueDate === nextDueDate
+          currentForm.dueDate === nextDueDate &&
+          currentForm.status === nextStatus
         ) {
           return currentForm;
         }
@@ -195,6 +220,7 @@ function AddTicketPage({
           priority: nextPriority,
           assignedTo: nextAssignedTo,
           dueDate: nextDueDate,
+          status: nextStatus,
         };
       });
     };
@@ -217,6 +243,8 @@ function AddTicketPage({
       submissionSummary={submissionSummary}
       canAssignTickets={canAssignTickets}
       users={users}
+      currentUser={currentUser}
+      departments={activeDepartments}
       t={t}
     />
   );

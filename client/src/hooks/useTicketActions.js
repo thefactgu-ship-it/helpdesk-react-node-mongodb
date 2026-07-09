@@ -22,6 +22,7 @@ export const INITIAL_FORM_STATE = Object.freeze({
   criticalRequested: false,
   assignedTo: "",
   dueDate: "",
+  status: "",
 });
 
 /**
@@ -196,6 +197,7 @@ export function useTicketActions({
           assignedTo: canAssignTickets ? form.assignedTo || undefined : undefined,
           dueDate: canManageTickets ? form.dueDate || undefined : undefined,
           hotelId: selectedHotelId || undefined,
+          status: form.status || undefined,
         },
         {
           headers: authHeaders,

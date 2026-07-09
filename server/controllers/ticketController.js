@@ -627,6 +627,7 @@ async function createTicket(req, res) {
       criticalRequested = false,
       dueDate,
       assignedTo,
+      status,
     } = req.body;
 
     // Validate required fields
@@ -687,7 +688,15 @@ async function createTicket(req, res) {
     const dueDateValue = managerCanTriage && dueDate
       ? new Date(dueDate)
       : new Date(Date.now() + slaHours * 3600000);
-    const status = assignedUser ? "in_progress" : "open";
+
+    let initialStatus = assignedUser ? "in_progress" : "open";
+    if (managerCanTriage && status && ["open", "in_progress", "resolved", "closed"].includes(status)) {
+      initialStatus = status;
+    }
+
+    const isResolvedOrClosed = ["resolved", "closed"].includes(initialStatus);
+    const resolvedAt = isResolvedOrClosed ? new Date() : null;
+
     const ticketVisibility = resolveTicketVisibility({
       requestedVisibility: visibility,
       canSetVisibility: managerCanTriage,
@@ -711,20 +720,23 @@ async function createTicket(req, res) {
       priority: effectivePriority,
       visibility: ticketVisibility,
       criticalRequested: criticalReviewRequested,
-      status,
+      status: initialStatus,
       assignedTo: assignedUser,
       slaHours,
       dueDate: dueDateValue,
+      resolvedAt,
       createdBy: req.user.id,
       updatedBy: req.user.id,
       activityLog: [
         buildLogEntry(
           "created",
-          criticalReviewRequested
-            ? "Ticket created; critical review requested"
-            : ticketVisibility === TICKET_VISIBILITY.PRIVATE
-              ? "Ticket created as private"
-            : "Ticket created",
+          isResolvedOrClosed
+            ? `Ticket created and directly marked as ${initialStatus}`
+            : criticalReviewRequested
+              ? "Ticket created; critical review requested"
+              : ticketVisibility === TICKET_VISIBILITY.PRIVATE
+                ? "Ticket created as private"
+                : "Ticket created",
           req.user.id,
         ),
       ],

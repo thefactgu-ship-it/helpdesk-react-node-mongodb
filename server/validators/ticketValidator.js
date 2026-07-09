@@ -65,6 +65,10 @@ const createTicketValidationRules = () => [
     .optional()
     .custom((value) => mongoose.Types.ObjectId.isValid(value))
     .withMessage("Invalid hotel ID"),
+  body("status")
+    .optional()
+    .isIn(["open", "in_progress", "resolved", "closed"])
+    .withMessage("Invalid status"),
 ];
 
 /**
