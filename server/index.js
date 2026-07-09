@@ -39,7 +39,21 @@ const app = express();
 app.use(requestContext);
 
 // Security middleware
-app.use(helmet()); // Set security headers
+// Configure a Content Security Policy that allows Google Identity resources
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", 'https://accounts.google.com', 'https://apis.google.com'],
+        styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com', 'https://accounts.google.com'],
+        imgSrc: ["'self'", 'data:', 'https://lh3.googleusercontent.com'],
+        connectSrc: ["'self'", process.env.CORS_ORIGIN || 'http://localhost:5173'],
+        frameAncestors: ["'self'", 'https://accounts.google.com'],
+      },
+    },
+  })
+); // Set security headers
 
 // CORS configuration - restrict to allowed origins
 const corsOptions = {

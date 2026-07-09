@@ -1,5 +1,5 @@
 import { Building2, ShieldCheck } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const GOOGLE_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
 let googleScriptPromise;
@@ -32,7 +32,9 @@ function LoginPage({ onGoogleLogin, onLogin }) {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState("");
+  const [googleRendered, setGoogleRendered] = useState(false);
   const [showResetHelp, setShowResetHelp] = useState(false);
+  const googleButtonRef = useRef(null);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
   const [loginForm, setLoginForm] = useState({
     email: "",
@@ -75,6 +77,21 @@ function LoginPage({ onGoogleLogin, onLogin }) {
           },
         });
         setGoogleError("");
+        // Try to render the official Google button into our ref. If it fails,
+        // we'll keep the visible fallback button that calls `prompt()`.
+        try {
+          if (googleButtonRef.current && window.google?.accounts?.id?.renderButton) {
+            window.google.accounts.id.renderButton(googleButtonRef.current, {
+              theme: "outline",
+              size: "large",
+              width: 300,
+              text: "signin_with",
+            });
+            setGoogleRendered(true);
+          }
+        } catch (err) {
+          console.warn("Google renderButton failed", err);
+        }
       })
       .catch((error) => {
         console.error("Failed to load Google Identity Services", error);
@@ -104,11 +121,7 @@ function LoginPage({ onGoogleLogin, onLogin }) {
     }
 
     setGoogleError("");
-    window.google.accounts.id.prompt((notification) => {
-      if (notification?.isNotDisplayed() || notification?.isSkippedMoment()) {
-        setGoogleError("Google sign-in was not shown. Please try again.");
-      }
-    });
+    window.google.accounts.id.prompt();
   };
 
   return (
@@ -180,32 +193,39 @@ function LoginPage({ onGoogleLogin, onLogin }) {
             or
             <span className="h-px flex-1 bg-slate-200" />
           </div>
-          <button
-            type="button"
-            onClick={handleGoogleButtonClick}
-            disabled={loading || googleLoading}
-            className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                fill="#4285F4"
-                d="M21.6 12.23c0-.82-.07-1.6-.2-2.35H12v4.45h5.38a4.6 4.6 0 0 1-2 3.02v2.49h3.24c1.9-1.75 2.98-4.33 2.98-7.61Z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 22c2.7 0 4.96-.9 6.62-2.43l-3.24-2.49c-.9.6-2.05.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H3.07v2.58A10 10 0 0 0 12 22Z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M6.41 12.92A5.99 5.99 0 0 1 6.41 9.08V6.5H3.07a10 10 0 0 0 0 12.84l3.34-2.42Z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 6.04c1.47 0 2.79.5 3.83 1.49l2.87-2.87A9.96 9.96 0 0 0 12 2a10 10 0 0 0-8.93 5.5l3.34 2.42C7.2 7.8 9.4 6.04 12 6.04Z"
-              />
-            </svg>
-            {googleLoading ? "Connecting..." : googleClientId ? "Continue with Google" : "Google login unavailable"}
-          </button>
+          <div className="w-full">
+            <div ref={googleButtonRef} className="mx-auto" />
+
+            {/* Fallback visible button shown only when the SDK button hasn't rendered */}
+            {!googleRendered && (
+              <button
+                type="button"
+                onClick={handleGoogleButtonClick}
+                disabled={loading || googleLoading}
+                className="flex w-full items-center justify-center gap-3 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                  <path
+                    fill="#4285F4"
+                    d="M21.6 12.23c0-.82-.07-1.6-.2-2.35H12v4.45h5.38a4.6 4.6 0 0 1-2 3.02v2.49h3.24c1.9-1.75 2.98-4.33 2.98-7.61Z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 22c2.7 0 4.96-.9 6.62-2.43l-3.24-2.49c-.9.6-2.05.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H3.07v2.58A10 10 0 0 0 12 22Z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M6.41 12.92A5.99 5.99 0 0 1 6.41 9.08V6.5H3.07a10 10 0 0 0 0 12.84l3.34-2.42Z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 6.04c1.47 0 2.79.5 3.83 1.49l2.87-2.87A9.96 9.96 0 0 0 12 2a10 10 0 0 0-8.93 5.5l3.34 2.42C7.2 7.8 9.4 6.04 12 6.04Z"
+                  />
+                </svg>
+                {googleLoading ? "Connecting..." : googleClientId ? "Continue with Google" : "Google login unavailable"}
+              </button>
+            )}
+          </div>
           {googleError && <p className="mt-2 text-center text-sm text-amber-700">{googleError}</p>}
         </div>
 
