@@ -84,7 +84,7 @@ function LoginPage({ onGoogleLogin, onLogin }) {
             window.google.accounts.id.renderButton(googleButtonRef.current, {
               theme: "outline",
               size: "large",
-              width: 300,
+              width: "auto",
               text: "signin_with",
             });
             setGoogleRendered(true);
