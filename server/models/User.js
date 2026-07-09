@@ -10,9 +10,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    authProvider: {
+      type: String,
+      enum: ["password", "google"],
+      default: "password",
+    },
+    googleSub: {
+      type: String,
+      trim: true,
+    },
     password: {
       type: String,
-      required: true,
+      required() {
+        return this.authProvider !== "google";
+      },
     },
     passwordChangedAt: {
       type: Date,
@@ -68,6 +79,7 @@ const userSchema = new mongoose.Schema(
 );
 
 userSchema.index({ email: 1, hotelId: 1 }, { unique: true });
+userSchema.index({ googleSub: 1 }, { unique: true, sparse: true });
 userSchema.index({ hotelId: 1, role: 1 });
 userSchema.index({ hotelId: 1, departmentId: 1 });
 

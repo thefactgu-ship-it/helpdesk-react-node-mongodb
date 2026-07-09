@@ -273,6 +273,7 @@ app.get("/readyz", (req, res) => {
 
 // API routes with rate limiting
 app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/google", authLimiter);
 app.use("/api/auth/register", authLimiter);
 app.use("/api/auth/me/password", passwordChangeLimiter);
 app.use("/api/auth", authRoutes);

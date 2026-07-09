@@ -54,7 +54,7 @@ function UserManagement({
   const [formDrawerOpen, setFormDrawerOpen] = useState(false);
   const [openActionUserId, setOpenActionUserId] = useState(null);
   const isEditing = Boolean(editingUserId);
-  const isGroupAdmin = currentUser?.role === "GroupAdmin";
+  const canReviewAllAccounts = ["GroupAdmin", "Admin"].includes(currentUser?.role);
   const activeDepartments = departments.filter((department) => {
     if (department.active === false) return false;
     const departmentHotelId = department.hotelId?._id || department.hotelId || "";
@@ -187,7 +187,7 @@ function UserManagement({
 
   return (
     <div className="space-y-6">
-      {isGroupAdmin && (
+      {canReviewAllAccounts && (
         <section className="ops-panel md:p-6">
           <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
@@ -473,7 +473,7 @@ function UserManagement({
           </div>
         </div>
 
-        {isGroupAdmin && (
+        {canReviewAllAccounts && (
           <div className="mb-5 grid min-w-0 gap-3 lg:grid-cols-5">
             <input
               type="text"
@@ -500,6 +500,7 @@ function UserManagement({
               onChange={(value) => updateFilter(setSetupFilter, value)}
               options={[
                 { value: "all", label: "All setup states", prefix: "A" },
+                { value: "pending-hotel", label: "Pending hotel", prefix: "P" },
                 { value: "needs-review", label: "Needs review", prefix: "!" },
                 { value: "ready", label: "Ready", prefix: "R" },
                 { value: "legacy", label: "Legacy roles", prefix: "L" },

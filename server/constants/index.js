@@ -43,7 +43,7 @@ const DEFAULT_CATEGORY = "General";
 const DEFAULT_DEPARTMENT = "IT";
 
 // API response fields
-const PUBLIC_USER_FIELDS = "name email role team departmentId departmentName active hotelId hotelAccess regions mustChangePassword createdAt updatedAt";
+const PUBLIC_USER_FIELDS = "name email authProvider role team departmentId departmentName active hotelId hotelAccess regions mustChangePassword createdAt updatedAt";
 const TICKET_POPULATE_CONFIG = [
   { path: "hotelId", select: "name code region timezone active" },
   { path: "requesterUserId", select: "name email role team departmentId departmentName hotelId" },

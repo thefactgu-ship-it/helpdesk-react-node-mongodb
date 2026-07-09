@@ -90,6 +90,24 @@ export function useAuth({ onPasswordChangeRequired, t }) {
     }
   };
 
+  const handleGoogleLogin = async (credential) => {
+    try {
+      const res = await axios.post(`${AUTH_URL}/google`, { credential });
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("user", JSON.stringify(res.data.user));
+      passwordChangeToastShownRef.current = false;
+      setToken(res.data.token);
+      setCurrentUser(res.data.user);
+      setActivePage(res.data.user?.mustChangePassword ? "profile" : "dashboard");
+      toast.success(t("common.loginSuccessful"));
+      return true;
+    } catch (error) {
+      console.error("Google login failed", error);
+      toast.error(getErrorMessage(error, "Google login failed"));
+      return false;
+    }
+  };
+
   const handleLogout = useCallback(() => {
     passwordChangeToastShownRef.current = false;
     localStorage.removeItem("token");
@@ -168,6 +186,7 @@ export function useAuth({ onPasswordChangeRequired, t }) {
     changeMyPassword,
     changingPassword,
     currentUser,
+    handleGoogleLogin,
     handleLogin,
     handleLogout,
     openProfilePage,

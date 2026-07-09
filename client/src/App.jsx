@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
+import { ShieldCheck } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import ConfirmModal from "./components/ConfirmModal";
 import LoginPage from "./components/LoginPage";
@@ -39,6 +40,12 @@ const API_URL = `${API_BASE_URL}/tickets`;
 const AUTH_URL = `${API_BASE_URL}/auth`;
 const dashboardHotelChipRoles = new Set(["User", "Manager", "Agent"]);
 
+function isPendingHotelAssignment(user) {
+  const hotelId = user?.hotelId?._id || user?.hotelId || "";
+  const hotelAccess = Array.isArray(user?.hotelAccess) ? user.hotelAccess : [];
+  return Boolean(user) && !hotelId && hotelAccess.length === 0;
+}
+
 function App() {
   const [hotels, setHotels] = useState([]);
   const [departments, setDepartments] = useState([]);
@@ -64,6 +71,7 @@ function App() {
     changingPassword,
     currentUser,
     handleLogin: login,
+    handleGoogleLogin: googleLogin,
     handleLogout: logout,
     openProfilePage,
     profileInitialSection,
@@ -233,6 +241,16 @@ function App() {
     return didLogin;
   };
 
+  const handleGoogleLogin = async (credential) => {
+    const didLogin = await googleLogin(credential);
+    if (didLogin) {
+      resetTickets();
+      setHotels([]);
+      setDepartments([]);
+    }
+    return didLogin;
+  };
+
   const handleLogout = useCallback(() => {
     logout();
     resetShellState();
@@ -277,27 +295,40 @@ function App() {
   useEffect(() => {
     if (!token) return undefined;
     if (currentUser?.mustChangePassword) return undefined;
+    if (isPendingHotelAssignment(currentUser)) {
+      setLoading(false);
+      return undefined;
+    }
 
     let ignore = false;
 
     const loadInitialData = async () => {
+      if (!currentUser) {
+        const currentUserResult = await axios
+          .get(`${AUTH_URL}/me`, { headers: authHeaders })
+          .then((res) => res.data)
+          .catch((error) => {
+            console.error("Failed to fetch current user", error);
+            return null;
+          });
+
+        if (ignore) return;
+
+        if (currentUserResult) {
+          setCurrentUser(currentUserResult);
+          localStorage.setItem("user", JSON.stringify(currentUserResult));
+        }
+        setLoading(false);
+        return;
+      }
+
       const [
-        currentUserResult,
         usersResult,
         hotelsResult,
         departmentsResult,
         ticketsResult,
         summaryTicketsResult,
       ] = await Promise.all([
-        currentUser
-          ? Promise.resolve(null)
-          : axios
-              .get(`${AUTH_URL}/me`, { headers: authHeaders })
-              .then((res) => res.data)
-              .catch((error) => {
-                console.error("Failed to fetch current user", error);
-                return null;
-              }),
         canManageTickets
           ? axios
               .get(`${AUTH_URL}/users`, { headers: authHeaders, params: scopedParams })
@@ -335,10 +366,6 @@ function App() {
 
       if (ignore) return;
 
-      if (currentUserResult) {
-        setCurrentUser(currentUserResult);
-        localStorage.setItem("user", JSON.stringify(currentUserResult));
-      }
       if (usersResult) setUsers(usersResult);
       if (hotelsResult) setHotels(hotelsResult);
       if (departmentsResult) setDepartments(departmentsResult);
@@ -378,7 +405,7 @@ function App() {
     return (
       <>
         <Toaster position="top-right" />
-        <LoginPage onLogin={handleLogin} />
+        <LoginPage onGoogleLogin={handleGoogleLogin} onLogin={handleLogin} />
       </>
     );
   }
@@ -410,6 +437,15 @@ function App() {
             </button>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (isPendingHotelAssignment(currentUser)) {
+    return (
+      <div className={darkMode ? "dark" : ""}>
+        <Toaster position="top-right" />
+        <PendingHotelAssignmentPage currentUser={currentUser} onLogout={handleLogout} />
       </div>
     );
   }
@@ -569,6 +605,36 @@ function App() {
             </Suspense>
           </main>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PendingHotelAssignmentPage({ currentUser, onLogout }) {
+  return (
+    <div className="relative flex min-h-dvh items-center justify-center overflow-hidden bg-[#06181c] p-6">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_18%_0%,rgba(45,212,191,0.18),transparent_56%),linear-gradient(155deg,#061417_0%,#0a1f23_48%,#123237_100%)]" />
+      <div className="relative w-full max-w-lg rounded-xl border border-white/25 bg-white/90 p-8 text-center shadow-[0_24px_70px_rgba(9,5,20,0.46)] backdrop-blur-xl">
+        <div className="mx-auto mb-4 grid h-12 w-12 place-items-center rounded-xl bg-[#0a1f23] text-teal-50 shadow-[0_12px_32px_rgba(6,24,28,0.38)] ring-1 ring-white/25">
+          <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+        </div>
+        <p className="text-sm font-bold uppercase tracking-wide text-teal-700">
+          Account pending setup
+        </p>
+        <h1 className="mt-2 text-2xl font-black tracking-tight text-slate-950">
+          Waiting for hotel assignment
+        </h1>
+        <p className="mt-3 text-sm leading-6 text-slate-600">
+          Your Gmail account {currentUser?.email ? `(${currentUser.email}) ` : ""}
+          has been created. Please ask an administrator to assign your hotel before you can view data or create tickets.
+        </p>
+        <button
+          type="button"
+          onClick={onLogout}
+          className="ops-button-primary mt-6 w-full py-3"
+        >
+          Logout
+        </button>
       </div>
     </div>
   );

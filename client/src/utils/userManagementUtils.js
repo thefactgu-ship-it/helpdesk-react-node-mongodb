@@ -100,6 +100,7 @@ export function matchesUserFilters(user, filters) {
   if (filters.setupFilter === "needs-review" && setupIssues.length === 0) return false;
   if (filters.setupFilter === "ready" && setupIssues.length > 0) return false;
   if (filters.setupFilter === "legacy" && !legacyRoles.has(user.role)) return false;
+  if (filters.setupFilter === "pending-hotel" && getEntityId(user.hotelId)) return false;
 
   return true;
 }
@@ -163,7 +164,7 @@ export function getUserSetupIssues(user) {
 
   if (user.active === false) issues.push({ label: "Inactive", tone: "neutral" });
   if (legacyRoles.has(user.role)) issues.push({ label: "Legacy role", tone: "warning" });
-  if (!primaryHotelId) issues.push({ label: "No hotel", tone: "danger" });
+  if (!primaryHotelId) issues.push({ label: "Pending hotel", tone: "danger" });
   if (user.role === ROLES.USER && !hasDepartment) issues.push({ label: "No department", tone: "danger" });
   if (canUseMultiHotelAccess(user.role) && !accessIds.length) {
     issues.push({ label: "No access", tone: "danger" });
@@ -239,7 +240,7 @@ export function getAccessSummary(user, hotels) {
     .map((id) => hotelLookup.get(id) || user.hotelAccess?.find((hotel) => getEntityId(hotel) === id))
     .filter(Boolean);
   const primaryHotel = user.hotelId || hotelLookup.get(primaryId);
-  const primaryLabel = getHotelLabel(primaryHotel) || "-";
+  const primaryLabel = getHotelLabel(primaryHotel) || "Pending hotel";
 
   return otherHotels.length ? `${primaryLabel} + ${otherHotels.length} more` : primaryLabel;
 }

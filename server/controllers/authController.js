@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const { OAuth2Client } = require("google-auth-library");
 const User = require("../models/User");
 const Hotel = require("../models/Hotel");
 const Department = require("../models/Department");
@@ -17,6 +18,79 @@ const auditLog = require("../utils/auditLogger");
 
 const MULTI_HOTEL_ACCESS_ROLES = new Set(["GroupAdmin", "Admin", "RegionalManager", "HotelAdmin", "Manager"]);
 const HOTEL_ADMIN_ASSIGNABLE_ROLES = new Set(["Manager", "Agent", "User"]);
+const googleClient = new OAuth2Client();
+
+function issueAuthToken(user) {
+  return jwt.sign(
+    {
+      id: user._id,
+      email: user.email,
+      role: user.role,
+      hotelId: user.hotelId,
+      hotelAccess: user.hotelAccess || [],
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "3d" }
+  );
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function getGoogleAllowedEmailDomain() {
+  return String(process.env.GOOGLE_ALLOWED_EMAIL_DOMAIN || "gmail.com")
+    .trim()
+    .toLowerCase();
+}
+
+function isAllowedGoogleEmail(email) {
+  const domain = getGoogleAllowedEmailDomain();
+  return Boolean(email && domain && email.endsWith(`@${domain}`));
+}
+
+function isGoogleAutoCreateEnabled() {
+  return String(process.env.GOOGLE_AUTO_CREATE || "true").toLowerCase() !== "false";
+}
+
+async function verifyGoogleCredential(credential) {
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    const error = new Error("Google login is not configured");
+    error.statusCode = 503;
+    throw error;
+  }
+
+  const ticket = await googleClient.verifyIdToken({
+    idToken: credential,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+  const payload = ticket.getPayload();
+  if (!payload?.email || !payload.email_verified || !payload.sub) {
+    const error = new Error("Google account email is not verified");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  return {
+    email: normalizeEmail(payload.email),
+    name: payload.name || payload.email,
+    sub: payload.sub,
+  };
+}
+
+let verifyGoogleCredentialImpl = verifyGoogleCredential;
+
+function setGoogleCredentialVerifier(verifier) {
+  verifyGoogleCredentialImpl = verifier || verifyGoogleCredential;
+}
+
+function buildAuthResponse(user) {
+  return {
+    token: issueAuthToken(user),
+    user: sanitizeUser(user),
+    mustChangePassword: Boolean(user.mustChangePassword),
+  };
+}
 
 async function resolveHotelId(req, requestedHotelId) {
   if (requestedHotelId) {
@@ -107,6 +181,21 @@ function canManageUserRecord(requester, targetRole) {
   return HOTEL_ADMIN_ASSIGNABLE_ROLES.has(targetRole) && canManageRole(requester.role, targetRole);
 }
 
+async function buildUserManagementScope(req) {
+  const hotelScope = await buildHotelScopeQuery(req.user, req.query);
+  const hasExplicitHotelFilter = Boolean(req.query.hotelId || req.query.hotelIds || req.query.region);
+
+  if (!canManageHotels(req.user) || hasExplicitHotelFilter) return hotelScope;
+
+  return {
+    $or: [
+      hotelScope,
+      { hotelId: null },
+      { hotelId: { $exists: false } },
+    ],
+  };
+}
+
 /**
  * Register new user
  * POST /api/auth/register
@@ -162,14 +251,15 @@ async function register(req, res) {
 async function login(req, res) {
   try {
     const { email, password, hotelId } = req.body;
+    const normalizedEmail = normalizeEmail(email);
 
     // Validate required fields
-    if (!email || !password) {
+    if (!normalizedEmail || !password) {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
     // Find user and compare password
-    const activeUserQuery = { email, active: { $ne: false } };
+    const activeUserQuery = { email: normalizedEmail, active: { $ne: false } };
     if (hotelId) activeUserQuery.hotelId = hotelId;
     const matchingUsers = await User.find(activeUserQuery).sort({ createdAt: 1 });
     const user =
@@ -179,31 +269,75 @@ async function login(req, res) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
+    if (!user.password) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      {
-        id: user._id,
-        email: user.email,
-        role: user.role,
-        hotelId: user.hotelId,
-        hotelAccess: user.hotelAccess || [],
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "3d" }
-    );
-
-    res.json({
-      token,
-      user: sanitizeUser(user),
-      mustChangePassword: Boolean(user.mustChangePassword),
-    });
+    res.json(buildAuthResponse(user));
   } catch (error) {
     res.status(500).json({ message: "Login failed" });
+  }
+}
+
+/**
+ * Login with Google ID token
+ * POST /api/auth/google
+ */
+async function googleLogin(req, res) {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ message: "Google credential is required" });
+    }
+
+    const googleUser = await verifyGoogleCredentialImpl(credential);
+    if (!isAllowedGoogleEmail(googleUser.email)) {
+      return res.status(403).json({ message: "Only Gmail accounts are allowed" });
+    }
+
+    const matchingUsers = await User.find({
+      email: googleUser.email,
+      active: { $ne: false },
+    }).sort({ createdAt: 1 });
+    let user =
+      matchingUsers.find((candidate) => GROUP_ROLES.includes(candidate.role)) ||
+      matchingUsers[0];
+
+    if (!user) {
+      if (!isGoogleAutoCreateEnabled()) {
+        return res.status(403).json({ message: "Google self-registration is disabled" });
+      }
+
+      user = await User.create({
+        name: googleUser.name,
+        email: googleUser.email,
+        authProvider: "google",
+        googleSub: googleUser.sub,
+        role: "User",
+        team: "",
+        departmentName: "",
+        active: true,
+        hotelId: null,
+        hotelAccess: [],
+      });
+      auditLog("user.google_created", req, { userId: user._id, email: user.email });
+    } else if (!user.googleSub || user.authProvider !== "google") {
+      user.authProvider = user.authProvider || "password";
+      user.googleSub = user.googleSub || googleUser.sub;
+      await user.save();
+    }
+
+    res.json(buildAuthResponse(user));
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ message: error.message });
+    }
+    res.status(401).json({ message: "Google login failed" });
   }
 }
 
@@ -213,7 +347,7 @@ async function login(req, res) {
  */
 async function getCurrentUser(req, res) {
   try {
-    const user = await User.findById(req.user.id).select("-password").populate({
+    const user = await User.findById(req.user.id).select("-password -googleSub").populate({
       path: "hotelId",
       select: "name code region timezone active",
     })
@@ -313,11 +447,12 @@ async function getAllUsers(req, res) {
       return res.status(403).json({ message: "User list access denied" });
     }
 
-    const hotelScope = await buildHotelScopeQuery(req.user, req.query);
-    if (req.query.role) hotelScope.role = req.query.role;
-    if (req.query.departmentId) hotelScope.departmentId = req.query.departmentId;
-    if (req.query.active !== undefined) hotelScope.active = String(req.query.active) === "true";
-    const users = await User.find(hotelScope)
+    const hotelScope = await buildUserManagementScope(req);
+    const query = { ...hotelScope };
+    if (req.query.role) query.role = req.query.role;
+    if (req.query.departmentId) query.departmentId = req.query.departmentId;
+    if (req.query.active !== undefined) query.active = String(req.query.active) === "true";
+    const users = await User.find(query)
       .sort({ name: 1 })
       .select(PUBLIC_USER_FIELDS)
       .populate({ path: "hotelId", select: "name code region timezone active" })
@@ -421,7 +556,7 @@ async function updateUser(req, res) {
     if (regions && canManageHotels(req.user)) updateFields.regions = regions;
 
     // Get target user
-    const hotelScope = await buildHotelScopeQuery(req.user, req.query);
+    const hotelScope = await buildUserManagementScope(req);
     const targetUser = await User.findOne({ _id: req.params.id, ...hotelScope });
     if (!targetUser) {
       return res.status(404).json({ message: "User not found" });
@@ -505,7 +640,7 @@ async function deleteUser(req, res) {
     }
 
     // Get target user
-    const hotelScope = await buildHotelScopeQuery(req.user, req.query);
+    const hotelScope = await buildUserManagementScope(req);
     const targetUser = await User.findOne({ _id: req.params.id, ...hotelScope });
     if (!targetUser) {
       return res.status(404).json({ message: "User not found" });
@@ -537,6 +672,7 @@ async function deleteUser(req, res) {
 module.exports = {
   register,
   login,
+  googleLogin,
   getCurrentUser,
   updateCurrentUser,
   updateCurrentUserPassword,
@@ -544,4 +680,10 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
+  _private: {
+    buildUserManagementScope,
+    isAllowedGoogleEmail,
+    setGoogleCredentialVerifier,
+    verifyGoogleCredential,
+  },
 };

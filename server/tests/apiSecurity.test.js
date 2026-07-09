@@ -188,6 +188,147 @@ test("login only searches active accounts", async () => {
   }
 });
 
+test("google login rejects invalid Google credentials", async () => {
+  const originalClientId = process.env.GOOGLE_CLIENT_ID;
+  process.env.GOOGLE_CLIENT_ID = "test-google-client-id";
+  authController._private.setGoogleCredentialVerifier(async () => {
+    const error = new Error("Invalid Google token");
+    error.statusCode = 401;
+    throw error;
+  });
+
+  try {
+    const app = createTestApp();
+    const response = await request(app, "/api/auth/google", {
+      method: "POST",
+      body: { credential: "bad-token" },
+    });
+
+    assert.equal(response.status, 401);
+    assert.equal(response.data.message, "Invalid Google token");
+  } finally {
+    authController._private.setGoogleCredentialVerifier(null);
+    process.env.GOOGLE_CLIENT_ID = originalClientId;
+  }
+});
+
+test("google login rejects non-Gmail accounts", async () => {
+  const originalClientId = process.env.GOOGLE_CLIENT_ID;
+  process.env.GOOGLE_CLIENT_ID = "test-google-client-id";
+  authController._private.setGoogleCredentialVerifier(async () => ({
+    email: "person@example.com",
+    name: "External Person",
+    sub: "google-sub-1",
+  }));
+
+  try {
+    const app = createTestApp();
+    const response = await request(app, "/api/auth/google", {
+      method: "POST",
+      body: { credential: "valid-token" },
+    });
+
+    assert.equal(response.status, 403);
+    assert.equal(response.data.message, "Only Gmail accounts are allowed");
+  } finally {
+    authController._private.setGoogleCredentialVerifier(null);
+    process.env.GOOGLE_CLIENT_ID = originalClientId;
+  }
+});
+
+test("google login auto-creates pending requester for new Gmail accounts", async () => {
+  const originalClientId = process.env.GOOGLE_CLIENT_ID;
+  const originalFind = User.find;
+  const originalCreate = User.create;
+  let capturedCreate = null;
+  process.env.GOOGLE_CLIENT_ID = "test-google-client-id";
+  authController._private.setGoogleCredentialVerifier(async () => ({
+    email: "new.user@gmail.com",
+    name: "New User",
+    sub: "google-sub-new",
+  }));
+  User.find = () => ({
+    sort: async () => [],
+  });
+  User.create = async (payload) => {
+    capturedCreate = payload;
+    return {
+      _id: "507f1f77bcf86cd799439031",
+      ...payload,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+  };
+
+  try {
+    const app = createTestApp();
+    const response = await request(app, "/api/auth/google", {
+      method: "POST",
+      body: { credential: "valid-token" },
+    });
+
+    assert.equal(response.status, 200);
+    assert.ok(response.data.token);
+    assert.equal(response.data.user.email, "new.user@gmail.com");
+    assert.equal(response.data.user.role, "User");
+    assert.equal(response.data.user.hotelId, null);
+    assert.deepEqual(response.data.user.hotelAccess, []);
+    assert.equal(capturedCreate.authProvider, "google");
+    assert.equal(capturedCreate.googleSub, "google-sub-new");
+  } finally {
+    User.find = originalFind;
+    User.create = originalCreate;
+    authController._private.setGoogleCredentialVerifier(null);
+    process.env.GOOGLE_CLIENT_ID = originalClientId;
+  }
+});
+
+test("google login uses existing user role and hotel scope", async () => {
+  const originalClientId = process.env.GOOGLE_CLIENT_ID;
+  const originalFind = User.find;
+  const hotelId = "507f1f77bcf86cd799439012";
+  const existingUser = {
+    _id: "507f1f77bcf86cd799439011",
+    email: "agent.user@gmail.com",
+    name: "Agent User",
+    role: "Agent",
+    team: "IT",
+    authProvider: "password",
+    hotelId,
+    hotelAccess: [hotelId],
+    active: true,
+    async save() {},
+  };
+  process.env.GOOGLE_CLIENT_ID = "test-google-client-id";
+  authController._private.setGoogleCredentialVerifier(async () => ({
+    email: "agent.user@gmail.com",
+    name: "Agent User",
+    sub: "google-sub-existing",
+  }));
+  User.find = () => ({
+    sort: async () => [existingUser],
+  });
+
+  try {
+    const app = createTestApp();
+    const response = await request(app, "/api/auth/google", {
+      method: "POST",
+      body: { credential: "valid-token" },
+    });
+
+    assert.equal(response.status, 200);
+    assert.ok(response.data.token);
+    assert.equal(response.data.user.role, "Agent");
+    assert.equal(response.data.user.hotelId, hotelId);
+    assert.deepEqual(response.data.user.hotelAccess, [hotelId]);
+    assert.equal(existingUser.googleSub, "google-sub-existing");
+  } finally {
+    User.find = originalFind;
+    authController._private.setGoogleCredentialVerifier(null);
+    process.env.GOOGLE_CLIENT_ID = originalClientId;
+  }
+});
+
 test("profile update rejects role, department, and team changes", async () => {
   const app = express();
   app.use(express.json());

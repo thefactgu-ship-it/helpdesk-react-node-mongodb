@@ -6,6 +6,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const {
   registerValidationRules,
   loginValidationRules,
+  googleLoginValidationRules,
   createUserValidationRules,
   updateUserValidationRules,
   updateCurrentUserValidationRules,
@@ -52,6 +53,12 @@ router.post(
   loginValidationRules(),
   handleValidationErrors,
   asyncHandler(authController.login)
+);
+router.post(
+  "/google",
+  googleLoginValidationRules(),
+  handleValidationErrors,
+  asyncHandler(authController.googleLogin)
 );
 
 // Protected auth routes

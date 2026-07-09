@@ -23,6 +23,7 @@ function sanitizeUser(user) {
     _id: user._id,
     name: user.name,
     email: user.email,
+    authProvider: user.authProvider || "password",
     role: user.role,
     team: user.team,
     departmentId: user.departmentId,

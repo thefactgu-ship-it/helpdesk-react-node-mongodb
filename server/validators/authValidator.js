@@ -60,6 +60,16 @@ const loginValidationRules = () => [
 ];
 
 /**
+ * Validation rules for Google login
+ */
+const googleLoginValidationRules = () => [
+  body("credential")
+    .trim()
+    .notEmpty()
+    .withMessage("Google credential is required"),
+];
+
+/**
  * Validation rules for creating a user (admin only)
  */
 const createUserValidationRules = () => [
@@ -240,6 +250,7 @@ const handleValidationErrors = (req, res, next) => {
 module.exports = {
   registerValidationRules,
   loginValidationRules,
+  googleLoginValidationRules,
   createUserValidationRules,
   updateUserValidationRules,
   updateCurrentUserValidationRules,
