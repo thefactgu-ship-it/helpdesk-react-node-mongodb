@@ -45,8 +45,16 @@ function getGoogleAllowedEmailDomain() {
 }
 
 function isAllowedGoogleEmail(email) {
-  const domain = getGoogleAllowedEmailDomain();
-  return Boolean(email && domain && email.endsWith(`@${domain}`));
+  const domainSetting = getGoogleAllowedEmailDomain();
+  if (!email || !domainSetting) return false;
+
+  const allowedDomains = domainSetting
+    .split(",")
+    .map((d) => d.trim())
+    .filter(Boolean);
+
+  const emailDomain = email.split("@").pop().toLowerCase();
+  return allowedDomains.includes(emailDomain);
 }
 
 function isGoogleAutoCreateEnabled() {

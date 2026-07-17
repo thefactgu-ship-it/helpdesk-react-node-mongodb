@@ -1222,3 +1222,25 @@ test("ticket reopen rejects assigned agent on closed ticket", async () => {
     Ticket.findOneAndUpdate = originalFindOneAndUpdate;
   }
 });
+
+test("isAllowedGoogleEmail supports comma-separated domains", () => {
+  const originalEnv = process.env.GOOGLE_ALLOWED_EMAIL_DOMAIN;
+  try {
+    process.env.GOOGLE_ALLOWED_EMAIL_DOMAIN = "gmail.com, thavornbeachvillage.com ,  anotherdomain.co.th";
+    
+    // Allowed cases
+    assert.equal(authController._private.isAllowedGoogleEmail("test@gmail.com"), true);
+    assert.equal(authController._private.isAllowedGoogleEmail("user@thavornbeachvillage.com"), true);
+    assert.equal(authController._private.isAllowedGoogleEmail("staff@anotherdomain.co.th"), true);
+    assert.equal(authController._private.isAllowedGoogleEmail("uppercase@GMAIL.COM"), true);
+
+    // Disallowed cases
+    assert.equal(authController._private.isAllowedGoogleEmail("test@gmail.com.co"), false);
+    assert.equal(authController._private.isAllowedGoogleEmail("user@example.com"), false);
+    assert.equal(authController._private.isAllowedGoogleEmail("invalid-email"), false);
+    assert.equal(authController._private.isAllowedGoogleEmail(""), false);
+    assert.equal(authController._private.isAllowedGoogleEmail(null), false);
+  } finally {
+    process.env.GOOGLE_ALLOWED_EMAIL_DOMAIN = originalEnv;
+  }
+});
