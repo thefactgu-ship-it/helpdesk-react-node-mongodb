@@ -39,7 +39,7 @@ function normalizeEmail(value) {
 }
 
 function getGoogleAllowedEmailDomain() {
-  return String(process.env.GOOGLE_ALLOWED_EMAIL_DOMAIN || "gmail.com")
+  return String(process.env.GOOGLE_ALLOWED_EMAIL_DOMAIN || "gmail.com,thavornbeachvillage.com")
     .trim()
     .toLowerCase();
 }
